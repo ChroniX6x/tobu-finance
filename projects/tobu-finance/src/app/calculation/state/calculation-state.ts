@@ -1,9 +1,9 @@
 import { Injectable } from "@angular/core";
 import { Selector, State } from "@ngxs/store";
 import { DateTime } from "luxon";
-import { GroupType } from "src/app/store/model/group-type.enum";
 import { CalculationGroup } from "../domain/calculation-group";
 import { CalculationParticipant } from "../domain/calculation-participant";
+import { GroupType } from "../domain/group-type";
 
 
 export class CalculationStateModel {

@@ -5,6 +5,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AppLayoutModule } from './layout/app.layout.module';
 import { CalculationModule } from './calculation/calculation.module';
+import { NgxsModule } from '@ngxs/store';
+import { States } from './store';
 
 @NgModule({
   declarations: [
@@ -14,7 +16,9 @@ import { CalculationModule } from './calculation/calculation.module';
     BrowserModule,
     AppRoutingModule,
     AppLayoutModule,
-    CalculationModule
+    CalculationModule,
+
+    NgxsModule.forRoot(States, { developmentMode: true,  })
   ],
   providers: [],
   bootstrap: [AppComponent]

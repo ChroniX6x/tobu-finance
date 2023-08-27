@@ -1,5 +1,6 @@
-import { GroupType } from "src/app/store/model/group-type.enum";
+
 import { CalculationPosition } from "./calculation-position";
+import { GroupType } from "./group-type";
 
 export class CalculationGroup {
   id: string;
