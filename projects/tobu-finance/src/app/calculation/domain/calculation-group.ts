@@ -5,7 +5,9 @@ import { GroupType } from "./group-type";
 export class CalculationGroup {
   id: string;
 
-  estimation: number;
+  verifiedChange: number;
+  estimatedChange: number;
+
   name: string;
   positions: CalculationPosition[]
 

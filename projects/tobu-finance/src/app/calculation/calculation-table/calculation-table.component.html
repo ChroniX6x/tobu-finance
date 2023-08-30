@@ -2,16 +2,15 @@
           <ng-template pTemplate="header" let-group>
             <tr>
               <th style="width: 3rem"></th>
-              <th pSortableColumn="group">
-                Kategorie <p-sortIcon field="group"></p-sortIcon>
+              <th pSortableColumn="typeName">
+                Kategorie <p-sortIcon field="typeName"></p-sortIcon>
               </th>
-              <th pSortableColumn="costs">
-                Tatsächliche Kosten <p-sortIcon field="costs"></p-sortIcon>
+              <th pSortableColumn="verifiedChange">
+                Tatsächliche Kosten <p-sortIcon field="verifiedChange"></p-sortIcon>
               </th>
-              <th pSortableColumn="estCosts">
-                Angenommene Kosten <p-sortIcon field="estCosts"></p-sortIcon>
+              <th pSortableColumn="estimatedChange">
+                Angenommene Kosten <p-sortIcon field="estimatedChange"></p-sortIcon>
               </th>
-
               <th *ngFor="let participant of participants" pSortableColumn="group.calculatedParticipantPayment[participant]">
                 {{participant.name}}<p-sortIcon field="group.calculatedParticipantPayment[participant]"></p-sortIcon>
               </th>
@@ -32,16 +31,16 @@
                 ></button>
               </td>
               <td>
-                <span class="p-column-title">Name</span>{{ group.name }}
+                <span class="p-column-title">Name</span>{{ group.typeName }}
               </td>
               <td>
-                {{ group.costs }}
+                {{ group.verifiedChange }}
               </td>
               <td>
-                {{ group.estCosts }}
+                {{ group.estimatedChange }}
               </td>
               <td *ngFor="let participant of participants">
-                {{group.calculatedParticipantPayments[participant.name]}}
+                {{group.calculatedParticipantPayments.get(participant.name)}}
               </td>
             </tr>
           </ng-template>
@@ -53,48 +52,50 @@
                     <ng-template pTemplate="header">
                       <tr>
                         <th pSortableColumn="id">
-                          Id <p-sortIcon field="price"></p-sortIcon>
+                          Id <p-sortIcon field="id"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="customer">
-                          Customer <p-sortIcon field="customer"></p-sortIcon>
+                        <th pSortableColumn="description">
+                          Description <p-sortIcon field="description"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="partnerName">
+                          Partner Name <p-sortIcon field="partnerName"></p-sortIcon>
                         </th>
                         <th pSortableColumn="date">
                           Date <p-sortIcon field="date"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="amount">
-                          Amount <p-sortIcon field="amount"></p-sortIcon>
+                        <th pSortableColumn="positionType">
+                          Type <p-sortIcon field="positionType"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="stats">
-                          Status <p-sortIcon field="status"></p-sortIcon>
+                        <th pSortableColumn="value">
+                          Value <p-sortIcon field="value"></p-sortIcon>
                         </th>
                         <th style="width: 4rem"></th>
                       </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-order>
+                    <ng-template pTemplate="body" let-position>
                       <tr>
                         <td>
-                          <span class="p-column-title">Id</span>{{ order.id }}
+                          <span class="p-column-title">Id</span>{{ position.id }}
                         </td>
                         <td>
-                          <span class="p-column-title">Customer</span
-                          >{{ order.customer }}
+                          <span class="p-column-title">Description</span
+                          >{{ position.description }}
+                        </td>
+                        <td>
+                          <span class="p-column-title">Partner Name</span
+                          >{{ position.partnerName }}
                         </td>
                         <td>
                           <span class="p-column-title">Date</span
-                          >{{ order.date }}
+                          >{{ position.date | date}}
                         </td>
                         <td>
-                          <span class="p-column-title">Amount</span
-                          >{{ order.amount | currency: "USD" }}
+                          <span class="p-column-title">Position Type</span>
+                          <span>{{ position.positionType }}</span>
                         </td>
                         <td>
-                          <span class="p-column-title">Status</span
-                          ><span
-                            [class]="
-                              'order-badge order-' + order.status.toLowerCase()
-                            "
-                            >{{ order.status }}</span
-                          >
+                          <span class="p-column-title">Value</span
+                          >{{ position.value | currency: "EUR" }}
                         </td>
                         <td>
                           <p-button

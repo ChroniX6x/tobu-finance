@@ -7,6 +7,8 @@ import { AppLayoutModule } from './layout/app.layout.module';
 import { CalculationModule } from './calculation/calculation.module';
 import { NgxsModule } from '@ngxs/store';
 import { States } from './store';
+import { NgxsLoggerPluginModule } from '@ngxs/logger-plugin';
+import { NgxsReduxDevtoolsPluginModule } from '@ngxs/devtools-plugin';
 
 @NgModule({
   declarations: [
@@ -18,7 +20,9 @@ import { States } from './store';
     AppLayoutModule,
     CalculationModule,
 
-    NgxsModule.forRoot(States, { developmentMode: true,  })
+    NgxsModule.forRoot(States, { developmentMode: true,  }),
+    NgxsLoggerPluginModule.forRoot(),
+    NgxsReduxDevtoolsPluginModule.forRoot()
   ],
   providers: [],
   bootstrap: [AppComponent]
