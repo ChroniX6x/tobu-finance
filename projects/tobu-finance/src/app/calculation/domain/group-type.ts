@@ -1,4 +1,7 @@
 export enum GroupType {
   Groceries,
-  Rent
+  Rent,
+  Drugs,
+  Leisure,
+  Other
 }

@@ -43,6 +43,12 @@ export class CalculationState {
     return state.participants;
   }
 
+  @Selector()
+  public static getCalculationResult(state: CalculationStateModel): CalculationResult {
+    return state.calculationResult;
+  }
+
+
   @Action(InitCalculationDataAction)
   public addValue(ctx: StateContext<CalculationStateModel>, action: InitCalculationDataAction) {
     return this.dataService.getTestData().pipe(

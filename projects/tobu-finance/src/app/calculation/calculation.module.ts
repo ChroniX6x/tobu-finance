@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CalculationTableComponent } from './calculation-table/calculation-table.component';
 import { NgxsModule } from '@ngxs/store';
 import { States } from './state';
+import { InputTextModule } from 'primeng/inputtext';
 
 
 
@@ -18,6 +19,7 @@ import { States } from './state';
     CommonModule,
     TableModule,
     ButtonModule,
+    InputTextModule,
     NgxsModule.forFeature(States)
   ]
 })

@@ -8,10 +8,10 @@ export class CalculationGroup {
   verifiedChange: number;
   estimatedChange: number;
 
-  name: string;
-  positions: CalculationPosition[]
+  type: GroupType;
+  typeName: string;
 
-  groupType: GroupType;
+  positions: CalculationPosition[]
 
   calculatedParticipantPayments: Map<string,number>;
 

@@ -24,6 +24,8 @@ public getTestData() {
         return x;
       })
 
+      value.calculationResult.calculatedParticipantPayments = new Map<string,number>(value.calculationResult.calculatedParticipantPayments);
+
       return value;
     })
   );

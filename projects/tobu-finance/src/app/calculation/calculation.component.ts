@@ -6,6 +6,7 @@ import { CalculationParticipant } from './domain/calculation-participant';
 import { Select, Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
 import { InitCalculationDataAction } from './state/calculation.actions';
+import { CalculationResult } from './domain/calculation-result';
 
 
 @Component({
@@ -22,6 +23,10 @@ export class CalculationComponent implements OnInit {
 
   @Select(CalculationState.getParticipants)
   public participants$: Observable<CalculationParticipant[]>
+
+  @Select(CalculationState.getCalculationResult)
+  public calculationResult$: Observable<CalculationResult>
+
 
   constructor(private store: Store) { }
 
