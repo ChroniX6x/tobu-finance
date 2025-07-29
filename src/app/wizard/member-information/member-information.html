@@ -1,0 +1,31 @@
+<form class="flex flex-col p-5" [formGroup]="wizardForm" (ngSubmit)="nextStep()">
+  <div class="grid grid-cols-12 gap-4" >
+    <div class="col-span-12 md:col-span-10" [formGroup]="memberForm">
+      <div class="col-span-12 mb-6">
+        <label for="name" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Name</label>
+        <input id="name" type="text" formControlName="name" pInputText fluid />
+      </div>
+      <div class="col-span-12">
+        <label for="email" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Email</label>
+        <input id="email" type="text" formControlName="email" pInputText fluid />
+      </div>
+    </div>
+    <div class="col-span-12 md:col-span-2 flex flex-row justify-end items-start">
+      <button pButton pRipple label="Add" class="w-auto md:mt-7 p-button-outlined" type="button" (click)="addMember()" [disabled]="memberForm.invalid"></button>
+    </div>
+    <p-dataview class="col-span-12" [value]="memberGroups()" [layout]="'list'">
+      <ng-template #list let-items>
+        <div class="flex flex-col">
+          @for (member of items; track $index; let i = $index) {
+          <div class="flex flex-row justify-between">
+            {{ member.value.name }} ({{ member.value.email || 'Keine E-Mail' }}) <p-button icon="pi pi-times" severity="danger" rounded (click)="removeMember(i)"/>
+          </div>
+          }
+        </div>
+      </ng-template>
+    </p-dataview>
+  </div>
+  <div class="flex flex-row justify-end">
+    <button pButton pRipple label="Next" class="w-auto mt-3" type="submit" [disabled]="memberGroups().length < 2"></button>
+  </div>
+</form>

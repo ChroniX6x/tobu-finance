@@ -1,0 +1,130 @@
+{
+  "users": [
+    { "id": "u1", "name": "Tony", "email": "tony@example.com" },
+    { "id": "u2", "name": "Caro", "email": "caro@example.com" }
+  ],
+  "accounts": [
+    {
+      "id": "a1",
+      "name": "Gemeinschaftskonto",
+      "members": ["u1", "u2"],
+      "monthlyIncomes": [
+        { "userId": "u1", "amount": 2800, "accountId": "a1", "startMonth": "2025-01", "endMonth": "2025-01" },
+        { "userId": "u1", "amount": 3000, "accountId": "a1", "startMonth": "2025-02" },
+        { "userId": "u2", "amount": 2000, "accountId": "a1", "startMonth": "2025-01", "endMonth": "2025-01" },
+        { "userId": "u2", "amount": 2100, "accountId": "a1", "startMonth": "2025-02" }
+      ],
+      "monthlyPlannedContributions": [
+        { "userId": "u1", "amount": 500, "startMonth": "2025-01", "endMonth": "2025-02" },
+        { "userId": "u1", "amount": 550, "startMonth": "2025-03" },
+        { "userId": "u2", "amount": 400, "startMonth": "2025-01" }
+      ],
+      "carryOverBalances": [
+        { "userId": "u1", "amount": -30, "month": "2025-01" },
+        { "userId": "u2", "amount": 0, "month": "2025-01" },
+        { "userId": "u1", "amount": -10, "month": "2025-02" }
+      ]
+    }
+  ],
+  "categories": [
+    { "id": "c1", "accountId": "a1", "name": "Lebensmittel"},
+    { "id": "c2", "accountId": "a1", "name": "Miete"},
+    { "id": "c3", "accountId": "a1", "name": "Freizeit"},
+    { "id": "c4", "accountId": "a1", "name": "Versicherung", "customSplit": { "u1": 50, "u2": 50 } }
+  ],
+  "expenses": [
+    {
+      "id": "e1",
+      "accountId": "a1",
+      "categoryId": "c1",
+      "title": "Wocheneinkauf REWE",
+      "amount": 80,
+      "month": "2025-01",
+      "isRecurring": false,
+      "isFromSharedAccount": true
+    },
+    {
+      "id": "e2",
+      "accountId": "a1",
+      "categoryId": "c2",
+      "title": "Miete",
+      "amount": 950,
+      "month": "2025-01",
+      "isRecurring": true,
+      "isFromSharedAccount": true
+    },
+    {
+      "id": "e3",
+      "accountId": "a1",
+      "categoryId": "c3",
+      "title": "Konzerttickets",
+      "amount": 120,
+      "month": "2025-01",
+      "isRecurring": false,
+      "isFromSharedAccount": false,
+      "paidByUserId": "u2"
+    },
+    {
+      "id": "e4",
+      "accountId": "a1",
+      "categoryId": "c1",
+      "title": "Biomarkt",
+      "amount": 45,
+      "month": "2025-02",
+      "isRecurring": false,
+      "isFromSharedAccount": true
+    },
+    {
+      "id": "e5",
+      "accountId": "a1",
+      "categoryId": "c4",
+      "title": "Haftpflichtversicherung",
+      "amount": 240,
+      "month": "2025-02",
+      "isRecurring": false,
+      "isFromSharedAccount": false,
+      "paidByUserId": "u1"
+    },
+    {
+      "id": "e6",
+      "accountId": "a1",
+      "categoryId": "c2",
+      "title": "Miete",
+      "amount": 950,
+      "month": "2025-02",
+      "isRecurring": true,
+      "isFromSharedAccount": true
+    },
+    {
+      "id": "e7",
+      "accountId": "a1",
+      "categoryId": "c3",
+      "title": "Kinoabend",
+      "amount": 50,
+      "month": "2025-03",
+      "isRecurring": false,
+      "isFromSharedAccount": false,
+      "paidByUserId": "u1"
+    },
+    {
+      "id": "e8",
+      "accountId": "a1",
+      "categoryId": "c1",
+      "title": "Aldi Einkauf",
+      "amount": 70,
+      "month": "2025-03",
+      "isRecurring": false,
+      "isFromSharedAccount": true
+    },
+    {
+      "id": "e9",
+      "accountId": "a1",
+      "categoryId": "c2",
+      "title": "Miete",
+      "amount": 950,
+      "month": "2025-03",
+      "isRecurring": true,
+      "isFromSharedAccount": true
+    }
+  ]
+}

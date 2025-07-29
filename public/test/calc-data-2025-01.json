@@ -1,0 +1,165 @@
+{
+  "selectedMonth": "2025-01",
+  "calculationGroup": [
+    {
+      "id": "group1",
+      "verifiedChange": 100,
+      "estimatedChange": 120,
+      "type": "Groceries",
+      "typeName": "Groceries",
+      "positions": [
+        {
+          "id": "pos1",
+          "description": "Grocery store",
+          "value": 100,
+          "positionType": "Recurring",
+          "transactionParty": "SuperMart",
+          "date": "2025-01-05"
+        },
+        {
+          "id": "pos1b",
+          "description": "Bakery items",
+          "value": 45,
+          "positionType": "OneTime",
+          "transactionParty": "FreshBake",
+          "date": "2025-01-07"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p1": 72.5,
+        "p2": 72.5
+      }
+    },
+    {
+      "id": "group2",
+      "verifiedChange": 300,
+      "estimatedChange": 310,
+      "type": "Rent",
+      "typeName": "Rent",
+      "positions": [
+        {
+          "id": "pos2",
+          "description": "Monthly Rent",
+          "value": 300,
+          "positionType": "Recurring",
+          "transactionParty": "Sunrise Apartments",
+          "date": "2025-01-01"
+        },
+        {
+          "id": "pos2b",
+          "description": "Garage rental",
+          "value": 80,
+          "positionType": "Recurring",
+          "transactionParty": "City Parking Services",
+          "date": "2025-01-02"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p1": 190,
+        "p2": 190
+      }
+    },
+    {
+      "id": "group3",
+      "verifiedChange": 80,
+      "estimatedChange": 85,
+      "type": "Drugs",
+      "typeName": "Drugs",
+      "positions": [
+        {
+          "id": "pos3",
+          "description": "Pharmacy purchase",
+          "value": 80,
+          "positionType": "OneTime",
+          "transactionParty": "HealthPlus Pharmacy",
+          "date": "2025-01-10"
+        },
+        {
+          "id": "pos3b",
+          "description": "Vitamins",
+          "value": 60,
+          "positionType": "Recurring",
+          "transactionParty": "Wellbeing Store",
+          "date": "2025-01-11"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p1": 70,
+        "p2": 70
+      }
+    },
+    {
+      "id": "group4",
+      "verifiedChange": 150,
+      "estimatedChange": 160,
+      "type": "Leisure",
+      "typeName": "Leisure",
+      "positions": [
+        {
+          "id": "pos4",
+          "description": "Cinema tickets",
+          "value": 150,
+          "positionType": "OneTime",
+          "transactionParty": "CinemaWorld",
+          "date": "2025-01-15"
+        },
+        {
+          "id": "pos4b",
+          "description": "Museum visit",
+          "value": 90,
+          "positionType": "OneTime",
+          "transactionParty": "City Museum",
+          "date": "2025-01-16"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p1": 120,
+        "p2": 120
+      }
+    },
+    {
+      "id": "group5",
+      "verifiedChange": 70,
+      "estimatedChange": 72,
+      "type": "Other",
+      "typeName": "Other",
+      "positions": [
+        {
+          "id": "pos5",
+          "description": "Miscellaneous",
+          "value": 70,
+          "positionType": "Recurring",
+          "transactionParty": "General Services Co.",
+          "date": "2025-01-20"
+        },
+        {
+          "id": "pos5b",
+          "description": "Postal fees",
+          "value": 25,
+          "positionType": "OneTime",
+          "transactionParty": "PostalHub",
+          "date": "2025-01-21"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p1": 47.5,
+        "p2": 47.5
+      }
+    }
+  ],
+  "participants": [
+    { "id": "p1", "name": "Caro" },
+    { "id": "p2", "name": "Tony" }
+  ],
+  "calculationResult": {
+    "verifiedChange": 1235,
+    "estimatedChange": 1327,
+    "calculatedParticipantPayments": {
+      "p1": 500,
+      "p2": 500
+    },
+    "additionalContributions": 60,
+    "monthlyChange": 92,
+    "monthlyAccountValue": 1092
+  }
+}

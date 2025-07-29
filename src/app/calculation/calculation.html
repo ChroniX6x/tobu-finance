@@ -1,0 +1,15 @@
+<div class="layout-calculation">
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-12">
+      <div class="card">
+        <tobu-calculation-table
+        [groups]="groups()!"
+        [participants]="participants()!"
+        [calculationResult]="calculationResult()!"
+        [selectedMonth]="selectedMonth()"
+        (selectedMonthChange)="selectedMonthChanged($event)">
+        </tobu-calculation-table>
+      </div>
+    </div>
+  </div>
+</div>

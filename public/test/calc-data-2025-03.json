@@ -1,0 +1,165 @@
+{
+    "selectedMonth": "2025-03",
+    "calculationGroup": [
+      {
+        "id": "group1",
+        "verifiedChange": 140,
+        "estimatedChange": 145,
+        "type": "Groceries",
+        "typeName": "Groceries",
+        "positions": [
+          {
+            "id": "pos1",
+            "description": "Local market",
+            "value": 140,
+            "positionType": "Recurring",
+            "transactionParty": "Farmers Market",
+            "date": "2025-03-04"
+          },
+          {
+            "id": "pos1b",
+            "description": "Convenience snacks",
+            "value": 60,
+            "positionType": "OneTime",
+            "transactionParty": "QuickStop",
+            "date": "2025-03-06"
+          }
+        ],
+        "calculatedParticipantPayments": {
+          "p1": 100,
+          "p2": 100
+        }
+      },
+      {
+        "id": "group2",
+        "verifiedChange": 320,
+        "estimatedChange": 325,
+        "type": "Rent",
+        "typeName": "Rent",
+        "positions": [
+          {
+            "id": "pos2",
+            "description": "Flat rent",
+            "value": 320,
+            "positionType": "Recurring",
+            "transactionParty": "Skyline Rentals",
+            "date": "2025-03-01"
+          },
+          {
+            "id": "pos2b",
+            "description": "Parking pass",
+            "value": 85,
+            "positionType": "Recurring",
+            "transactionParty": "SecurePark",
+            "date": "2025-03-02"
+          }
+        ],
+        "calculatedParticipantPayments": {
+          "p3": 202.5,
+          "p4": 202.5
+        }
+      },
+      {
+        "id": "group3",
+        "verifiedChange": 95,
+        "estimatedChange": 100,
+        "type": "Drugs",
+        "typeName": "Drugs",
+        "positions": [
+          {
+            "id": "pos3",
+            "description": "Prescription meds",
+            "value": 95,
+            "positionType": "OneTime",
+            "transactionParty": "MediQuick",
+            "date": "2025-03-10"
+          },
+          {
+            "id": "pos3b",
+            "description": "OTC drugs",
+            "value": 50,
+            "positionType": "Recurring",
+            "transactionParty": "PharmaShop",
+            "date": "2025-03-11"
+          }
+        ],
+        "calculatedParticipantPayments": {
+          "p1": 72.5,
+          "p3": 72.5
+        }
+      },
+      {
+        "id": "group4",
+        "verifiedChange": 175,
+        "estimatedChange": 180,
+        "type": "Leisure",
+        "typeName": "Leisure",
+        "positions": [
+          {
+            "id": "pos4",
+            "description": "Amusement park",
+            "value": 175,
+            "positionType": "OneTime",
+            "transactionParty": "FunLand",
+            "date": "2025-03-13"
+          },
+          {
+            "id": "pos4b",
+            "description": "Escape room",
+            "value": 110,
+            "positionType": "OneTime",
+            "transactionParty": "EscapeZone",
+            "date": "2025-03-14"
+          }
+        ],
+        "calculatedParticipantPayments": {
+          "p2": 142.5,
+          "p4": 142.5
+        }
+      },
+      {
+        "id": "group5",
+        "verifiedChange": 85,
+        "estimatedChange": 88,
+        "type": "Other",
+        "typeName": "Other",
+        "positions": [
+          {
+            "id": "pos5",
+            "description": "Donation",
+            "value": 85,
+            "positionType": "Recurring",
+            "transactionParty": "CharityOrg",
+            "date": "2025-03-18"
+          },
+          {
+            "id": "pos5b",
+            "description": "Gift wrap service",
+            "value": 35,
+            "positionType": "OneTime",
+            "transactionParty": "WrapIt",
+            "date": "2025-03-20"
+          }
+        ],
+        "calculatedParticipantPayments": {
+          "p1": 60,
+          "p3": 60
+        }
+      }
+    ],
+    "participants": [
+      { "id": "p1", "name": "Caro" },
+      { "id": "p2", "name": "Tony" }
+    ],
+    "calculationResult": {
+      "verifiedChange": 1390,
+      "estimatedChange": 1463,
+      "calculatedParticipantPayments": {
+        "p1": 232.5,
+        "p2": 245
+      },
+      "additionalContributions": 90,
+      "monthlyChange": 108,
+      "monthlyAccountValue": 1300
+    }
+  }
