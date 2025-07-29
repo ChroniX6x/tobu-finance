@@ -1,0 +1,9 @@
+<form class="flex flex-col p-5" [formGroup]="baseInformationForm" (ngSubmit)="nextStep()">
+  <div class="">
+    <label for="account-name" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> Account Name </label>
+    <input id="account-name" type="text" formControlName="name" pInputText fluid />
+  </div>
+  <div class="flex flex-row justify-end">
+    <button pButton pRipple label="Next" type="submit" class="w-auto mt-3" [disabled]="!baseInformationForm.valid"></button>
+  </div>
+</form>

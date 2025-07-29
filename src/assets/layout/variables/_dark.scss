@@ -1,0 +1,10 @@
+:root[class*='app-dark'] {
+    --surface-ground: var(--p-surface-950);
+    --sidebar-shadow: none;
+    --sidebar-border: 1px solid var(--surface-border);
+    --card-shadow: none;
+    --body-bg: var(--p-surface-950);
+    --body-image: url('/images/effect-ondark.svg');
+    --root-menu-item-hover-bg: rgba(255, 255, 255, 0.05);
+    --exception-pages-image: url('/images/pages/exception-ondark.png');
+}

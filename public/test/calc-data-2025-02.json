@@ -1,0 +1,171 @@
+{
+  "selectedMonth": "2025-02",
+  "calculationGroup": [
+    {
+      "id": "group1",
+      "verifiedChange": 120,
+      "estimatedChange": 130,
+      "type": "Groceries",
+      "typeName": "Groceries",
+      "positions": [
+        {
+          "id": "pos1",
+          "description": "Organic market",
+          "value": 120,
+          "positionType": "Recurring",
+          "transactionParty": "GreenFarm",
+          "date": "2025-02-03"
+        },
+        {
+          "id": "pos1b",
+          "description": "Convenience store",
+          "value": 55,
+          "positionType": "OneTime",
+          "transactionParty": "MiniStop",
+          "date": "2025-02-07"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p1": 87.5,
+        "p3": 87.5
+      }
+    },
+    {
+      "id": "group2",
+      "verifiedChange": 310,
+      "estimatedChange": 315,
+      "type": "Rent",
+      "typeName": "Rent",
+      "positions": [
+        {
+          "id": "pos2",
+          "description": "Monthly Rent",
+          "value": 310,
+          "positionType": "Recurring",
+          "transactionParty": "Downtown Realty",
+          "date": "2025-02-01"
+        },
+        {
+          "id": "pos2b",
+          "description": "Storage Unit",
+          "value": 95,
+          "positionType": "Recurring",
+          "transactionParty": "SafeStorage",
+          "date": "2025-02-02"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p2": 202.5,
+        "p4": 202.5
+      }
+    },
+    {
+      "id": "group3",
+      "verifiedChange": 90,
+      "estimatedChange": 92,
+      "type": "Drugs",
+      "typeName": "Drugs",
+      "positions": [
+        {
+          "id": "pos3",
+          "description": "Medication refill",
+          "value": 90,
+          "positionType": "OneTime",
+          "transactionParty": "CareWell Pharmacy",
+          "date": "2025-02-08"
+        },
+        {
+          "id": "pos3b",
+          "description": "Supplements",
+          "value": 65,
+          "positionType": "Recurring",
+          "transactionParty": "HealthHouse",
+          "date": "2025-02-09"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p1": 77.5,
+        "p3": 77.5
+      }
+    },
+    {
+      "id": "group4",
+      "verifiedChange": 160,
+      "estimatedChange": 165,
+      "type": "Leisure",
+      "typeName": "Leisure",
+      "positions": [
+        {
+          "id": "pos4",
+          "description": "Theater play",
+          "value": 160,
+          "positionType": "OneTime",
+          "transactionParty": "City Theater",
+          "date": "2025-02-14"
+        },
+        {
+          "id": "pos4b",
+          "description": "Concert tickets",
+          "value": 105,
+          "positionType": "OneTime",
+          "transactionParty": "MusicHall",
+          "date": "2025-02-15"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p2": 132.5,
+        "p4": 132.5
+      }
+    },
+    {
+      "id": "group5",
+      "verifiedChange": 75,
+      "estimatedChange": 78,
+      "type": "Other",
+      "typeName": "Other",
+      "positions": [
+        {
+          "id": "pos5",
+          "description": "Stationery",
+          "value": 75,
+          "positionType": "Recurring",
+          "transactionParty": "OfficeStore",
+          "date": "2025-02-20"
+        },
+        {
+          "id": "pos5b",
+          "description": "Mailing",
+          "value": 30,
+          "positionType": "OneTime",
+          "transactionParty": "ExpressPost",
+          "date": "2025-02-21"
+        }
+      ],
+      "calculatedParticipantPayments": {
+        "p1": 52.5,
+        "p3": 52.5
+      }
+    }
+  ],
+  "participants": [
+    {
+      "id": "p1",
+      "name": "Caro"
+    },
+    {
+      "id": "p2",
+      "name": "Tony"
+    }
+  ],
+  "calculationResult": {
+    "verifiedChange": 1300,
+    "estimatedChange": 1385,
+    "calculatedParticipantPayments": {
+      "p1": 217.5,
+      "p2": 335
+    },
+    "additionalContributions": 80,
+    "monthlyChange": 100,
+    "monthlyAccountValue": 1192
+  }
+}

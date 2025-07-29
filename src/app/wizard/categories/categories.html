@@ -1,0 +1,47 @@
+<form class="flex flex-col p-5" [formGroup]="categoriesForm" (ngSubmit)="nextStep()">
+  <div class="grid grid-cols-12 gap-4">
+    <div class="grid grid-cols-subgrid col-span-12 md:col-span-10 gap-4" [formGroup]="categoriesForm">
+      <div class="col-span-10 mb-6">
+        <label for="name" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Name</label>
+        <input id="name" type="text" formControlName="name" pInputText fluid />
+      </div>
+      <div class="col-span-2 mb-6">
+        <label for="customSplit" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Custom Split</label>
+        <p-toggleswitch inputId="customSplit" formControlName="hasCustomSplit" fluid/>
+      </div>
+      @if (hasCustomSplit()) {
+        <div class="col-span-8 mb-6 flex flex-col">
+          @for (member of customSplitEntries().controls; track $index; let index = $index) {
+            <div class="grid grid-cols-subgrid">
+              <div class="col-span-2">
+                <label [for]="'member-' + index" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">User</label>
+                <p [id]="'member-' + index" class="text-2xl" fluid>{{ member.get('name')!.value }}</p>
+              </div>
+              <div class="col-span-4">
+                <label [for]="'split-' + index" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Split</label>
+                <input [id]="'split-' + index" type="text" formControlName="name" pInputText fluid />
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+    <div class="col-span-12 md:col-span-2 flex flex-row justify-end items-start">
+      <button pButton pRipple label="Add" class="w-auto md:mt-7 p-button-outlined" (click)="addCategory()" [disabled]="categoriesForm.invalid"></button>
+    </div>
+    <p-dataview class="col-span-12" [value]="categoryGroups()" [layout]="'list'">
+      <ng-template #list let-items>
+        <div class="flex flex-col">
+          @for (category of items; track $index; let i = $index) {
+          <div class="flex flex-row justify-between">
+            {{ category.name }} <p-button icon="pi pi-times" severity="danger" rounded (click)="removeCategory(i)"/>
+          </div>
+          }
+        </div>
+      </ng-template>
+    </p-dataview>
+  </div>
+  <div class="flex flex-row justify-end">
+    <button pButton pRipple label="Next" class="w-auto mt-3"  type="submit" [disabled]="!categoriesForm.valid"></button>
+  </div>
+</form>

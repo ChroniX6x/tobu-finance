@@ -1,0 +1,9 @@
+<div class="flex flex-col p-5">
+  <div class="">
+    <label for="account-balance" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> Initial Account Balance </label>
+    <p-inputnumber mode="currency"inputId="account-balance"currency="EUR" locale="de-DE" fluid/>
+  </div>
+  <div class="flex flex-row justify-end">
+    <button pButton pRipple label="Next" class="w-auto mt-3" (click)="onNextClicked()"></button>
+  </div>
+</div>

@@ -1,0 +1,154 @@
+<p-table #table [value]="groups()" dataKey="id" styleClass="datatable-calculations rowexpand-table" tableStyleClass="datatable-calculations-table">
+
+  <ng-template #caption>
+    <div class="flex justify-between items-center flex-col sm:flex-row">
+      <button pButton pRipple label="Vorheriger Monat" class="p-button-outlined mb-2" icon="pi pi-bookmark" (click)="prevMonth()"></button>
+      <p-datepicker [(ngModel)]="selectedMonth" view="month" dateFormat="yy-mm" [readonlyInput]="true" [iconDisplay]="'input'" [showIcon]="true" dataType="string"/>
+      <p-iconfield iconPosition="left">
+        <p-inputicon>
+            <i class="pi pi-search"></i>
+        </p-inputicon>
+        <input pInputText type="text" (input)="onGlobalFilter(table, $event)" placeholder="Search keyword" />
+      </p-iconfield>
+      <button pButton pRipple label="Nächster Monat" class="p-button-outlined mb-2" icon="pi pi-bookmark" iconPos="right" (click)="nextMonth()"></button>
+    </div>
+  </ng-template>
+
+  <ng-template #header let-group>
+    <tr>
+      <th class="w-[3rem]"></th>
+      <th pSortableColumn="typeName">
+        Kategorie <p-sortIcon field="typeName"></p-sortIcon>
+      </th>
+      <th pSortableColumn="verifiedChange">
+        Tatsächliche Kosten <p-sortIcon field="verifiedChange"></p-sortIcon>
+      </th>
+      <th pSortableColumn="estimatedChange">
+        Angenommene Kosten <p-sortIcon field="estimatedChange"></p-sortIcon>
+      </th>
+      @for (participant of participants(); track $index) {
+        <th pSortableColumn="group.calculatedParticipantPayment[participant]">
+          {{participant.name}}<p-sortIcon field="group.calculatedParticipantPayment[participant]"></p-sortIcon>
+        </th>
+      }
+    </tr>
+  </ng-template>
+  <ng-template #body let-group let-expanded="expanded">
+    <tr>
+      <td>
+        <button
+          type="button"
+          pButton
+          pRipple
+          [pRowToggler]="group"
+          class="p-button-text p-button-rounded p-button-plain"
+          [icon]="
+            expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'
+          "
+        ></button>
+      </td>
+      <td>
+        {{ group.typeName }}
+      </td>
+      <td>
+        {{ group.verifiedChange | currency: 'EUR' : 'symbol' : '4.2-2' }}
+      </td>
+      <td>
+        {{ group.estimatedChange | currency: 'EUR' : 'symbol' : '4.2-2' }}
+      </td>
+      @for (participant of participants(); track $index) {
+        <td>
+          {{ group.calculatedParticipantPayments.get(participant.name) | currency: 'EUR' : 'symbol' : '4.2-2'  }}
+        </td>
+      }
+    </tr>
+  </ng-template>
+  <ng-template #expandedrow let-group>
+    <tr>
+      <td colspan="5">
+        <div class="p-3">
+          <p-table [value]="group.positions" dataKey="id">
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="id">
+                  Id <p-sortIcon field="id"></p-sortIcon>
+                </th>
+                <th pSortableColumn="description">
+                  Description <p-sortIcon field="description"></p-sortIcon>
+                </th>
+                <th pSortableColumn="partnerName">
+                  Partner Name <p-sortIcon field="partnerName"></p-sortIcon>
+                </th>
+                <th pSortableColumn="date">
+                  Date <p-sortIcon field="date"></p-sortIcon>
+                </th>
+                <th pSortableColumn="positionType">
+                  Type <p-sortIcon field="positionType"></p-sortIcon>
+                </th>
+                <th pSortableColumn="value">
+                  Value <p-sortIcon field="value"></p-sortIcon>
+                </th>
+                <th class="w-[4rem]"></th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-position>
+              <tr>
+                <td>
+                  {{ position.id }}
+                </td>
+                <td>
+                  {{ position.description }}
+                </td>
+                <td>
+                  {{ position.partnerName }}
+                </td>
+                <td>
+                  {{ position.date | date}}
+                </td>
+                <td>
+                  {{ position.positionType }}
+                </td>
+                <td>
+                  {{ position.value | currency: 'EUR' : 'symbol' : '4.2-2' }}
+                </td>
+                <td>
+                  <p-button
+                    type="button"
+                    icon="pi pi-search"
+                  ></p-button>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="6">
+                  There are no order for this product yet.
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template #footer>
+    <tr>
+      <td>
+      </td>
+      <td>
+        <span class="p-column-title">Overall</span>
+      </td>
+      <td>
+        {{ calculationResult()?.verifiedChange | currency: 'EUR' : 'symbol' : '4.2-2'  }}
+      </td>
+      <td>
+        {{ calculationResult()?.estimatedChange | currency: 'EUR' : 'symbol' : '4.2-2'  }}
+      </td>
+      @for (participant of participants(); track $index) {
+        <td>
+          {{ calculationResult()?.calculatedParticipantPayments?.get(participant.name) | currency: 'EUR' : 'symbol' : '4.2-2' }}
+        </td>
+      }
+    </tr>
+  </ng-template>
+</p-table>
