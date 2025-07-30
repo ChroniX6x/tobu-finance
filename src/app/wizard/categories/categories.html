@@ -1,6 +1,6 @@
 <form class="flex flex-col p-5" [formGroup]="categoriesForm" (ngSubmit)="nextStep()">
   <div class="grid grid-cols-12 gap-4">
-    <div class="grid grid-cols-subgrid col-span-12 md:col-span-10 gap-4" [formGroup]="categoriesForm">
+    <div class="grid grid-cols-subgrid col-span-12 md:col-span-10 gap-4">
       <div class="col-span-10">
         <label for="name" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Name</label>
         <input id="name" type="text" formControlName="name" pInputText fluid />
@@ -10,9 +10,9 @@
         <p-toggleswitch inputId="customSplit" formControlName="hasCustomSplit" fluid/>
       </div>
       @if (hasCustomSplit()) {
-        <div [class]="'col-span-8 bg-emphasis rounded-md grid gap-y-4 grid-cols-subgrid grid-rows-' + customSplitArray!.controls.length">
-          @for (member of customSplitArray!.controls; track $index; let index = $index) {
-            <div class="col-span-full grid grid-cols-subgrid items-center">
+        <div [class]="'col-span-8 bg-emphasis rounded-md grid gap-y-4 grid-cols-subgrid grid-rows-' + customSplitGroups().length">
+          @for (member of customSplitGroups(); track $index; let index = $index) {
+            <div class="col-span-full grid grid-cols-subgrid items-center" [formGroupName]="index">
               <div class="col-span-3 pl-1">
                 <!-- <label [for]="'member-' + index" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">User</label> -->
                 <p [id]="'member-' + index" class="text-lg" fluid>{{ member.get('name')!.value }}</p>

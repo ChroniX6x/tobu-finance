@@ -75,27 +75,50 @@ export class Categories implements OnInit {
 
   public categoryGroups = signal<FormGroup[]>([]);
   public members = select(WizardState.members);
-  public customSplitEntries = effect(() => {
-    let currentMembers = this.members();
-    let customSplitArray = this.categoriesForm.get('customSplit') as FormArray;
-    customSplitArray.clear();
-    if (currentMembers.length > 0) {
-      currentMembers.forEach((member) => {
-        customSplitArray.push(
-          this.fb.nonNullable.group({
-            memberId: member.tempId,
-            name: member.name,
-            split: ['', Validators.required],
-          })
-        );
-      });
-    }
-    this.cdr.detectChanges();
+  formChangeEffect = effect(() => {
+    const shouldBuild = this.hasCustomSplit();
+    const currentMembers = this.members();
+
+    // this.categoriesForm.update(x => {
+      const customSplitArray = this.categoriesForm.get('customSplit') as FormArray;
+
+      if (shouldBuild && customSplitArray.length !== currentMembers.length) {
+
+        customSplitArray.clear();
+        currentMembers.forEach((member) => {
+          customSplitArray.push(
+            this.fb.nonNullable.group({
+              memberId: member.tempId,
+              name: member.name,
+              split: ['', Validators.required],
+            })
+          );
+        });
+      }
+      // return x;
+    // })
   });
 
   public wizardForm = this.fb.group({
     categories: this.fb.array([]),
   });
+
+  // public categoriesForm = signal(this.fb.group(
+  //   {
+  //     name: ['', Validators.required],
+  //     hasCustomSplit: false,
+  //     customSplit: this.fb.array([
+  //       this.fb.group({
+  //         memberId: ['', Validators.required],
+  //         split: ['', Validators.required],
+  //       }),
+  //     ]),
+  //   },
+  //   {
+  //     validators: customSplitSumValidator(),
+  //     updateOn: 'change'
+  //   } as AbstractControlOptions
+  // ))
 
   public categoriesForm = this.fb.group(
     {
@@ -112,7 +135,7 @@ export class Categories implements OnInit {
       validators: customSplitSumValidator(),
       updateOn: 'change'
     } as AbstractControlOptions
-  );
+  )
 
   public hasCustomSplit = toSignal(
     this.categoriesForm.get('hasCustomSplit')!.valueChanges,
@@ -120,7 +143,11 @@ export class Categories implements OnInit {
   );
 
   private categoryArray = this.wizardForm.get('categories') as FormArray;
-  protected customSplitArray = this.categoriesForm.get('customSplit') as FormArray;
+  protected customSplitGroups = computed(() => {
+    const hasCustomSplit = this.hasCustomSplit();
+    const splitArray = this.categoriesForm.get('customSplit') as FormArray
+    return splitArray.controls as FormGroup[]
+  });
 
   updateValidator = effect(() => {
     const hasCustomSplit = this.hasCustomSplit();
