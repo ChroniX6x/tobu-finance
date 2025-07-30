@@ -39,7 +39,7 @@ export function customSplitSumValidator(): ValidatorFn {
     const customSplitArray = control.get('customSplit') as FormArray;
 
     if (!hasCustomSplit) {
-      return null; // Kein Fehler, wenn Custom Split deaktiviert ist
+      return null;
     }
 
     const total = customSplitArray.controls.reduce((sum, group) => {
@@ -71,7 +71,6 @@ export function customSplitSumValidator(): ValidatorFn {
 export class Categories implements OnInit {
   private store = inject(Store);
   private fb = inject(FormBuilder);
-  private cdr = inject(ChangeDetectorRef);
 
   public categoryGroups = signal<FormGroup[]>([]);
   public members = select(WizardState.members);
@@ -79,46 +78,26 @@ export class Categories implements OnInit {
     const shouldBuild = this.hasCustomSplit();
     const currentMembers = this.members();
 
-    // this.categoriesForm.update(x => {
-      const customSplitArray = this.categoriesForm.get('customSplit') as FormArray;
+    const customSplitArray = this.categoriesForm.get('customSplit') as FormArray;
 
-      if (shouldBuild && customSplitArray.length !== currentMembers.length) {
+    if (shouldBuild && customSplitArray.length !== currentMembers.length) {
 
-        customSplitArray.clear();
-        currentMembers.forEach((member) => {
-          customSplitArray.push(
-            this.fb.nonNullable.group({
-              memberId: member.tempId,
-              name: member.name,
-              split: ['', Validators.required],
-            })
-          );
-        });
-      }
-      // return x;
-    // })
+      customSplitArray.clear();
+      currentMembers.forEach((member) => {
+        customSplitArray.push(
+          this.fb.nonNullable.group({
+            memberId: member.tempId,
+            name: member.name,
+            split: ['', Validators.required],
+          })
+        );
+      });
+    }
   });
 
   public wizardForm = this.fb.group({
     categories: this.fb.array([]),
   });
-
-  // public categoriesForm = signal(this.fb.group(
-  //   {
-  //     name: ['', Validators.required],
-  //     hasCustomSplit: false,
-  //     customSplit: this.fb.array([
-  //       this.fb.group({
-  //         memberId: ['', Validators.required],
-  //         split: ['', Validators.required],
-  //       }),
-  //     ]),
-  //   },
-  //   {
-  //     validators: customSplitSumValidator(),
-  //     updateOn: 'change'
-  //   } as AbstractControlOptions
-  // ))
 
   public categoriesForm = this.fb.group(
     {
