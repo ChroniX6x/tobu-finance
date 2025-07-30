@@ -41,6 +41,7 @@ export class WizardState {
 
   @Action(NextStepAction)
   public nextStep(ctx: StateContext<WizardStateModel>, action: NextStepAction) {
+    if(!this.canBeActivated(ctx.getState(), ctx.getState().currentStep + 1)) return;
     ctx.setState(produce(state => {
       if(state.currentStep < 5) {
         state.currentStep++;
@@ -60,10 +61,36 @@ export class WizardState {
   @Action(SetStepAction)
   public setStep(ctx: StateContext<WizardStateModel>, {step}: SetStepAction) {
     ctx.setState(produce(state => {
+
+      let tmp = state.currentStep;
       if(step > 0 && step < 6) {
         state.currentStep = step;
       }
+
+      if(!this.canBeActivated(ctx.getState() ,step)) {
+        state.currentStep = tmp;
+      };
     }));
+  }
+
+  private canBeActivated(state: WizardStateModel, step: number): boolean {
+
+    switch (step) {
+      case 2:
+        if(!state.data?.name) return false;
+        break;
+      case 3:
+        if(!state.data?.members || state.data?.members.length < 2) return false;
+        break;
+      case 4:
+        if(!state.data?.members || state.data?.members.length < 2) return false;
+        if(!state.data?.categories || state.data?.members.length < 1) return false;
+        break;
+      default:
+        break;
+    }
+
+    return true;
   }
 
   @Action(SetBaseInformation)

@@ -1,99 +1,150 @@
-import { Component, computed, inject, OnInit, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  effect,
+  signal,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { select, Store } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { RippleModule } from 'primeng/ripple';
 import { NextStepAction } from '../state/wizard.actions';
 import { DataViewModule } from 'primeng/dataview';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  AbstractControlOptions,
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { WizardState } from '../state/wizard.state';
-import { WizardCategoryModel } from '../domain/wizard-category.model';
-import { forEach, split } from 'lodash';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule, JsonPipe } from '@angular/common';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { InputNumberModule } from 'primeng/inputnumber';
+
+export function customSplitSumValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const hasCustomSplit = control.get('hasCustomSplit')?.value;
+    const customSplitArray = control.get('customSplit') as FormArray;
+
+    if (!hasCustomSplit) {
+      return null; // Kein Fehler, wenn Custom Split deaktiviert ist
+    }
+
+    const total = customSplitArray.controls.reduce((sum, group) => {
+      const split = parseFloat(group.get('split')?.value);
+      return sum + (isNaN(split) ? 0 : split);
+    }, 0);
+
+    return total !== 100 ? { splitSumInvalid: true } : null;
+  };
+}
 
 @Component({
   selector: 'tbf-categories',
   templateUrl: './categories.html',
   styleUrls: ['./categories.scss'],
-  imports: [ DataViewModule, InputTextModule, ButtonModule, RippleModule, ReactiveFormsModule, ToggleSwitchModule, CommonModule ]
+  imports: [
+    DataViewModule,
+    InputTextModule,
+    ButtonModule,
+    RippleModule,
+    ReactiveFormsModule,
+    ToggleSwitchModule,
+    CommonModule,
+    InputGroupModule,
+    InputGroupAddonModule,
+    InputNumberModule,
+  ],
 })
 export class Categories implements OnInit {
-
   private store = inject(Store);
   private fb = inject(FormBuilder);
-  public members = select(WizardState.members)
-  public customSplitEntries = computed(() => {
-    let currentMembers = this.members();
-    let customSplit = this.categoriesForm.get('customSplit') as FormArray;
-    customSplit.clear()
-    if(currentMembers.length > 0) {
-      currentMembers.forEach(member => {
-        customSplit.push(this.fb.nonNullable.group({
-          memberId: member.tempId,
-          name: member.name,
-          split: ['', Validators.required]
-        }));
-      });
-    }
-    return customSplit;
-  })
+  private cdr = inject(ChangeDetectorRef);
 
   public categoryGroups = signal<FormGroup[]>([]);
+  public members = select(WizardState.members);
+  public customSplitEntries = effect(() => {
+    let currentMembers = this.members();
+    let customSplitArray = this.categoriesForm.get('customSplit') as FormArray;
+    customSplitArray.clear();
+    if (currentMembers.length > 0) {
+      currentMembers.forEach((member) => {
+        customSplitArray.push(
+          this.fb.nonNullable.group({
+            memberId: member.tempId,
+            name: member.name,
+            split: ['', Validators.required],
+          })
+        );
+      });
+    }
+    this.cdr.detectChanges();
+  });
 
-  public wizardForm =  this.fb.group({
-    categories: this.fb.array([])
-  })
+  public wizardForm = this.fb.group({
+    categories: this.fb.array([]),
+  });
 
-  public categoriesForm =  this.fb.group({
-    name: ['', Validators.required],
-    hasCustomSplit: false,
-    customSplit: this.fb.array([this.fb.nonNullable.group({
-      memberId: ['', Validators.required],
-      split: ['', Validators.required]
-    })])
-  })
-  public hasCustomSplit = toSignal(this.categoriesForm.get('hasCustomSplit')!.valueChanges, {initialValue: false})
+  public categoriesForm = this.fb.group(
+    {
+      name: ['', Validators.required],
+      hasCustomSplit: false,
+      customSplit: this.fb.array([
+        this.fb.group({
+          memberId: ['', Validators.required],
+          split: ['', Validators.required],
+        }),
+      ]),
+    },
+    {
+      validators: customSplitSumValidator(),
+      updateOn: 'change'
+    } as AbstractControlOptions
+  );
+
+  public hasCustomSplit = toSignal(
+    this.categoriesForm.get('hasCustomSplit')!.valueChanges,
+    { initialValue: false }
+  );
 
   private categoryArray = this.wizardForm.get('categories') as FormArray;
+  protected customSplitArray = this.categoriesForm.get('customSplit') as FormArray;
 
-  constructor() { }
+  updateValidator = effect(() => {
+    const hasCustomSplit = this.hasCustomSplit();
+    let customSplitArray = this.categoriesForm.get('customSplit') as FormArray;
 
-  ngOnInit(): void {
+    customSplitArray.controls.forEach((group) => {
+      if (hasCustomSplit) {
+        group.get('memberId')?.setValidators(Validators.required);
+        group.get('split')?.setValidators(Validators.required);
+      } else {
+        group.get('memberId')?.clearValidators();
+        group.get('split')?.clearValidators();
+      }
 
-  }
+      group.get('memberId')?.updateValueAndValidity();
+      group.get('split')?.updateValueAndValidity();
+    });
+  });
 
-  // addCategory() {
-  //   let newValue = this.categoriesForm.value;
-  //   this.categories.update(x => {
-  //     let category: WizardCategoryModel = {name: newValue.name!};
-  //     if(newValue.customSplit && newValue.customSplit.length > 0) {
-  //       category.customSplit = []
-  //       newValue.customSplit.forEach(splitValue => {
-  //         category.customSplit?.push({
-  //           memberId: splitValue.memberId as string,
-  //           split: Number(splitValue.split)
-  //         });
-  //       });
-  //     }
-  //     x.push(category);
-  //     return [...x];
-  //   })
-  //   this. categoriesForm.reset();
-  // }
+  constructor() {}
 
-  // removeCategory(category: WizardCategoryModel) {
-  //   this.categories.update(x => {
+  ngOnInit(): void {}
 
-  //     let index = x.findIndex(value => value == category);
-  //     x.splice(index);
-
-  //     return x;
-  //   })
-  // }
-
-    addCategory() {
+  addCategory() {
     if (this.categoriesForm.invalid) return;
 
     const categoryData = this.categoriesForm.value;
@@ -116,7 +167,6 @@ export class Categories implements OnInit {
   }
 
   nextStep() {
-    this.store.dispatch(new NextStepAction())
+    this.store.dispatch(new NextStepAction());
   }
-
 }
