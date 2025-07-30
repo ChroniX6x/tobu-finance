@@ -11,7 +11,7 @@ import { select, Store } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { RippleModule } from 'primeng/ripple';
-import { NextStepAction } from '../state/wizard.actions';
+import { NextStepAction, SetCategories } from '../state/wizard.actions';
 import { DataViewModule } from 'primeng/dataview';
 import {
   AbstractControl,
@@ -32,6 +32,7 @@ import { CommonModule, JsonPipe } from '@angular/common';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { WizardCategoryModel } from '../domain/wizard-category.model';
 
 export function customSplitSumValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -50,6 +51,15 @@ export function customSplitSumValidator(): ValidatorFn {
     return total !== 100 ? { splitSumInvalid: true } : null;
   };
 }
+
+export function wizardValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const categoriesArray = control.get('categories') as FormArray;
+
+    return categoriesArray.length < 1 ? { toFewCategories: true } : null;
+  };
+}
+
 
 @Component({
   selector: 'tbf-categories',
@@ -97,18 +107,18 @@ export class Categories implements OnInit {
 
   public wizardForm = this.fb.group({
     categories: this.fb.array([]),
-  });
+  },
+  {
+    validators: wizardValidator(),
+    updateOn: 'change'
+  } as AbstractControlOptions
+);
 
   public categoriesForm = this.fb.group(
     {
       name: ['', Validators.required],
       hasCustomSplit: false,
-      customSplit: this.fb.array([
-        this.fb.group({
-          memberId: ['', Validators.required],
-          split: ['', Validators.required],
-        }),
-      ]),
+      customSplit: this.fb.array([]),
     },
     {
       validators: customSplitSumValidator(),
@@ -173,6 +183,11 @@ export class Categories implements OnInit {
   }
 
   nextStep() {
+    if (this.categoryGroups().length < 2) return;
+
+    const categoriesData = this.wizardForm.value.categories! as WizardCategoryModel[];
+    this.store.dispatch(new SetCategories(categoriesData));
+
     this.store.dispatch(new NextStepAction());
   }
 }

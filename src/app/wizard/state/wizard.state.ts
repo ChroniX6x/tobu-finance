@@ -1,11 +1,12 @@
 import { Injectable, inject } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
-import { InitCalculationDataAction, NextStepAction, PreviousStepAction, SetBaseInformation, SetCalculationMonthAction, SetMembers, SetStepAction } from "./wizard.actions";
+import { InitCalculationDataAction, NextStepAction, PreviousStepAction, SetBaseInformation, SetCalculationMonthAction, SetCategories, SetMembers, SetStepAction } from "./wizard.actions";
 import { cloneDeep } from "lodash";
 import { WizardDataService } from "./wizard-data.service";
 import { produce } from "immer";
 import { WizardModel } from "../domain/wizard.model";
 import { WizardMemberModel } from "../domain/wizard-member.model";
+import { v4 as uuidv4 } from 'uuid';
 
 export class WizardStateModel {
   currentStep: number;
@@ -15,8 +16,45 @@ export class WizardStateModel {
 @State<WizardStateModel>({
   name: 'wizardState',
   defaults: {
-    currentStep: 1,
-    data: {}
+    currentStep: 4,
+    data: {
+      name: "Account",
+      members: [
+        {
+            name: "Tony Hoffmann",
+            email: "sicphyer@gmx.de",
+            tempId: "db36bf0f-cc07-4061-8d3c-c9f5221380f3"
+        },
+        {
+            name: "Carolin Neumann",
+            email: "neumann__carolin@web.de",
+            tempId: "53031ab5-9ecc-4023-bc64-0354640f669c"
+        }
+    ],
+    categories: [
+        {
+            name: "Test",
+            customSplit: [],
+            tempId: "62810509-3d05-475e-b250-0cf33c20cda5"
+        },
+        {
+            name: "Test2",
+            customSplit: [
+                {
+                    memberId: "db36bf0f-cc07-4061-8d3c-c9f5221380f3",
+                    name: "Tony Hoffmann",
+                    split: 40
+                },
+                {
+                    memberId: "53031ab5-9ecc-4023-bc64-0354640f669c",
+                    name: "Carolin Neumann",
+                    split: 60
+                }
+            ],
+            tempId: "41cfaa1b-ce0e-49c5-992a-d35f6a3b34a0"
+        }
+    ]
+    }
   }
 })
 @Injectable()
@@ -109,7 +147,23 @@ export class WizardState {
       if(state.data == null) {
         state.data = {};
       }
+      members.forEach(member => {
+        member.tempId = uuidv4();
+      });
       state.data.members = members;
+    }));
+  }
+
+  @Action(SetCategories)
+  public setCategories(ctx: StateContext<WizardStateModel>, {categories}: SetCategories) {
+    ctx.setState(produce(state => {
+      if(state.data == null) {
+        state.data = {};
+      }
+      categories.forEach(category => {
+        category.tempId = uuidv4();
+      });
+      state.data.categories = categories;
     }));
   }
 

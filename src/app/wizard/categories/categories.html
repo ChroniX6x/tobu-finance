@@ -1,6 +1,6 @@
-<form class="flex flex-col p-5" [formGroup]="categoriesForm" (ngSubmit)="nextStep()">
+<form class="flex flex-col p-5" [formGroup]="wizardForm" (ngSubmit)="nextStep()">
   <div class="grid grid-cols-12 gap-4">
-    <div class="grid grid-cols-subgrid col-span-12 md:col-span-10 gap-4">
+    <div class="grid grid-cols-subgrid col-span-12 md:col-span-10 gap-4" [formGroup]="categoriesForm">
       <div class="col-span-10">
         <label for="name" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Name</label>
         <input id="name" type="text" formControlName="name" pInputText fluid />
@@ -30,21 +30,46 @@
       }
     </div>
     <div class="col-span-12 md:col-span-2 flex flex-row justify-end items-start">
-      <button pButton pRipple label="Add" class="w-auto md:mt-7 p-button-outlined" (click)="addCategory()" [disabled]="categoriesForm.invalid"></button>
+      <button pButton pRipple type="button" label="Add" class="w-auto md:mt-7 p-button-outlined" (click)="addCategory()" [disabled]="categoriesForm.invalid"></button>
     </div>
     <p-dataview class="col-span-12" [value]="categoryGroups()" [layout]="'list'" [emptyMessage]="'Keine Kategorien vorhanden.'">
-      <ng-template #list let-items>
+      <ng-template #list let-categories>
         <div class="flex flex-col gap-4">
-          @for (category of items; track $index; let i = $index) {
-          <div class="flex flex-row justify-between items-center bg-highlight rounded-2xl pl-5">
-            {{ category.value.name }} <p-button icon="pi pi-times" severity="danger" rounded (click)="removeCategory(i)"/>
-          </div>
+          @for (catGroup of categories; track $index; let i = $index) {
+            <div
+              class="flex flex-col md:flex-row justify-between items-start md:items-center bg-highlight
+                    rounded-2xl pl-5 shadow-sm hover:shadow-md transition-shadow">
+
+              <div class="flex flex-col sm:flex-row sm:items-center flex-1 gap-2">
+                <h3 class="text-lg font-semibold mr-4">{{ catGroup.value.name }}</h3>
+
+                @if (catGroup.value.customSplit?.length > 0) {
+                  <div class="flex flex-wrap items-center gap-2">
+                    <i class="pi pi-users"></i>
+                    @for (split of catGroup.value.customSplit; track $index; let j = $index) {
+                      <span class="text-sm">
+                        {{ split.name }}: {{ split.split }}%
+                      </span>@if(j < catGroup.value.customSplit.length - 1){<span>,</span>}
+                    }
+                  </div>
+                } @else {
+                  <div class="flex items-center text-sm text-surface-600">
+                    <i class="pi pi-chart-bar mr-1"></i>
+                    Auto Split (einkommensbasiert)
+                  </div>
+                }
+              </div>
+
+              <div class="mt-3 md:mt-0 md:ml-4">
+                <p-button icon="pi pi-times" severity="danger" rounded pRipple (click)="removeCategory(i)" aria-label="Kategorie entfernen"/>
+              </div>
+            </div>
           }
         </div>
       </ng-template>
     </p-dataview>
   </div>
   <div class="flex flex-row justify-end">
-    <button pButton pRipple label="Next" class="w-auto mt-3"  type="submit" [disabled]="!categoriesForm.valid"></button>
+    <button pButton pRipple label="Next" class="w-auto mt-3"  type="submit"  [disabled]="wizardForm.invalid"></button>
   </div>
 </form>

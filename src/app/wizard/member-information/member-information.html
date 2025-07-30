@@ -26,6 +26,6 @@
     </p-dataview>
   </div>
   <div class="flex flex-row justify-end">
-    <button pButton pRipple label="Next" class="w-auto mt-3" type="submit" [disabled]="memberGroups().length < 2"></button>
+    <button pButton pRipple label="Next" class="w-auto mt-3" type="submit" [disabled]="wizardForm.invalid"></button>
   </div>
 </form>

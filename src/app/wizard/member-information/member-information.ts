@@ -1,11 +1,15 @@
 import { Participant } from '@/domain/participant';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import {
+  AbstractControl,
+  AbstractControlOptions,
   FormArray,
   FormBuilder,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { Store } from '@ngxs/store';
@@ -15,6 +19,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { RippleModule } from 'primeng/ripple';
 import { NextStepAction, SetMembers } from '../state/wizard.actions';
 import { WizardMemberModel } from '../domain/wizard-member.model';
+
+export function wizardValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const membersArray = control.get('members') as FormArray;
+
+    return membersArray.length < 1 ? { toFewMembers: true } : null;
+  };
+}
 
 @Component({
   selector: 'app-member-information',
@@ -36,7 +48,12 @@ export class MemberInformation implements OnInit {
 
   wizardForm = this.fb.group({
     members: this.fb.array<WizardMemberModel>([]),
-  });
+  },
+  {
+    validators: wizardValidator(),
+    updateOn: 'change'
+  } as AbstractControlOptions
+);
 
   memberForm = this.fb.group({
     name: ['', [Validators.required]],
@@ -79,7 +96,6 @@ export class MemberInformation implements OnInit {
 
     // Optional: Generiere tempId hier oder im Backend
     const memberGroup = this.fb.group({
-      tempId: 'asfa', //this.generateTempId(),
       name: [memberData.name],
       email: [memberData.email],
     });

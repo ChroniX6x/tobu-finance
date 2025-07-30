@@ -1,3 +1,4 @@
+import { WizardCategoryModel } from "../domain/wizard-category.model";
 import { WizardMemberModel } from "../domain/wizard-member.model";
 import { WizardModel } from "../domain/wizard.model";
 
@@ -24,6 +25,11 @@ export class SetBaseInformation {
 export class SetMembers {
   static readonly type = '[Wizard] Set members action';
   constructor(public members: WizardMemberModel[]) {}
+}
+
+export class SetCategories {
+  static readonly type = '[Wizard] Set categories action';
+  constructor(public categories: WizardCategoryModel[]) {}
 }
 
 export class InitCalculationDataAction {
