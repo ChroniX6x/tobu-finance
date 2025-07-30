@@ -1,6 +1,6 @@
 <div class="card">
   <span class="text-surface-900 dark:text-surface-0 text-xl font-bold mb-6 block">Create Account</span>
-  <p-stepper [value]="currentStep()" (valueChange)="stepChanged($event!)" class="basis-[50rem]">
+  <p-stepper [value]="currentStep()" (valueChange)="stepChanged($event!)" [linear]="true" class="basis-[50rem]">
       <p-step-list>
           <p-step [value]="1">Base</p-step>
           <p-step [value]="2">Participants</p-step>
