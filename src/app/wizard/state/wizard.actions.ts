@@ -1,4 +1,5 @@
 import { WizardCategoryModel } from "../domain/wizard-category.model";
+import { WizardInitialsModel } from "../domain/wizard-initials.model";
 import { WizardMemberModel } from "../domain/wizard-member.model";
 import { WizardModel } from "../domain/wizard.model";
 
@@ -32,12 +33,13 @@ export class SetCategories {
   constructor(public categories: WizardCategoryModel[]) {}
 }
 
-export class InitCalculationDataAction {
-  static readonly type = '[Calculation] Init data action';
+export class SetInitials {
+  static readonly type = '[Wizard] Set initials action';
+  constructor(public initials: WizardInitialsModel) {}
+}
+
+export class SaveWizardData {
+  static readonly type = '[Wizard] Save wizard data action';
   constructor() {}
 }
 
-export class SetCalculationMonthAction {
-  static readonly type = '[Calculation] Set calculation month action';
-  constructor(public selectedMonth: string) {}
-}

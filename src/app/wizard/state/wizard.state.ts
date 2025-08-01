@@ -1,12 +1,14 @@
 import { Injectable, inject } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
-import { InitCalculationDataAction, NextStepAction, PreviousStepAction, SetBaseInformation, SetCalculationMonthAction, SetCategories, SetMembers, SetStepAction } from "./wizard.actions";
+import { NextStepAction, PreviousStepAction, SaveWizardData, SetBaseInformation, SetCategories, SetInitials, SetMembers, SetStepAction } from "./wizard.actions";
 import { cloneDeep } from "lodash";
 import { WizardDataService } from "./wizard-data.service";
 import { produce } from "immer";
 import { WizardModel } from "../domain/wizard.model";
 import { WizardMemberModel } from "../domain/wizard-member.model";
 import { v4 as uuidv4 } from 'uuid';
+import { WizardCategoryModel } from "../domain/wizard-category.model";
+import { Router } from "@angular/router";
 
 export class WizardStateModel {
   currentStep: number;
@@ -33,12 +35,12 @@ export class WizardStateModel {
     ],
     categories: [
         {
-            name: "Test",
+            name: "Lebensmittel",
             customSplit: [],
             tempId: "62810509-3d05-475e-b250-0cf33c20cda5"
         },
         {
-            name: "Test2",
+            name: "Miete",
             customSplit: [
                 {
                     memberId: "db36bf0f-cc07-4061-8d3c-c9f5221380f3",
@@ -60,7 +62,9 @@ export class WizardStateModel {
 @Injectable()
 export class WizardState {
 
+  private router = inject(Router);
   private dataService = inject(WizardDataService)
+  private lastStepNumber = 5;
 
   @Selector()
   public static state(state: WizardStateModel): WizardStateModel {
@@ -77,11 +81,16 @@ export class WizardState {
     return cloneDeep(state.data?.members) ?? [];
   }
 
+  @Selector()
+  public static categories(state: WizardStateModel): WizardCategoryModel[] {
+    return cloneDeep(state.data?.categories) ?? [];
+  }
+
   @Action(NextStepAction)
   public nextStep(ctx: StateContext<WizardStateModel>, action: NextStepAction) {
     if(!this.canBeActivated(ctx.getState(), ctx.getState().currentStep + 1)) return;
     ctx.setState(produce(state => {
-      if(state.currentStep < 5) {
+      if(state.currentStep < this.lastStepNumber - 1) {
         state.currentStep++;
       }
     }));
@@ -101,7 +110,7 @@ export class WizardState {
     ctx.setState(produce(state => {
 
       let tmp = state.currentStep;
-      if(step > 0 && step < 6) {
+      if(step > 0 && step < this.lastStepNumber) {
         state.currentStep = step;
       }
 
@@ -167,32 +176,23 @@ export class WizardState {
     }));
   }
 
-  @Action(InitCalculationDataAction)
-  public addValue(ctx: StateContext<WizardStateModel>, action: InitCalculationDataAction) {
-    // this.dataService.testDB();
-    // return this.dataService.getTestData(ctx.getState().selectedMonth).pipe(
-    //   tap(res => {
-    //     ctx.setState(res);
-    //   })
-    // );
+  @Action(SetInitials)
+  public setInitials(ctx: StateContext<WizardStateModel>, {initials}: SetInitials) {
+    ctx.setState(produce(state => {
+      if(state.data == null) {
+        state.data = {};
+      }
 
+      state.data.initialValues = initials;
+    }));
   }
 
-  @Action(SetCalculationMonthAction)
-  public setCalculationMonth(ctx: StateContext<WizardStateModel>, {selectedMonth}: SetCalculationMonthAction) {
+  @Action(SaveWizardData)
+  public saveWizardData(ctx: StateContext<WizardStateModel>, {}: SaveWizardData) {
+    let accountId = this.dataService.createNewAccount(ctx.getState().data as WizardModel)
 
-    // ctx.setState(produce(state => {
-    //   state.selectedMonth = selectedMonth;
-    // }));
-
-    // return this.dataService.getTestData(selectedMonth).pipe(
-    //   tap(res => {
-    //     ctx.setState(res);
-    //   })
-    // );
-
+    this.router.navigate(['dashboard', accountId])
   }
-
 }
 
 
