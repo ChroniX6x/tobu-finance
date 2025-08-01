@@ -1,9 +1,44 @@
-<div class="flex flex-col p-5">
+<form class="flex flex-col p-5" [formGroup]="initialsForm" (ngSubmit)="nextStep()">
   <div class="">
     <label for="account-balance" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> Initial Account Balance </label>
-    <p-inputnumber mode="currency"inputId="account-balance"currency="EUR" locale="de-DE" fluid/>
+    <!-- <p-inputnumber mode="currency"inputId="account-balance"currency="EUR" locale="de-DE" fluid formControlName="accountBalance"/> -->
+    <p-inputgroup>
+        <p-inputnumber inputId="account-balance" formControlName="accountBalance" fluid/>
+        <p-inputgroup-addon>€</p-inputgroup-addon>
+    </p-inputgroup>
   </div>
+
+  <p-fieldset legend="Member Income">
+    <div formArrayName="memberInitials">
+      @for (memberCtrls of memberGroups(); track $index; let index = $index) {
+        <div class="" [formGroupName]="index">
+          <label [for]="'member-balance-' + index" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> {{ memberCtrls.value.name }} </label>
+          <!-- <p-inputnumber mode="currency" [inputId]="'member-balance-' + index" currency="EUR" locale="de-DE" fluid formControlName="initialIncome"/> -->
+          <p-inputgroup>
+            <p-inputnumber [inputId]="'member-balance-' + index" formControlName="initialIncome" fluid/>
+            <p-inputgroup-addon>€</p-inputgroup-addon>
+          </p-inputgroup>
+        </div>
+      }
+    </div>
+  </p-fieldset>
+
+  <p-fieldset legend="Category Expense Estimation">
+    <div formArrayName="categoryInitials">
+      @for (categoryCtrls of categoryGroups(); track $index; let index = $index) {
+        <div class="" [formGroupName]="index">
+          <label [for]="'category-estimation-' + index" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> {{ categoryCtrls.value.name }} </label>
+          <!-- <p-inputnumber mode="currency" [inputId]="'category-estimation-' + index" currency="EUR" locale="de-DE" fluid formControlName="initialExpenseEst"/> -->
+          <p-inputgroup>
+            <p-inputnumber [inputId]="'category-estimation-' + index" formControlName="initialExpenseEst" fluid/>
+            <p-inputgroup-addon>€</p-inputgroup-addon>
+          </p-inputgroup>
+        </div>
+      }
+    </div>
+  </p-fieldset>
+
   <div class="flex flex-row justify-end">
-    <button pButton pRipple label="Next" class="w-auto mt-3" (click)="onNextClicked()"></button>
+    <button pButton pRipple label="Next" class="w-auto mt-3" type="submit" [disabled]="initialsForm.invalid"></button>
   </div>
-</div>
+</form>
