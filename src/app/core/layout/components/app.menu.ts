@@ -51,6 +51,11 @@ export class AppMenu {
             icon: 'pi pi-home',
             items: [
                 {
+                    label: 'Dashboard',
+                    icon: 'pi pi-fw pi-home',
+                    routerLink: ['/dashboard']
+                },
+                {
                     label: 'Calculation',
                     icon: 'pi pi-fw pi-home',
                     routerLink: ['/calculation']

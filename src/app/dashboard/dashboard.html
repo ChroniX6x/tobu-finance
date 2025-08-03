@@ -1,3 +1,41 @@
-<p>
-  Dashboard works!
-</p>
+<div class="p-6">
+  <h2 class="text-2xl font-semibold mb-6">Deine Konten</h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+    <!-- Bestehende Accounts -->
+    @for (account of accounts(); track account.id) {
+      <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-md p-4 flex flex-col justify-between">
+        <div>
+          <h3 class="text-xl font-medium mb-2 text-surface-800 dark:text-surface-100">{{ account.name }}</h3>
+          <p class="text-lg font-semibold text-primary">Kontostand: {{ account.currentBalance | currency:'EUR' }}</p>
+        </div>
+        <p-chart
+          type="line"
+          [data]="{
+            labels: ['-4M', '-3M', '-2M', '-1M', 'Jetzt'],
+            datasets: [{ data: account.balanceHistory, label: 'Verlauf', fill: false, borderColor: '#4f46e5' }]
+          }"
+          [options]="{
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { display: false },
+              y: { display: false }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+          }"
+          style="height: 80px"
+        ></p-chart>
+      </div>
+    }
+
+    <!-- Account erstellen -->
+    <button
+      (click)="goToWizard()"
+      class="rounded-2xl border-dashed border-2 border-primary text-primary flex flex-col items-center justify-center text-center p-8 hover:bg-primary/10 transition"
+    >
+      <i class="pi pi-plus text-3xl mb-2"></i>
+      <span class="text-lg font-medium">Neues Konto erstellen</span>
+    </button>
+  </div>
+</div>
