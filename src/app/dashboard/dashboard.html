@@ -3,24 +3,24 @@
 
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
     <!-- Bestehende Accounts -->
-    @for (account of accounts(); track account.id) {
-      <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-md p-4 flex flex-col justify-between">
+    @for (account of accountsWithChart(); track account.id) {
+      <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-md p-4 flex flex-col justify-between cursor-pointer transform transition duration-200 hover:shadow-xl hover:scale-105"
+        (click)="goToAccount(account.id)">
         <div>
-          <h3 class="text-xl font-medium mb-2 text-surface-800 dark:text-surface-100">{{ account.name }}</h3>
-          <p class="text-lg font-semibold text-primary">Kontostand: {{ account.currentBalance | currency:'EUR' }}</p>
+          <h3 class="text-xl font-medium mb-1 text-surface-800 dark:text-surface-100">{{ account.name }}</h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 mb-3">
+            {{ account.participantCount }} {{ account.participantCount === 1 ? 'Teilnehmer' : 'Teilnehmer' }}
+          </p>
+          <p class="text-lg font-semibold text-primary">
+            Kontostand: {{ account.currentBalance | currency:'EUR' }}
+          </p>
         </div>
         <p-chart
           type="line"
-          [data]="{
-            labels: ['-4M', '-3M', '-2M', '-1M', 'Jetzt'],
-            datasets: [{ data: account.balanceHistory, label: 'Verlauf', fill: false, borderColor: '#4f46e5' }]
-          }"
+          [data]="account.chartData"
           [options]="{
             plugins: { legend: { display: false } },
-            scales: {
-              x: { display: false },
-              y: { display: false }
-            },
+            scales: { x: { display: false }, y: { display: false } },
             responsive: true,
             maintainAspectRatio: false
           }"
@@ -29,8 +29,9 @@
       </div>
     }
 
-    <!-- Account erstellen -->
+    <!-- Account erstellen als Kachel -->
     <button
+      type="button"
       (click)="goToWizard()"
       class="rounded-2xl border-dashed border-2 border-primary text-primary flex flex-col items-center justify-center text-center p-8 hover:bg-primary/10 transition"
     >
