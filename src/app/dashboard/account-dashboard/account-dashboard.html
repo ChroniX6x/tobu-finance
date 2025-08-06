@@ -1,82 +1,59 @@
-<!-- account-dashboard.component.html -->
 <div class="p-6 bg-surface min-h-screen space-y-6">
-  <!-- Header Section -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
-    <div class="flex items-center space-x-4">
-      <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100">Gemeinschaftskonto</h1>
-      <button
-        type="button"
-        class="text-primary-600 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 p-2 rounded-full transition-colors"
-        aria-label="Bearbeiten"
-      >
-        <i class="pi pi-pencil text-lg"></i>
-      </button>
-    </div>
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-text-primary">{{ account().name }}</h1>
+    <button class="text-primary hover:text-primary-dark p-2 rounded-full" aria-label="Bearbeiten">
+      <i class="pi pi-pencil text-xl"></i>
+    </button>
   </div>
 
-  <!-- Financial Summary -->
-  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-    <p-card class="text-center bg-surface-card">
-      <p class="text-sm text-text-secondary">Kontostand</p>
-      <p class="text-2xl font-semibold text-text-primary">5.672 €</p>
-    </p-card>
-    <p-card class="text-center bg-surface-card">
-      <p class="text-sm text-text-secondary">Veränderung</p>
-      <p class="text-lg font-medium text-green-500">+ 2,2 %</p>
-    </p-card>
-    <p-card class="text-center bg-surface-card">
-      <p class="text-sm text-text-secondary">Prognose</p>
-      <p class="text-lg font-medium text-text-primary">5.800 €</p>
-    </p-card>
-    <p-card class="text-center bg-surface-card">
-      <p class="text-sm text-text-secondary">Zusatzbeiträge</p>
-      <p class="text-lg font-medium text-text-primary">250 €</p>
-    </p-card>
-    <p-card class="text-center bg-surface-card">
-      <p class="text-sm text-text-secondary">TopUps</p>
-      <p class="text-lg font-medium text-text-primary">500 €</p>
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+    <p-card *ngFor="let key of statKeys()" class="bg-surface-card text-center">
+      <p class="text-sm text-text-secondary">{{ key.label }}</p>
+      <p class="text-lg font-semibold text-text-primary">
+        {{ key.value | number:'1.0-0' }}{{ key.suffix }}
+      </p>
     </p-card>
   </div>
 
-  <!-- Quick Visualizations -->
+  <!-- Widget Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <p-card header="Verlauf" class="bg-surface-card">
-      <svg class="w-full h-24 bg-surface-border rounded"></svg>
+      <div class="h-24 bg-surface-border rounded"></div>
     </p-card>
-    <p-card header="Einnahmen vs. Ausgaben" class="bg-surface-card">
-      <div class="w-full h-24 bg-surface-border rounded"></div>
+    <p-card header="Einnahmen vs. Ausgaben" class="bg-surface-card">
+      <div class="h-24 bg-surface-border rounded"></div>
     </p-card>
     <p-card header="Top Kategorien" class="bg-surface-card">
-      <div class="w-full h-24 bg-surface-border rounded"></div>
+      <div class="h-24 bg-surface-border rounded"></div>
     </p-card>
   </div>
 
-  <!-- Key Actions -->
-  <div class="flex flex-wrap gap-4">
-    <button pButton label="Ausgabe hinzufügen" icon="pi pi-money-bill" class="p-button-success"></button>
-    <button pButton label="Einkommen anpassen" icon="pi pi-wallet" class="p-button-info"></button>
-    <button pButton label="Zusatzbeitrag verwalten" icon="pi pi-coins" class="p-button-warning"></button>
-    <button pButton label="TopUps verwalten" icon="pi pi-arrow-up" class="p-button-help"></button>
-    <button pButton label="Kategorien bearbeiten" icon="pi pi-list" class="p-button-secondary"></button>
+  <!-- Action Buttons -->
+  <div class="flex flex-wrap gap-3">
+    <button pButton label="Ausgabe" icon="pi pi-money-bill" class="p-button-success"></button>
+    <button pButton label="Einkommen" icon="pi pi-wallet" class="p-button-info"></button>
+    <button pButton label="Beitrag" icon="pi pi-coins" class="p-button-warning"></button>
+    <button pButton label="TopUp" icon="pi pi-arrow-up" class="p-button-help"></button>
   </div>
 
-  <!-- Navigation to Details -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-    <p-card class="cursor-pointer hover:shadow-lg transition" header="Ausgaben">
-      <p class="text-sm text-text-secondary">Letzte Buchung: 01.08.2025</p>
-      <p class="text-lg font-semibold text-text-primary">Miete, Einkauf, Freizeit</p>
+  <!-- Detail-Link Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <p-card header="Ausgaben" class="cursor-pointer hover:shadow-lg">
+      <p class="text-sm text-text-secondary">Letzte Buchung: {{ account().recent.lastExpense }}</p>
+      <p class="text-md text-text-primary">{{ account().recent.topCats }}</p>
     </p-card>
-    <p-card class="cursor-pointer hover:shadow-lg transition" header="Einnahmen">
-      <p class="text-sm text-text-secondary">Regelmäßige & einmalige</p>
-      <p class="text-lg font-semibold text-text-primary">Gehalt, Zuschüsse</p>
+    <p-card header="Einnahmen" class="cursor-pointer hover:shadow-lg">
+      <p class="text-sm text-text-secondary">Status Übersicht</p>
     </p-card>
-    <p-card class="cursor-pointer hover:shadow-lg transition" header="Beiträge">
-      <p class="text-sm text-text-secondary">Geplante Mitgliedsbeiträge</p>
-      <p class="text-lg font-semibold text-text-primary">monatlich, flexibel</p>
+    <p-card header="Beiträge" class="cursor-pointer hover:shadow-lg">
+      <p class="text-sm text-text-secondary">Plan & Sonderbeiträge</p>
     </p-card>
-    <p-card class="cursor-pointer hover:shadow-lg transition" header="Einstellungen">
-      <p class="text-sm text-text-secondary">Mitglieder, Regeln & Kontodetails</p>
-      <p class="text-lg font-semibold text-text-primary">Bearbeiten</p>
+    <p-card header="Einstellungen" class="cursor-pointer hover:shadow-lg">
+      <p class="text-sm text-text-secondary">Mitglieder, Regeln etc.</p>
     </p-card>
   </div>
+
 </div>
