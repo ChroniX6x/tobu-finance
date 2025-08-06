@@ -15,17 +15,15 @@
             Kontostand: {{ account.currentBalance | currency:'EUR' }}
           </p>
         </div>
-        <p-chart
-          type="line"
-          [data]="account.chartData"
-          [options]="{
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false }, y: { display: false } },
-            responsive: true,
-            maintainAspectRatio: false
-          }"
-          style="height: 80px"
-        ></p-chart>
+        <svg viewBox="0 0 100 30" preserveAspectRatio="none" class="w-full h-20">
+          <path
+            [attr.d]="generatePath(account.balanceHistory)"
+            fill="none"
+            stroke="#f87171"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
       </div>
     }
 

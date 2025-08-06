@@ -37,7 +37,7 @@ export class Dashboard implements OnInit {
             data: history,
             label: 'Verlauf',
             fill: false,
-            // borderColor hier weglassen, ChartModule übernimmt defaults
+            tension: 0.35
           }
         ]
       };
@@ -56,4 +56,32 @@ export class Dashboard implements OnInit {
   goToWizard() {
     this.router.navigate(['/wizard']);
   }
+
+  generatePath(data: number[]): string {
+    if (!data.length) return '';
+
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    const range = max - min || 1;
+
+    const stepX = 100 / (data.length - 1);
+    const scaleY = 30 / range;
+
+    const points = data.map((val, i) => {
+      const x = i * stepX;
+      const y = 30 - (val - min) * scaleY;
+    return { x, y };
+  });
+
+  let d = `M ${points[0].x},${points[0].y}`;
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1];
+    const curr = points[i];
+    const cx = (prev.x + curr.x) / 2;
+    d += ` Q ${prev.x},${prev.y} ${cx},${(prev.y + curr.y) / 2}`;
+  }
+  d += ` T ${points.at(-1)!.x},${points.at(-1)!.y}`;
+  return d;
+}
+
 }
