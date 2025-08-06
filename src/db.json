@@ -31,6 +31,24 @@
         "b1",
         "b2"
       ],
+      "balances": [
+        {
+          "month": "2025-05",
+          "value": 6742
+        },
+        {
+          "month": "2025-06",
+          "value": 3976
+        },
+        {
+          "month": "2025-07",
+          "value": 4521
+        },
+        {
+          "month": "2025-08",
+          "value": 5672
+        }
+      ],
       "monthlyIncomes": [
         {
           "memberId": "b1",
@@ -99,6 +117,10 @@
         "b4c4"
       ],
       "balances": [
+        {
+          "month": "2025-07",
+          "value": 3415
+        },
         {
           "month": "2025-08",
           "value": 5023

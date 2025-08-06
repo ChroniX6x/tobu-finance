@@ -1,3 +1,94 @@
-<p>
-  Dashboard works!
-</p>
+<div class="p-6">
+  <h2 class="text-2xl font-semibold mb-6">Deine Konten</h2>
+
+  @if (loading()) {
+    <p>Lade Konten...</p>
+  }
+  @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      @for (acc of svgAccounts(); track acc.id) {
+        <div
+          class="relative bg-white dark:bg-surface-800 rounded-2xl shadow-md p-4 flex flex-col justify-between
+                 cursor-pointer transform transition duration-200 hover:shadow-xl hover:scale-105"
+          (click)="goToAccount(acc.id)"
+        >
+          <div>
+            <h3 class="text-xl font-medium mb-1">{{ acc.name }}</h3>
+            <p class="text-sm text-surface-600 mb-3">{{ acc.participantCount }} Teilnehmer</p>
+            <div class="flex items-end justify-between mb-4">
+              <!-- Kontostand -->
+              <div class="text-center">
+                <p class="text-lg font-semibold text-primary mb-0">
+                  {{ acc.currentBalance | currency:'EUR' }}
+                </p>
+                <p class="text-xs text-surface-600">Kontostand</p>
+              </div>
+
+              <!-- Durchschnittliche Änderung -->
+              @if (acc.pctChange !== null) {
+                <div class="text-center">
+                  <p class="text-sm font-medium mb-0" [class.text-green-500]="acc.pctChange! >= 0" [class.text-red-500]="acc.pctChange! < 0">
+                    {{ acc.pctChange! >= 0 ? '+' : '' }}
+                    {{ acc.pctChange! | number:'1.1-1' }} %
+                  </p>
+                  <p class="text-xs text-surface-600">Veränderung</p>
+                </div>
+              }
+              <!-- Prognose -->
+              @if (acc.forecastValue !== null) {
+                <div class="text-center">
+                  <p class="text-sm font-semibold mb-0 text-surface-700">
+                  {{ acc.forecastValue | currency:'EUR' }}
+                  </p>
+                  <p class="text-xs text-surface-600">Prognose</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <svg
+            viewBox="0 0 100 30"
+            preserveAspectRatio="none"
+            class="w-full h-20 mt-4"
+            (mousemove)="onMouseMove(acc.id, $event, acc.points)"
+            (mouseleave)="onMouseLeave()"
+          >
+            <defs>
+              <linearGradient id="grad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#f87171" stop-opacity="0.3" />
+                <stop offset="100%" stop-color="#f87171" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+
+            <path [attr.d]="acc.dFill" fill="url(#grad)" class="transition-all duration-500" />
+            <path [attr.d]="acc.dLine" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"
+                  class="transition-all duration-500" />
+          </svg>
+
+          <!-- Absolut positioniertes Tooltip innerhalb der Kachel -->
+          @if (hovered()?.accountId === acc.id) {
+            <div
+              class="absolute bg-white dark:bg-surface-800 text-sm p-2 rounded shadow-lg pointer-events-none"
+              [style.left.%]="hovered()!.px"
+              [style.top.%]="hovered()!.py - 5"
+              style="transform: translate(-50%, -100%);"
+            >
+              {{ hovered()!.pt.label }}: {{ hovered()!.pt.value | currency:'EUR' }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Neues Konto -->
+      <button
+        type="button"
+        (click)="goToWizard()"
+        class="rounded-2xl border-dashed border-2 border-primary text-primary
+               flex flex-col items-center justify-center p-8 hover:bg-primary/10 transition"
+      >
+        <i class="pi pi-plus text-3xl mb-2"></i>
+        <span class="text-lg font-medium">Neues Konto erstellen</span>
+      </button>
+    </div>
+  }
+</div>
