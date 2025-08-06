@@ -1,48 +1,79 @@
-<!-- account-dashboard.html -->
-<div class="p-6 bg-surface min-h-screen space-y-6">
-  <!-- Header Section -->
-  <div
-    class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0"
-  >
-    <div class="flex items-center space-x-4">
-      <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100">
-        Gemeinschaftskonto
-      </h1>
-      <button
-        type="button"
-        class="text-primary-600 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 p-2 rounded-full transition-colors"
-        aria-label="Bearbeiten"
-      >
+<div class="p-6 bg-surface min-h-screen space-y-8">
+  <!-- Kopfbereich + Saldo -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="flex items-center gap-4">
+      <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100">{{ account.name }}</h1>
+      <button type="button" class="text-primary-600 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 p-2 rounded-full transition-colors" aria-label="Bearbeiten">
         <i class="pi pi-pencil text-lg"></i>
       </button>
     </div>
+    <div>
+      <div class="text-3xl font-bold text-success-600">{{ account.currentBalance | currency:'EUR':'symbol':'1.0-0' }}</div>
+      <div class="text-sm text-text-secondary flex items-center gap-2">
+        <span [ngClass]="account.balanceChange >= 0 ? 'text-green-500' : 'text-red-500'">
+          {{ account.balanceChange >= 0 ? '+' : '' }}{{ account.balanceChange }}%
+        </span>
+        <span class="mx-2 text-text-tertiary">•</span>
+        <span>Prognose: <b>{{ account.forecast | currency:'EUR':'symbol':'1.0-0' }}</b></span>
+      </div>
+      <div *ngIf="account.warning" class="text-xs text-red-500 font-medium mt-1 flex items-center gap-1">
+        <i class="pi pi-exclamation-triangle"></i> {{ account.warning }}
+      </div>
+    </div>
   </div>
 
-  <!-- Financial Summary -->
-  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-    @for (stat of statKeys(); track stat.label) {
-    <p-card class="text-center bg-surface-card">
-      <p class="text-sm text-text-secondary">{{ stat.label }}</p>
-      <p
-        class="text-2xl font-semibold"
-        [ngClass]="{
-          'text-green-500': stat.label === 'Veränderung' && stat.value >= 0,
-          'text-red-500': stat.label === 'Veränderung' && stat.value < 0,
-          'text-text-primary': stat.label !== 'Veränderung'
-        }"
+  <!-- Mitgliederübersicht -->
+  <div class="flex items-center gap-4 flex-wrap bg-surface-card p-3 rounded-lg shadow">
+    <div class="font-medium text-text-secondary mr-4">Mitglieder:</div>
+    @for (member of members; track member.id) {
+      <div class="flex items-center gap-2 px-3 py-1 rounded-full"
+        [ngClass]="member.paid ? 'bg-success-50 text-success-700' : 'bg-yellow-50 text-yellow-700'"
+        pTooltip="{{ member.paid ? 'Beitrag gezahlt' : 'Beitrag offen' }}"
+        tooltipPosition="top"
       >
-        {{ stat.value }}{{ stat.suffix }}
-      </p>
-    </p-card>
+        <p-avatar shape="circle" label="{{ member.avatar }}"></p-avatar>
+        <span>{{ member.name }}</span>
+        <i class="pi" [ngClass]="member.paid ? 'pi-check' : 'pi-clock'"></i>
+      </div>
     }
   </div>
 
-  <!-- Charts in gleicher Höhe -->
+  <!-- Deine Übersicht (Personalisiert) -->
+  <div class="bg-surface-card p-4 rounded-lg shadow flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div>
+      <span class="font-semibold text-text-primary">Dein Beitrag für diesen Monat:</span>
+      <span class="text-lg font-bold ml-2">{{ you().monthlyDue | currency:'EUR':'symbol':'1.0-0' }}</span>
+      <span *ngIf="you().paid" class="ml-2 text-green-500 font-medium">(bezahlt)</span>
+      <span *ngIf="!you().paid" class="ml-2 text-yellow-600 font-medium">(offen)</span>
+    </div>
+    <div>
+      <button pButton label="Jetzt bezahlen" icon="pi pi-arrow-right" class="p-button-success" *ngIf="!you().paid"></button>
+    </div>
+  </div>
+
+  <!-- Quick Stats & Aktionen -->
+  <div class="grid md:grid-cols-4 gap-4">
+    @for (stat of quickStats(); track stat.label) {
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center" [ngClass]="stat.color">
+        <i class="{{ stat.icon }} text-xl"></i>
+        <span class="font-medium">{{ stat.value }}</span>
+        <span class="text-sm">{{ stat.label }}</span>
+      </div>
+    }
+  </div>
+  <div class="grid md:grid-cols-4 gap-4">
+    <button pButton label="Ausgabe hinzufügen" icon="pi pi-money-bill" class="w-full p-button-success hover:scale-[1.01] transition-transform"></button>
+    <button pButton label="Beitrag einzahlen" icon="pi pi-wallet" class="w-full p-button-info hover:scale-[1.01] transition-transform"></button>
+    <button pButton label="TopUp machen" icon="pi pi-arrow-up" class="w-full p-button-help hover:scale-[1.01] transition-transform"></button>
+    <button pButton label="Zu Einstellungen" icon="pi pi-cog" class="w-full p-button-secondary hover:scale-[1.01] transition-transform"></button>
+  </div>
+
+  <!-- Visualisierung -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <!-- Verlauf -->
-    <div class="card bg-surface-card p-4 rounded-lg shadow flex flex-col">
+    <div class="card bg-surface-card p-4 rounded-lg shadow flex flex-col h-80">
       <div class="font-medium leading-loose">Verlauf</div>
-      <div class="flex-1 flex justify-center">
+      <div class="flex-1 flex">
         <p-chart
           type="line"
           [data]="lineChartData"
@@ -51,11 +82,10 @@
         ></p-chart>
       </div>
     </div>
-
     <!-- Einnahmen vs. Ausgaben -->
-    <div class="card bg-surface-card p-4 rounded-lg shadow flex flex-col">
+    <div class="card bg-surface-card p-4 rounded-lg shadow flex flex-col h-80">
       <div class="font-medium leading-loose">Einnahmen vs. Ausgaben</div>
-     <div class="flex-1 flex justify-center">
+      <div class="flex-1 flex">
         <p-chart
           type="doughnut"
           [data]="doughnutData"
@@ -64,11 +94,10 @@
         ></p-chart>
       </div>
     </div>
-
     <!-- Top Kategorien -->
-    <div class="card bg-surface-card p-4 rounded-lg shadow flex flex-col">
+    <div class="card bg-surface-card p-4 rounded-lg shadow flex flex-col h-80">
       <div class="font-medium leading-loose">Top Kategorien</div>
-      <div class="flex-1 flex justify-center">
+      <div class="flex-1 flex">
         <p-chart
           type="pie"
           [data]="pieChartData"
@@ -79,62 +108,40 @@
     </div>
   </div>
 
-  <!-- Key Actions -->
-  <div class="grid md:grid-cols-4 gap-4">
-    <button
-      pButton
-      label="Ausgabe hinzufügen"
-      icon="pi pi-money-bill"
-      class="w-full p-button-success hover:scale-[1.01] transition-transform"
-    ></button>
-    <button
-      pButton
-      label="Einkommen anpassen"
-      icon="pi pi-wallet"
-      class="w-full p-button-info hover:scale-[1.01] transition-transform"
-    ></button>
-    <button
-      pButton
-      label="Zusatzbeitrag verwalten"
-      icon="pi pi-coins"
-      class="w-full p-button-warn hover:scale-[1.01] transition-transform"
-    ></button>
-    <button
-      pButton
-      label="TopUps verwalten"
-      icon="pi pi-arrow-up"
-      class="w-full p-button-help hover:scale-[1.01] transition-transform"
-    ></button>
-    <!-- <button pButton label="Kategorien bearbeiten" icon="pi pi-list" class="w-full p-button-secondary hover:scale-[1.01] transition-transform"></button> -->
+  <!-- Offene Aufgaben & Hinweise -->
+  <div class="bg-surface-card p-4 rounded-lg shadow space-y-2">
+    <div class="font-semibold mb-1 text-text-primary">Offene Aufgaben & Hinweise:</div>
+    @for (task of tasks(); track task.text) {
+      <div class="flex items-center gap-2 text-sm"
+        [ngClass]="{
+          'text-yellow-700': task.type==='warning',
+          'text-blue-600': task.type==='info',
+          'text-red-500': task.type==='danger'
+        }">
+        <i class="pi"
+          [ngClass]="{
+            'pi-exclamation-triangle': task.type==='warning',
+            'pi-info-circle': task.type==='info',
+            'pi-times-circle': task.type==='danger'
+          }"></i>
+        <span>{{ task.text }}</span>
+      </div>
+    }
   </div>
 
-  <!-- Navigation to Details -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-    <p-card class="cursor-pointer hover:shadow-lg transition" header="Ausgaben">
-      <p class="text-sm text-text-secondary">Letzte Buchung: 01.08.2025</p>
-      <p class="text-lg font-semibold text-text-primary">
-        Miete, Einkauf, Freizeit
-      </p>
-    </p-card>
-    <p-card
-      class="cursor-pointer hover:shadow-lg transition"
-      header="Einnahmen"
-    >
-      <p class="text-sm text-text-secondary">Regelmäßige & einmalige</p>
-      <p class="text-lg font-semibold text-text-primary">Gehalt, Zuschüsse</p>
-    </p-card>
-    <p-card class="cursor-pointer hover:shadow-lg transition" header="Beiträge">
-      <p class="text-sm text-text-secondary">Geplante Mitgliedsbeiträge</p>
-      <p class="text-lg font-semibold text-text-primary">monatlich, flexibel</p>
-    </p-card>
-    <p-card
-      class="cursor-pointer hover:shadow-lg transition"
-      header="Einstellungen"
-    >
-      <p class="text-sm text-text-secondary">
-        Mitglieder, Regeln & Kontodetails
-      </p>
-      <p class="text-lg font-semibold text-text-primary">Bearbeiten</p>
-    </p-card>
+  <!-- Letzte Aktivitäten -->
+  <div class="bg-surface-card p-4 rounded-lg shadow space-y-2">
+    <div class="font-semibold mb-1 text-text-primary">Letzte Aktivitäten:</div>
+    <ul class="text-sm">
+      @for (item of activity(); track item.date+item.user) {
+        <li>
+          <span class="font-mono text-text-tertiary">{{ item.date }}</span>
+          <span class="mx-1 text-text-secondary">·</span>
+          <span class="font-semibold">{{ item.user }}</span>
+          <span class="mx-1">→</span>
+          <span>{{ item.text }}</span>
+        </li>
+      }
+    </ul>
   </div>
 </div>
