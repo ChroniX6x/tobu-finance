@@ -1,47 +1,56 @@
-import { Component, OnInit, inject, computed } from '@angular/core';
+// dashboard.component.ts
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { select, Store } from '@ngxs/store';
-import { ChartData } from 'chart.js';
 import { DashboardState, LoadDashboardAccounts } from './state/dashboard-state';
 import { DashboardAccountModel } from './domain/dashboard-account.model';
 import { CommonModule } from '@angular/common';
-import { ChartModule } from 'primeng/chart';
+
+interface SvgPoint { x: number; y: number; label: string; value: number; }
 
 @Component({
   selector: 'tbf-dashboard',
-  templateUrl: './dashboard.html',
-  styleUrls: ['./dashboard.scss'],
   standalone: true,
-  imports: [ChartModule, CommonModule]
+  imports: [CommonModule],
+  templateUrl: './dashboard.html',
+  styleUrls: ['./dashboard.scss']
 })
 export class Dashboard implements OnInit {
   private store = inject(Store);
   private router = inject(Router);
 
-  // Signals statt Observable
   accounts = select(DashboardState.accounts);
   loading  = select(DashboardState.loading);
 
-  // Neu: berechnete Chart-Daten pro Account
-  accountsWithChart = computed(() =>
-    this.accounts().map((acc: DashboardAccountModel) => {
-      const history = acc.balanceHistory ?? [];
-      const len = history.length;
-      const labels = history.map((_, i) =>
-        i === len - 1 ? 'Jetzt' : `-${len - 1 - i}M`
-      );
-      const data: ChartData<'line'> = {
-        labels,
-        datasets: [
-          {
-            data: history,
-            label: 'Verlauf',
-            fill: false,
-            tension: 0.35
-          }
-        ]
-      };
-      return { ...acc, chartData: data };
+  hovered = signal<{ accountId: string; pt: SvgPoint; px: number; py: number } | null>(null);
+
+  svgAccounts = computed(() =>
+    this.accounts().map(acc => {
+      const data = acc.balanceHistory ?? [];
+      const len = data.length;
+      const max = Math.max(...data);
+      const min = Math.min(...data);
+      const range = max - min || 1;
+      const stepX = 100 / (len - 1 || 1);
+      const scaleY = 30 / range;
+
+      const points: SvgPoint[] = data.map((v, i) => ({
+        x: i * stepX,
+        y: 30 - (v - min) * scaleY,
+        label: i === len - 1 ? 'Jetzt' : `-${len - 1 - i}M`,
+        value: v
+      }));
+
+      let dLine = `M${points[0].x},${points[0].y}`;
+      for (let i = 1; i < points.length; i++) {
+        const p0 = points[i - 1], p1 = points[i];
+        const cx = (p0.x + p1.x) / 2, cy = (p0.y + p1.y) / 2;
+        dLine += ` Q${p0.x},${p0.y} ${cx},${cy}`;
+      }
+      dLine += ` T${points[len - 1]?.x},${points[len - 1]?.y}`;
+      const dFill = dLine + ` L${points[len - 1]?.x},30 L0,30 Z`;
+
+      return { ...acc, points, dLine, dFill, currentBalance: points[len - 1]?.value ?? 0 };
     })
   );
 
@@ -49,71 +58,31 @@ export class Dashboard implements OnInit {
     this.store.dispatch(new LoadDashboardAccounts());
   }
 
-  goToAccount(accountId: string) {
-    this.router.navigate(['/dashboard', accountId]);
+  goToAccount(id: string) {
+    this.router.navigate(['/dashboard', id]);
   }
 
   goToWizard() {
     this.router.navigate(['/wizard']);
   }
 
-  generatePath(data: number[]): string {
-    if (!data.length) return '';
+  onMouseMove(accId: string, evt: MouseEvent, points: SvgPoint[]) {
+    const svg = (evt.target as SVGElement).closest('svg')!;
+    const bbox = svg.getBoundingClientRect();
+    // Prozentuale Position innerhalb des SVG
+    const px = ((evt.clientX - bbox.left) / bbox.width) * 100;
+    const py = ((evt.clientY - bbox.top) / bbox.height) * 100;
 
-    const max = Math.max(...data);
-    const min = Math.min(...data);
-    const range = max - min || 1;
-
-    const stepX = 100 / (data.length - 1);
-    const scaleY = 30 / range;
-
-    const points = data.map((val, i) => {
-      const x = i * stepX;
-      const y = 30 - (val - min) * scaleY;
-      return { x, y };
+    // Suche den Punkt mit minimalem X-Abstand
+    let best = points[0], bestDiff = Infinity;
+    points.forEach(pt => {
+      const diff = Math.abs(pt.x - px);
+      if (diff < bestDiff) { bestDiff = diff; best = pt; }
     });
-
-    let d = `M ${points[0].x},${points[0].y}`;
-    for (let i = 1; i < points.length; i++) {
-      const prev = points[i - 1];
-      const curr = points[i];
-      const cx = (prev.x + curr.x) / 2;
-      d += ` Q ${prev.x},${prev.y} ${cx},${(prev.y + curr.y) / 2}`;
-    }
-    d += ` T ${points.at(-1)!.x},${points.at(-1)!.y}`;
-    return d;
+    this.hovered.set({ accountId: accId, pt: best, px, py });
   }
 
-  generateFilledPath(data: number[]): string {
-    if (!data.length) return '';
-
-    const max = Math.max(...data);
-    const min = Math.min(...data);
-    const range = max - min || 1;
-
-    const stepX = 100 / (data.length - 1);
-    const scaleY = 30 / range;
-
-    const points = data.map((val, i) => {
-      const x = i * stepX;
-      const y = 30 - (val - min) * scaleY;
-      return { x, y };
-    });
-
-    // Obere Linie (wie in generatePath)
-    let d = `M ${points[0].x},${points[0].y}`;
-    for (let i = 1; i < points.length; i++) {
-      const prev = points[i - 1];
-      const curr = points[i];
-      const cx = (prev.x + curr.x) / 2;
-      d += ` Q ${prev.x},${prev.y} ${cx},${(prev.y + curr.y) / 2}`;
-    }
-    d += ` T ${points.at(-1)!.x},${points.at(-1)!.y}`;
-
-    // Untere Linie zurück zur x-Achse (um das Polygon zu schließen)
-    d += ` L ${points.at(-1)!.x},30 L 0,30 Z`;
-
-    return d;
+  onMouseLeave() {
+    this.hovered.set(null);
   }
-
 }
