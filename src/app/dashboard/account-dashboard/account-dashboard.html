@@ -1,1 +1,140 @@
-<p>account-dashboard works!</p>
+<!-- account-dashboard.html -->
+<div class="p-6 bg-surface min-h-screen space-y-6">
+  <!-- Header Section -->
+  <div
+    class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0"
+  >
+    <div class="flex items-center space-x-4">
+      <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100">
+        Gemeinschaftskonto
+      </h1>
+      <button
+        type="button"
+        class="text-primary-600 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 p-2 rounded-full transition-colors"
+        aria-label="Bearbeiten"
+      >
+        <i class="pi pi-pencil text-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Financial Summary -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    @for (stat of statKeys(); track stat.label) {
+    <p-card class="text-center bg-surface-card">
+      <p class="text-sm text-text-secondary">{{ stat.label }}</p>
+      <p
+        class="text-2xl font-semibold"
+        [ngClass]="{
+          'text-green-500': stat.label === 'Veränderung' && stat.value >= 0,
+          'text-red-500': stat.label === 'Veränderung' && stat.value < 0,
+          'text-text-primary': stat.label !== 'Veränderung'
+        }"
+      >
+        {{ stat.value }}{{ stat.suffix }}
+      </p>
+    </p-card>
+    }
+  </div>
+
+  <!-- Charts in gleicher Höhe -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Verlauf -->
+    <div class="card bg-surface-card p-4 rounded-lg shadow flex flex-col">
+      <div class="font-medium leading-loose">Verlauf</div>
+      <div class="flex-1 flex justify-center">
+        <p-chart
+          type="line"
+          [data]="lineChartData"
+          [options]="lineChartOptions"
+          class="w-full h-full"
+        ></p-chart>
+      </div>
+    </div>
+
+    <!-- Einnahmen vs. Ausgaben -->
+    <div class="card bg-surface-card p-4 rounded-lg shadow flex flex-col">
+      <div class="font-medium leading-loose">Einnahmen vs. Ausgaben</div>
+     <div class="flex-1 flex justify-center">
+        <p-chart
+          type="doughnut"
+          [data]="doughnutData"
+          [options]="doughnutOptions"
+          class="w-full h-full"
+        ></p-chart>
+      </div>
+    </div>
+
+    <!-- Top Kategorien -->
+    <div class="card bg-surface-card p-4 rounded-lg shadow flex flex-col">
+      <div class="font-medium leading-loose">Top Kategorien</div>
+      <div class="flex-1 flex justify-center">
+        <p-chart
+          type="pie"
+          [data]="pieChartData"
+          [options]="pieChartOptions"
+          class="w-full h-full"
+        ></p-chart>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Actions -->
+  <div class="grid md:grid-cols-4 gap-4">
+    <button
+      pButton
+      label="Ausgabe hinzufügen"
+      icon="pi pi-money-bill"
+      class="w-full p-button-success hover:scale-[1.01] transition-transform"
+    ></button>
+    <button
+      pButton
+      label="Einkommen anpassen"
+      icon="pi pi-wallet"
+      class="w-full p-button-info hover:scale-[1.01] transition-transform"
+    ></button>
+    <button
+      pButton
+      label="Zusatzbeitrag verwalten"
+      icon="pi pi-coins"
+      class="w-full p-button-warn hover:scale-[1.01] transition-transform"
+    ></button>
+    <button
+      pButton
+      label="TopUps verwalten"
+      icon="pi pi-arrow-up"
+      class="w-full p-button-help hover:scale-[1.01] transition-transform"
+    ></button>
+    <!-- <button pButton label="Kategorien bearbeiten" icon="pi pi-list" class="w-full p-button-secondary hover:scale-[1.01] transition-transform"></button> -->
+  </div>
+
+  <!-- Navigation to Details -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <p-card class="cursor-pointer hover:shadow-lg transition" header="Ausgaben">
+      <p class="text-sm text-text-secondary">Letzte Buchung: 01.08.2025</p>
+      <p class="text-lg font-semibold text-text-primary">
+        Miete, Einkauf, Freizeit
+      </p>
+    </p-card>
+    <p-card
+      class="cursor-pointer hover:shadow-lg transition"
+      header="Einnahmen"
+    >
+      <p class="text-sm text-text-secondary">Regelmäßige & einmalige</p>
+      <p class="text-lg font-semibold text-text-primary">Gehalt, Zuschüsse</p>
+    </p-card>
+    <p-card class="cursor-pointer hover:shadow-lg transition" header="Beiträge">
+      <p class="text-sm text-text-secondary">Geplante Mitgliedsbeiträge</p>
+      <p class="text-lg font-semibold text-text-primary">monatlich, flexibel</p>
+    </p-card>
+    <p-card
+      class="cursor-pointer hover:shadow-lg transition"
+      header="Einstellungen"
+    >
+      <p class="text-sm text-text-secondary">
+        Mitglieder, Regeln & Kontodetails
+      </p>
+      <p class="text-lg font-semibold text-text-primary">Bearbeiten</p>
+    </p-card>
+  </div>
+</div>
