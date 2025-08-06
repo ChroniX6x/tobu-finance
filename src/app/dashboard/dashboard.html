@@ -15,20 +15,27 @@
           <div>
             <h3 class="text-xl font-medium mb-1">{{ acc.name }}</h3>
             <p class="text-sm text-surface-600 mb-3">{{ acc.participantCount }} Teilnehmer</p>
-            <p class="text-lg font-semibold text-primary">
-              Kontostand: {{ acc.currentBalance | currency:'EUR' }}
-            </p>
-            @if (acc.pctChange !== null) {
-              <p class="text-sm font-medium" [class.text-green-500]="acc.pctChange! >= 0" [class.text-red-500]="acc.pctChange! < 0">
-                {{ acc.pctChange! >= 0 ? '+' : '' }}{{ acc.pctChange! | number:'1.1-1' }} %
-              </p>
-              <!-- Prognose anzeigen -->
-              @if (acc.forecastValue !== null) {
-                <p class="text-sm text-surface-600">
-                  Prognose: {{ acc.forecastValue | currency:'EUR' }}
+            <div class="flex items-baseline justify-between mb-3">
+              <div>
+                <p class="text-lg font-semibold text-primary mb-0">
+                  {{ acc.currentBalance | currency:'EUR' }}
                 </p>
+                <p class="text-sm text-surface-600">Kontostand</p>
+              </div>
+              @if (acc.pctChange !== null) {
+                <div class="text-right">
+                  <p class="text-sm font-medium mb-0" [class.text-green-500]="acc.pctChange! >= 0" [class.text-red-500]="acc.pctChange! < 0">
+                    {{ acc.pctChange! >= 0 ? '+' : '' }}
+                    {{ acc.pctChange! | number:'1.1-1' }} %
+                  </p>
+                @if (acc.forecastValue !== null) {
+                  <p class="text-xs text-surface-600 mb-0">
+                    {{ acc.forecastValue | currency:'EUR' }}
+                  </p>
+                }
+                </div>
               }
-            }
+            </div>
           </div>
 
           <svg

@@ -27,16 +27,20 @@ export class Dashboard implements OnInit {
   svgAccounts = computed(() =>
     this.accounts().map(acc => {
       const data = acc.balanceHistory ?? [];
-      // Prozent-Änderung: nur die letzten zwei Werte verwendet
-      // Für glattere Trends kann man stattdessen den Durchschnitt über die letzten 3+ Monate bilden.
+      // Durchschnittliche prozentuale Änderung über die letzten bis zu 3 Intervalle
       let pctChange: number | null = null,
-        forecastValue: number | null = null;
-      if (data.length >= 2) {
+          forecastValue: number | null = null;
+      const n = Math.min(data.length - 1, 3);
+      if (n > 0) {
+        const changes: number[] = [];
+        for (let i = data.length - n; i < data.length; i++) {
+          const prev = data[i - 1], curr = data[i];
+          changes.push((curr - prev) / prev * 100);
+        }
+        const avg = changes.reduce((a, b) => a + b, 0) / changes.length;
+        pctChange = avg;
         const last = data.at(-1)!;
-        const prev = data.at(-2)!;
-        pctChange = ((last - prev) / prev) * 100;
-        // Prognose als absoluter Wert: wir nehmen an, der Trend setzt sich fort
-        forecastValue = Math.round(last * (1 + pctChange / 100));
+        forecastValue = Math.round(last * (1 + avg / 100));
       }
       const len = data.length;
       const max = Math.max(...data);
