@@ -70,18 +70,50 @@ export class Dashboard implements OnInit {
     const points = data.map((val, i) => {
       const x = i * stepX;
       const y = 30 - (val - min) * scaleY;
-    return { x, y };
-  });
+      return { x, y };
+    });
 
-  let d = `M ${points[0].x},${points[0].y}`;
-  for (let i = 1; i < points.length; i++) {
-    const prev = points[i - 1];
-    const curr = points[i];
-    const cx = (prev.x + curr.x) / 2;
-    d += ` Q ${prev.x},${prev.y} ${cx},${(prev.y + curr.y) / 2}`;
+    let d = `M ${points[0].x},${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      const cx = (prev.x + curr.x) / 2;
+      d += ` Q ${prev.x},${prev.y} ${cx},${(prev.y + curr.y) / 2}`;
+    }
+    d += ` T ${points.at(-1)!.x},${points.at(-1)!.y}`;
+    return d;
   }
-  d += ` T ${points.at(-1)!.x},${points.at(-1)!.y}`;
-  return d;
-}
+
+  generateFilledPath(data: number[]): string {
+    if (!data.length) return '';
+
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    const range = max - min || 1;
+
+    const stepX = 100 / (data.length - 1);
+    const scaleY = 30 / range;
+
+    const points = data.map((val, i) => {
+      const x = i * stepX;
+      const y = 30 - (val - min) * scaleY;
+      return { x, y };
+    });
+
+    // Obere Linie (wie in generatePath)
+    let d = `M ${points[0].x},${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      const cx = (prev.x + curr.x) / 2;
+      d += ` Q ${prev.x},${prev.y} ${cx},${(prev.y + curr.y) / 2}`;
+    }
+    d += ` T ${points.at(-1)!.x},${points.at(-1)!.y}`;
+
+    // Untere Linie zurück zur x-Achse (um das Polygon zu schließen)
+    d += ` L ${points.at(-1)!.x},30 L 0,30 Z`;
+
+    return d;
+  }
 
 }
