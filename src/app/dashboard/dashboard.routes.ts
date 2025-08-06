@@ -11,12 +11,10 @@ export default [
     { path: '',
       component: Dashboard,
       providers: [provideStates([DashboardState])],
-      children: [
-        { path: ':accountId',
-          data: { breadcrumb: 'Account Dashboard' },
-          component: AccountDashboard
-        }
-      ]
+    },
+    { path: ':accountId',
+      data: { breadcrumb: 'Account Dashboard' },
+      component: AccountDashboard
     },
     { path: '**', redirectTo: '/notfound' }
 ] as Routes;

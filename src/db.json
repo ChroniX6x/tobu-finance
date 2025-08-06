@@ -27,174 +27,117 @@
     {
       "id": "a1",
       "name": "Gemeinschaftskonto",
-      "members": [
-        "b1",
-        "b2"
-      ],
+      "members": ["b1", "b2"],
       "balances": [
-        {
-          "month": "2025-05",
-          "value": 6742
-        },
-        {
-          "month": "2025-06",
-          "value": 3976
-        },
-        {
-          "month": "2025-07",
-          "value": 4521
-        },
-        {
-          "month": "2025-08",
-          "value": 5672
-        }
+        { "month": "2025-05", "value": 6742 },
+        { "month": "2025-06", "value": 3976 },
+        { "month": "2025-07", "value": 4521 },
+        { "month": "2025-08", "value": 5672 }
       ],
       "monthlyIncomes": [
-        {
-          "memberId": "b1",
-          "amount": 2800,
-          "startMonth": "2025-01",
-          "endMonth": "2025-01"
-        },
-        {
-          "memberId": "b1",
-          "amount": 3000,
-          "startMonth": "2025-02"
-        },
-        {
-          "memberId": "b2",
-          "amount": 2000,
-          "startMonth": "2025-01",
-          "endMonth": "2025-01"
-        },
-        {
-          "memberId": "b2",
-          "amount": 2100,
-          "startMonth": "2025-02"
-        }
+        { "memberId": "b1", "amount": 2800, "startMonth": "2025-01", "endMonth": "2025-01" },
+        { "memberId": "b1", "amount": 3000, "startMonth": "2025-02" },
+        { "memberId": "b2", "amount": 2000, "startMonth": "2025-01", "endMonth": "2025-01" },
+        { "memberId": "b2", "amount": 2100, "startMonth": "2025-02" }
       ],
       "monthlyPlannedContributions": [
+        { "memberId": "b1", "amount": 500, "startMonth": "2025-01", "endMonth": "2025-02" },
+        { "memberId": "b1", "amount": 550, "startMonth": "2025-03" },
+        { "memberId": "b2", "amount": 400, "startMonth": "2025-01" }
+      ],
+      "additionalContributions": [
         {
           "memberId": "b1",
-          "amount": 500,
-          "startMonth": "2025-01",
-          "endMonth": "2025-02"
-        },
-        {
-          "memberId": "b1",
-          "amount": 550,
-          "startMonth": "2025-03"
+          "amount": 250,
+          "startMonth": "2025-06",
+          "description": "Kindergeld",
+          "recurring": true
         },
         {
           "memberId": "b2",
-          "amount": 400,
-          "startMonth": "2025-01"
+          "amount": 200,
+          "startMonth": "2025-06",
+          "description": "Zuschuss Eltern",
+          "recurring": true
         }
       ],
       "carryOverBalances": [
+        { "memberId": "b1", "amount": -30, "month": "2025-01" },
+        { "memberId": "b2", "amount": 0, "month": "2025-01" },
+        { "memberId": "b1", "amount": -10, "month": "2025-02" }
+      ],
+      "topUps": [
         {
-          "memberId": "b1",
-          "amount": -30,
-          "month": "2025-01"
+          "id": "t1",
+          "amount": 500,
+          "month": "2025-07",
+          "reason": "Urlaubsvorbereitung",
+          "date": "2025-07-01"
         },
         {
-          "memberId": "b2",
-          "amount": 0,
-          "month": "2025-01"
-        },
-        {
-          "memberId": "b1",
-          "amount": -10,
-          "month": "2025-02"
+          "id": "t2",
+          "amount": 300,
+          "month": "2025-08",
+          "reason": "Reparaturrücklage",
+          "date": "2025-08-05",
+          "customSplit": { "b1": 70, "b2": 30 }
         }
       ]
     },
     {
       "id": "d52a",
       "name": "Account",
-      "members": [
-        "4a7b",
-        "b4c4"
-      ],
+      "members": ["4a7b", "b4c4"],
       "balances": [
-        {
-          "month": "2025-07",
-          "value": 3415
-        },
-        {
-          "month": "2025-08",
-          "value": 5023
-        }
+        { "month": "2025-07", "value": 3415 },
+        { "month": "2025-08", "value": 5023 }
       ],
       "monthlyIncomes": [
-        {
-          "memberId": "4a7b",
-          "amount": 2000,
-          "startMonth": "2025-08"
-        },
-        {
-          "memberId": "b4c4",
-          "amount": 2540,
-          "startMonth": "2025-08"
-        }
+        { "memberId": "4a7b", "amount": 2000, "startMonth": "2025-08" },
+        { "memberId": "b4c4", "amount": 2540, "startMonth": "2025-08" }
       ],
       "monthlyPlannedContributions": [
+        { "categoryId": "0bf0", "amount": 200, "startMonth": "2025-08" },
+        { "categoryId": "b37e", "amount": 1300, "startMonth": "2025-08" }
+      ],
+      "additionalContributions": [
         {
-          "categoryId": "0bf0",
-          "amount": 200,
-          "startMonth": "2025-08"
-        },
+          "memberId": "4a7b",
+          "amount": 150,
+          "startMonth": "2025-08",
+          "description": "Studiendarlehen Rückzahlung",
+          "recurring": false
+        }
+      ],
+      "topUps": [
         {
-          "categoryId": "b37e",
-          "amount": 1300,
-          "startMonth": "2025-08"
+          "id": "t3",
+          "amount": 400,
+          "month": "2025-08",
+          "reason": "Saisonale Ausgaben",
+          "date": "2025-08-10"
         }
       ]
     }
   ],
   "categories": [
-    {
-      "id": "c1",
-      "accountId": "a1",
-      "name": "Lebensmittel"
-    },
-    {
-      "id": "c2",
-      "accountId": "a1",
-      "name": "Miete"
-    },
-    {
-      "id": "c3",
-      "accountId": "a1",
-      "name": "Freizeit"
-    },
+    { "id": "c1", "accountId": "a1", "name": "Lebensmittel" },
+    { "id": "c2", "accountId": "a1", "name": "Miete" },
+    { "id": "c3", "accountId": "a1", "name": "Freizeit" },
     {
       "id": "c4",
       "accountId": "a1",
       "name": "Versicherung",
-      "customSplit": {
-        "b1": 50,
-        "b2": 50
-      }
+      "customSplit": { "b1": 50, "b2": 50 }
     },
-    {
-      "id": "0bf0",
-      "accountId": "d52a",
-      "name": "Lebensmittel"
-    },
+    { "id": "0bf0", "accountId": "d52a", "name": "Lebensmittel" },
     {
       "id": "b37e",
       "accountId": "d52a",
       "name": "Miete",
       "customSplit": [
-        {
-          "memberId": "4a7b",
-          "split": 40
-        },
-        {
-          "memberId": "b4c4",
-          "split": 60
-        }
+        { "memberId": "4a7b", "split": 40 },
+        { "memberId": "b4c4", "split": 60 }
       ]
     }
   ],

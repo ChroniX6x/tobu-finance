@@ -1,1 +1,70 @@
-<p>account-dashboard works!</p>
+<!-- account-dashboard.component.html -->
+<div class="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+    <div class="flex items-center space-x-4">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Gemeinschaftskonto</h1>
+      <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-text text-blue-600 dark:text-blue-300" aria-label="Bearbeiten"></button>
+    </div>
+    <div class="flex space-x-6">
+      <p-card class="w-36 text-center bg-white dark:bg-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Kontostand</p>
+        <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">5.672 €</p>
+      </p-card>
+      <p-card class="w-36 text-center bg-white dark:bg-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Veränderung</p>
+        <p class="text-lg font-medium text-green-500">+ 2,2 %</p>
+      </p-card>
+      <p-card class="w-36 text-center bg-white dark:bg-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Prognose</p>
+        <p class="text-lg font-medium text-gray-900 dark:text-gray-100">5.800 €</p>
+      </p-card>
+      <p-card class="w-36 text-center bg-white dark:bg-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Zusatzbeiträge</p>
+        <p class="text-lg font-medium text-gray-900 dark:text-gray-100">250 €</p>
+      </p-card>
+      <p-card class="w-36 text-center bg-white dark:bg-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">TopUps</p>
+        <p class="text-lg font-medium text-gray-900 dark:text-gray-100">500 €</p>
+      </p-card>
+    </div>
+  </div>
+
+  <!-- Quick Charts -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <p-card header="Verlaufskurve" class="bg-white dark:bg-gray-800">
+      <svg class="w-full h-24 bg-gray-100 dark:bg-gray-700 rounded"></svg>
+    </p-card>
+    <p-card header="Einnahmen vs. Ausgaben" class="bg-white dark:bg-gray-800">
+      <div class="w-full h-24 bg-gray-100 dark:bg-gray-700 rounded"></div>
+    </p-card>
+    <p-card header="Top 3 Kategorien" class="bg-white dark:bg-gray-800">
+      <div class="w-full h-24 bg-gray-100 dark:bg-gray-700 rounded"></div>
+    </p-card>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="flex flex-wrap gap-4">
+    <button pButton label="Ausgabe hinzufügen" icon="pi pi-money-bill" class="p-button-success"></button>
+    <button pButton label="Einkommen anpassen" icon="pi pi-wallet" class="p-button-info"></button>
+    <button pButton label="Zusatzbeitrag verwalten" icon="pi pi-coins" class="p-button-warning"></button>
+    <button pButton label="TopUps verwalten" icon="pi pi-arrow-up" class="p-button-help"></button>
+    <button pButton label="Kategorien bearbeiten" icon="pi pi-list" class="p-button-secondary"></button>
+  </div>
+
+  <!-- Tabs -->
+  <p-tabs value="0" class="bg-white dark:bg-gray-800 rounded-lg shadow">
+     <p-tablist>
+        <p-tab value="0">Ausgaben</p-tab>
+        <p-tab value="1">Einnahmen</p-tab>
+        <p-tab value="2">Beiträge</p-tab>
+        <p-tab value="3">Einstellungen</p-tab>
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel  value="0">Ausgaben</p-tabpanel >
+      <p-tabpanel  value="1">Einnahmen</p-tabpanel >
+      <p-tabpanel  value="2">Beiträge</p-tabpanel >
+      <p-tabpanel  value="3">Einstellungen</p-tabpanel >
+    </p-tabpanels>
+  </p-tabs>
+</div>
