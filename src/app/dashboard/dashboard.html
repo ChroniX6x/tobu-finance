@@ -18,6 +18,17 @@
             <p class="text-lg font-semibold text-primary">
               Kontostand: {{ acc.currentBalance | currency:'EUR' }}
             </p>
+            @if (acc.pctChange !== null) {
+              <p class="text-sm font-medium" [class.text-green-500]="acc.pctChange! >= 0" [class.text-red-500]="acc.pctChange! < 0">
+                {{ acc.pctChange! >= 0 ? '+' : '' }}{{ acc.pctChange! | number:'1.1-1' }} %
+              </p>
+              <!-- Prognose anzeigen -->
+              @if (acc.forecastValue !== null) {
+                <p class="text-sm text-surface-600">
+                  Prognose: {{ acc.forecastValue | currency:'EUR' }}
+                </p>
+              }
+            }
           </div>
 
           <svg

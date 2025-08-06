@@ -27,6 +27,17 @@ export class Dashboard implements OnInit {
   svgAccounts = computed(() =>
     this.accounts().map(acc => {
       const data = acc.balanceHistory ?? [];
+      // Prozent-Änderung: nur die letzten zwei Werte verwendet
+      // Für glattere Trends kann man stattdessen den Durchschnitt über die letzten 3+ Monate bilden.
+      let pctChange: number | null = null,
+        forecastValue: number | null = null;
+      if (data.length >= 2) {
+        const last = data.at(-1)!;
+        const prev = data.at(-2)!;
+        pctChange = ((last - prev) / prev) * 100;
+        // Prognose als absoluter Wert: wir nehmen an, der Trend setzt sich fort
+        forecastValue = Math.round(last * (1 + pctChange / 100));
+      }
       const len = data.length;
       const max = Math.max(...data);
       const min = Math.min(...data);
@@ -50,7 +61,7 @@ export class Dashboard implements OnInit {
       dLine += ` T${points[len - 1]?.x},${points[len - 1]?.y}`;
       const dFill = dLine + ` L${points[len - 1]?.x},30 L0,30 Z`;
 
-      return { ...acc, points, dLine, dFill, currentBalance: points[len - 1]?.value ?? 0 };
+      return { ...acc, points, dLine, dFill, currentBalance: points[len - 1]?.value ?? 0, pctChange, forecastValue };
     })
   );
 
