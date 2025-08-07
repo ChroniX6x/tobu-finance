@@ -27,23 +27,69 @@
     {
       "id": "a1",
       "name": "Gemeinschaftskonto",
-      "members": ["b1", "b2"],
+      "members": [
+        "b1",
+        "b2"
+      ],
       "balances": [
-        { "month": "2025-05", "value": 6742 },
-        { "month": "2025-06", "value": 3976 },
-        { "month": "2025-07", "value": 4521 },
-        { "month": "2025-08", "value": 5672 }
+        {
+          "month": "2025-05",
+          "value": 6742
+        },
+        {
+          "month": "2025-06",
+          "value": 3976
+        },
+        {
+          "month": "2025-07",
+          "value": 4521
+        },
+        {
+          "month": "2025-08",
+          "value": 5672
+        }
       ],
       "monthlyIncomes": [
-        { "memberId": "b1", "amount": 2800, "startMonth": "2025-01", "endMonth": "2025-01" },
-        { "memberId": "b1", "amount": 3000, "startMonth": "2025-02" },
-        { "memberId": "b2", "amount": 2000, "startMonth": "2025-01", "endMonth": "2025-01" },
-        { "memberId": "b2", "amount": 2100, "startMonth": "2025-02" }
+        {
+          "memberId": "b1",
+          "amount": 2800,
+          "startMonth": "2025-01",
+          "endMonth": "2025-01"
+        },
+        {
+          "memberId": "b1",
+          "amount": 3000,
+          "startMonth": "2025-02"
+        },
+        {
+          "memberId": "b2",
+          "amount": 2000,
+          "startMonth": "2025-01",
+          "endMonth": "2025-01"
+        },
+        {
+          "memberId": "b2",
+          "amount": 2100,
+          "startMonth": "2025-02"
+        }
       ],
       "monthlyPlannedContributions": [
-        { "memberId": "b1", "amount": 500, "startMonth": "2025-01", "endMonth": "2025-02" },
-        { "memberId": "b1", "amount": 550, "startMonth": "2025-03" },
-        { "memberId": "b2", "amount": 400, "startMonth": "2025-01" }
+        {
+          "memberId": "b1",
+          "amount": 500,
+          "startMonth": "2025-01",
+          "endMonth": "2025-02"
+        },
+        {
+          "memberId": "b1",
+          "amount": 550,
+          "startMonth": "2025-03"
+        },
+        {
+          "memberId": "b2",
+          "amount": 400,
+          "startMonth": "2025-01"
+        }
       ],
       "additionalContributions": [
         {
@@ -62,9 +108,21 @@
         }
       ],
       "carryOverBalances": [
-        { "memberId": "b1", "amount": -30, "month": "2025-01" },
-        { "memberId": "b2", "amount": 0, "month": "2025-01" },
-        { "memberId": "b1", "amount": -10, "month": "2025-02" }
+        {
+          "memberId": "b1",
+          "amount": -30,
+          "month": "2025-01"
+        },
+        {
+          "memberId": "b2",
+          "amount": 0,
+          "month": "2025-01"
+        },
+        {
+          "memberId": "b1",
+          "amount": -10,
+          "month": "2025-02"
+        }
       ],
       "topUps": [
         {
@@ -80,25 +138,53 @@
           "month": "2025-08",
           "reason": "Reparaturrücklage",
           "date": "2025-08-05",
-          "customSplit": { "b1": 70, "b2": 30 }
+          "customSplit": {
+            "b1": 70,
+            "b2": 30
+          }
         }
       ]
     },
     {
       "id": "d52a",
       "name": "Account",
-      "members": ["4a7b", "b4c4"],
+      "members": [
+        "4a7b",
+        "b4c4"
+      ],
       "balances": [
-        { "month": "2025-07", "value": 3415 },
-        { "month": "2025-08", "value": 5023 }
+        {
+          "month": "2025-07",
+          "value": 3415
+        },
+        {
+          "month": "2025-08",
+          "value": 5023
+        }
       ],
       "monthlyIncomes": [
-        { "memberId": "4a7b", "amount": 2000, "startMonth": "2025-08" },
-        { "memberId": "b4c4", "amount": 2540, "startMonth": "2025-08" }
+        {
+          "memberId": "4a7b",
+          "amount": 2000,
+          "startMonth": "2025-08"
+        },
+        {
+          "memberId": "b4c4",
+          "amount": 2540,
+          "startMonth": "2025-08"
+        }
       ],
       "monthlyPlannedContributions": [
-        { "categoryId": "0bf0", "amount": 200, "startMonth": "2025-08" },
-        { "categoryId": "b37e", "amount": 1300, "startMonth": "2025-08" }
+        {
+          "categoryId": "0bf0",
+          "amount": 200,
+          "startMonth": "2025-08"
+        },
+        {
+          "categoryId": "b37e",
+          "amount": 1300,
+          "startMonth": "2025-08"
+        }
       ],
       "additionalContributions": [
         {
@@ -121,33 +207,59 @@
     }
   ],
   "categories": [
-    { "id": "c1", "accountId": "a1", "name": "Lebensmittel" },
-    { "id": "c2", "accountId": "a1", "name": "Miete" },
-    { "id": "c3", "accountId": "a1", "name": "Freizeit" },
+    {
+      "id": "c1",
+      "accountId": "a1",
+      "name": "Lebensmittel"
+    },
+    {
+      "id": "c2",
+      "accountId": "a1",
+      "name": "Miete"
+    },
+    {
+      "id": "c3",
+      "accountId": "a1",
+      "name": "Freizeit"
+    },
     {
       "id": "c4",
       "accountId": "a1",
       "name": "Versicherung",
-      "customSplit": { "b1": 50, "b2": 50 }
+      "customSplit": {
+        "b1": 50,
+        "b2": 50
+      }
     },
-    { "id": "0bf0", "accountId": "d52a", "name": "Lebensmittel" },
+    {
+      "id": "0bf0",
+      "accountId": "d52a",
+      "name": "Lebensmittel"
+    },
     {
       "id": "b37e",
       "accountId": "d52a",
       "name": "Miete",
       "customSplit": [
-        { "memberId": "4a7b", "split": 40 },
-        { "memberId": "b4c4", "split": 60 }
+        {
+          "memberId": "4a7b",
+          "split": 40
+        },
+        {
+          "memberId": "b4c4",
+          "split": 60
+        }
       ]
     }
   ],
-  "expenses": [
+  "transactions": [
     {
       "id": "e1",
       "accountId": "a1",
       "categoryId": "c1",
       "title": "Wocheneinkauf REWE",
       "amount": 80,
+      "type": "expense",
       "month": "2025-01",
       "isRecurring": false,
       "isFromSharedAccount": true
@@ -158,6 +270,7 @@
       "categoryId": "c2",
       "title": "Miete",
       "amount": 950,
+      "type": "expense",
       "month": "2025-01",
       "isRecurring": true,
       "isFromSharedAccount": true
@@ -168,6 +281,7 @@
       "categoryId": "c3",
       "title": "Konzerttickets",
       "amount": 120,
+      "type": "expense",
       "month": "2025-01",
       "isRecurring": false,
       "isFromSharedAccount": false,
@@ -179,6 +293,7 @@
       "categoryId": "c1",
       "title": "Biomarkt",
       "amount": 45,
+      "type": "expense",
       "month": "2025-02",
       "isRecurring": false,
       "isFromSharedAccount": true
@@ -189,6 +304,7 @@
       "categoryId": "c4",
       "title": "Haftpflichtversicherung",
       "amount": 240,
+      "type": "expense",
       "month": "2025-02",
       "isRecurring": false,
       "isFromSharedAccount": false,
@@ -200,6 +316,7 @@
       "categoryId": "c2",
       "title": "Miete",
       "amount": 950,
+      "type": "expense",
       "month": "2025-02",
       "isRecurring": true,
       "isFromSharedAccount": true
@@ -210,6 +327,7 @@
       "categoryId": "c3",
       "title": "Kinoabend",
       "amount": 50,
+      "type": "expense",
       "month": "2025-03",
       "isRecurring": false,
       "isFromSharedAccount": false,
@@ -221,6 +339,7 @@
       "categoryId": "c1",
       "title": "Aldi Einkauf",
       "amount": 70,
+      "type": "expense",
       "month": "2025-03",
       "isRecurring": false,
       "isFromSharedAccount": true
@@ -231,9 +350,55 @@
       "categoryId": "c2",
       "title": "Miete",
       "amount": 950,
+      "type": "expense",
       "month": "2025-03",
       "isRecurring": true,
       "isFromSharedAccount": true
+    },
+    // Einnahmen-Beispiele:
+    {
+      "id": "i1",
+      "accountId": "a1",
+      "categoryId": null,
+      "title": "Gehalt Tony",
+      "amount": 2800,
+      "type": "income",
+      "month": "2025-01",
+      "isRecurring": true,
+      "paidByMemberId": "b1"
+    },
+    {
+      "id": "i2",
+      "accountId": "a1",
+      "categoryId": null,
+      "title": "Gehalt Caro",
+      "amount": 2000,
+      "type": "income",
+      "month": "2025-01",
+      "isRecurring": true,
+      "paidByMemberId": "b2"
+    },
+    {
+      "id": "i3",
+      "accountId": "a1",
+      "categoryId": null,
+      "title": "Kindergeld",
+      "amount": 250,
+      "type": "income",
+      "month": "2025-02",
+      "isRecurring": true,
+      "paidByMemberId": "b2"
+    },
+    {
+      "id": "i4",
+      "accountId": "a1",
+      "categoryId": null,
+      "title": "TopUp Urlaub",
+      "amount": 500,
+      "type": "income",
+      "month": "2025-07",
+      "isRecurring": false,
+      "paidByMemberId": null
     }
   ]
 }

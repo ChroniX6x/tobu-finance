@@ -2,7 +2,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { select, Store } from '@ngxs/store';
-import { DashboardState, LoadDashboardAccounts } from './state/dashboard-state';
+import { DashboardState, LoadDashboardAccounts } from './state/dashboard.state';
 import { DashboardAccountModel } from './domain/dashboard-account.model';
 import { CommonModule } from '@angular/common';
 

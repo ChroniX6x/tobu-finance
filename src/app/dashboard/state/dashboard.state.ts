@@ -3,8 +3,7 @@ import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { Injectable } from '@angular/core';
 import { tap } from 'rxjs';
 import { DashboardAccountModel } from '../domain/dashboard-account.model';
-import { AccountDataService } from './account-data-service';
-
+import { AccountDataService } from './account-data.service';
 
 export class LoadDashboardAccounts {
   static readonly type = '[Dashboard] Load Accounts';

@@ -3,7 +3,7 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div class="flex items-center gap-4">
             <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100">
-                {{ account.name }}
+                {{ account().name }}
             </h1>
             <button type="button" class="text-primary-600 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 p-2 rounded-full transition-colors" aria-label="Bearbeiten">
                 <i class="pi pi-pencil text-lg"></i>
@@ -12,29 +12,29 @@
         <div>
             <div class="flex items-end gap-4">
                 <div class="text-4xl font-bold text-success-600 leading-tight">
-                    {{ account.currentBalance | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                    {{ account().currentBalance | currency: 'EUR' : 'symbol' : '1.0-0' }}
                 </div>
-                <div class="text-sm text-muted-color-emphasis pb-1">{{ months.at(-1) ?? '–' }} 2025</div>
+                <div class="text-sm text-muted-color-emphasis pb-1">{{ months().at(-1) ?? '–' }} 2025</div>
             </div>
             <div class="text-base mt-1 flex items-center gap-3">
-                <span [ngClass]="account.balanceChange >= 0 ? 'text-green-600' : 'text-red-500'">
-                    <i class="pi pi-arrow-up" *ngIf="account.balanceChange >= 0"></i>
-                    <i class="pi pi-arrow-down" *ngIf="account.balanceChange < 0"></i>
-                    {{ account.balanceChange >= 0 ? '+' : '' }}{{ account.balanceChange }}%
+                <span [ngClass]="account().balanceChange >= 0 ? 'text-green-600' : 'text-red-500'">
+                    <i class="pi pi-arrow-up" *ngIf="account().balanceChange >= 0"></i>
+                    <i class="pi pi-arrow-down" *ngIf="account().balanceChange < 0"></i>
+                    {{ account().balanceChange >= 0 ? '+' : '' }}{{ account().balanceChange }}%
                 </span>
                 <span class="mx-2 text-muted-color-emphasis">•</span>
                 <span
-                    >Prognose: <b>{{ account.forecast | currency: 'EUR' : 'symbol' : '1.0-0' }}</b></span
+                    >Prognose: <b>{{ account().forecast | currency: 'EUR' : 'symbol' : '1.0-0' }}</b></span
                 >
             </div>
-            <div *ngIf="account.warning" class="mt-2 px-2 py-1 bg-red-50 text-red-600 font-semibold rounded flex items-center gap-2 text-xs w-fit"><i class="pi pi-exclamation-triangle"></i> {{ account.warning }}</div>
+            <div *ngIf="account().warning" class="mt-2 px-2 py-1 bg-red-50 text-red-600 font-semibold rounded flex items-center gap-2 text-xs w-fit"><i class="pi pi-exclamation-triangle"></i> {{ account().warning }}</div>
         </div>
     </div>
 
     <!-- Mitgliederübersicht (Card) -->
     <div class="p-3 shadow flex items-center gap-4 flex-wrap space-y-2">
         <div class="font-medium text-muted-color mr-4">Mitglieder:</div>
-        @for (member of members; track member.id) {
+        @for (member of members(); track member.id) {
             <div
                 class="flex items-center gap-2 px-3 py-1 rounded-full"
                 [ngClass]="member.paid ? 'bg-success-50 text-success-700' : 'bg-yellow-50 text-yellow-700'"
@@ -88,21 +88,21 @@
         <div class="card p-4 shadow flex flex-col">
             <div class="font-medium leading-loose">Verlauf</div>
             <div class="flex-1 flex justify-center">
-                <p-chart type="line" [data]="lineChartData" [options]="lineChartOptions" class="w-full h-full"></p-chart>
+                <p-chart type="line" [data]="lineChartData()" [options]="lineChartOptions" class="w-full h-full"></p-chart>
             </div>
         </div>
         <!-- Einnahmen vs. Ausgaben -->
         <div class="card p-4 shadow flex flex-col">
             <div class="font-medium leading-loose">Einnahmen vs. Ausgaben</div>
             <div class="flex-1 flex justify-center">
-                <p-chart type="doughnut" [data]="doughnutData" [options]="doughnutOptions" class="w-full h-full"></p-chart>
+                <p-chart type="doughnut" [data]="doughnutData()" [options]="doughnutOptions" class="w-full h-full"></p-chart>
             </div>
         </div>
         <!-- Top Kategorien -->
         <div class="card p-4 shadow flex flex-col">
             <div class="font-medium leading-loose">Top Kategorien</div>
             <div class="flex-1 flex justify-center">
-                <p-chart type="pie" [data]="pieChartData" [options]="pieChartOptions" class="w-full h-full"></p-chart>
+                <p-chart type="pie" [data]="pieChartData()" [options]="pieChartOptions" class="w-full h-full"></p-chart>
             </div>
         </div>
     </div>
