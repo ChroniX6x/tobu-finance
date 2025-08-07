@@ -5,11 +5,12 @@ import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { AvatarModule } from 'primeng/avatar';
 import { TooltipModule } from 'primeng/tooltip';
+import { TimelineModule } from 'primeng/timeline';
 
 @Component({
   selector: 'account-dashboard',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule, ChartModule, AvatarModule, TooltipModule],
+  imports: [CommonModule, CardModule, ButtonModule, ChartModule, AvatarModule, TooltipModule, TimelineModule],
   templateUrl: './account-dashboard.html',
 })
 export class AccountDashboard {
