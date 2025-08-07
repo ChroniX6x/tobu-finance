@@ -48,7 +48,7 @@
     </div>
 
     <!-- Deine Übersicht (Personalisiert) -->
-    <div class="p-5 rounded-lg shadow flex flex-col sm:flex-row items-center justify-between gap-4 space-y-2">
+    <div class="card p-5 rounded-lg shadow flex flex-col sm:flex-row items-center justify-between gap-4 space-y-2">
         <div class="text-lg">
             <span class="font-semibold text-color">Dein Beitrag für diesen Monat:</span>
             <span class="text-2xl font-bold ml-2">{{ you().monthlyDue | currency: 'EUR' : 'symbol' : '1.0-0' }}</span>
@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    <div class="grid md:grid-cols-4 gap-4 space-y-2">
+    <div class="grid md:grid-cols-4 gap-4 mb-2">
         @for (stat of quickStats(); track stat.label) {
             <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center" [ngClass]="stat.color">
                 <i class="{{ stat.icon }} text-xl"></i>
@@ -69,7 +69,7 @@
             </div>
         }
     </div>
-    <div class="grid md:grid-cols-4 gap-4 space-y-2">
+    <div class="grid md:grid-cols-4 gap-4 mb-2">
         <button pButton label="Ausgabe hinzufügen" icon="pi pi-money-bill" class="w-full p-button-success hover:scale-[1.01] transition-transform"></button>
         <button pButton label="Beitrag einzahlen" icon="pi pi-wallet" class="w-full p-button-info hover:scale-[1.01] transition-transform"></button>
         <button pButton label="TopUp machen" icon="pi pi-arrow-up" class="w-full p-button-help hover:scale-[1.01] transition-transform"></button>
@@ -105,22 +105,7 @@
     <div class="card rounded-lg shadow space-y-2">
         <div class="font-semibold mb-1 text-color">Offene Aufgaben & Hinweise:</div>
         @for (task of tasks(); track task.text) {
-            <div
-                class="flex items-center gap-2 text-sm"
-                [ngClass]="{
-                    'text-yellow-700': task.type === 'warning',
-                    'text-blue-600': task.type === 'info',
-                    'text-red-500': task.type === 'danger'
-                }">
-                <i
-                    class="pi"
-                    [ngClass]="{
-                        'pi-exclamation-triangle': task.type === 'warning',
-                        'pi-info-circle': task.type === 'info',
-                        'pi-times-circle': task.type === 'danger'
-                    }"></i>
-                <span>{{ task.text }}</span>
-            </div>
+            <p-message [severity]="task.type" [icon]="task.icon" variant="simple" >{{task.text}}</p-message>
         }
     </div>
 

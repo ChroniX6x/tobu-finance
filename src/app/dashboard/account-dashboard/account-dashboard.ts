@@ -6,11 +6,12 @@ import { ChartModule } from 'primeng/chart';
 import { AvatarModule } from 'primeng/avatar';
 import { TooltipModule } from 'primeng/tooltip';
 import { TimelineModule } from 'primeng/timeline';
+import { MessageModule } from 'primeng/message';
 
 @Component({
   selector: 'account-dashboard',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule, ChartModule, AvatarModule, TooltipModule, TimelineModule],
+  imports: [CommonModule, CardModule, ButtonModule, ChartModule, AvatarModule, TooltipModule, TimelineModule, MessageModule],
   templateUrl: './account-dashboard.html',
 })
 export class AccountDashboard {
@@ -94,9 +95,9 @@ export class AccountDashboard {
 
   // Aufgaben
   tasks = signal([
-    { text: 'Dein Beitrag für August ist noch offen!', type: 'warning' },
-    { text: 'Tony hat 45€ „Einkauf“ hinzugefügt', type: 'info' },
-    { text: 'Saldo nähert sich Limit', type: 'danger' }
+    { text: 'Dein Beitrag für August ist noch offen!', type: 'warn', icon: 'pi pi-exclamation-triangle' },
+    { text: 'Tony hat 45€ „Einkauf“ hinzugefügt', type: 'info', icon:'pi pi-info-circle' },
+    { text: 'Saldo nähert sich Limit', type: 'error', icon:'pi pi-times-circle' }
   ]);
 
   // Letzte Aktivitäten (Timeline)
