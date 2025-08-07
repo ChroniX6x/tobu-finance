@@ -262,7 +262,8 @@
       "type": "expense",
       "month": "2025-01",
       "isRecurring": false,
-      "isFromSharedAccount": true
+      "isFromSharedAccount": true,
+      "status": "booked"
     },
     {
       "id": "e2",
@@ -273,7 +274,9 @@
       "type": "expense",
       "month": "2025-01",
       "isRecurring": true,
-      "isFromSharedAccount": true
+      "isFromSharedAccount": true,
+      "status": "booked",
+      "recurringTemplateId": "t1"
     },
     {
       "id": "e3",
@@ -285,7 +288,8 @@
       "month": "2025-01",
       "isRecurring": false,
       "isFromSharedAccount": false,
-      "paidBymemberId": "b2"
+      "paidByMemberId": "b2",
+      "status": "booked"
     },
     {
       "id": "e4",
@@ -296,7 +300,8 @@
       "type": "expense",
       "month": "2025-02",
       "isRecurring": false,
-      "isFromSharedAccount": true
+      "isFromSharedAccount": true,
+      "status": "pending"
     },
     {
       "id": "e5",
@@ -308,7 +313,8 @@
       "month": "2025-02",
       "isRecurring": false,
       "isFromSharedAccount": false,
-      "paidBymemberId": "b1"
+      "paidByMemberId": "b1",
+      "status": "pending"
     },
     {
       "id": "e6",
@@ -319,7 +325,9 @@
       "type": "expense",
       "month": "2025-02",
       "isRecurring": true,
-      "isFromSharedAccount": true
+      "isFromSharedAccount": true,
+      "status": "pending",
+      "recurringTemplateId": "t1"
     },
     {
       "id": "e7",
@@ -331,7 +339,8 @@
       "month": "2025-03",
       "isRecurring": false,
       "isFromSharedAccount": false,
-      "paidBymemberId": "b1"
+      "paidByMemberId": "b1",
+      "status": "pending"
     },
     {
       "id": "e8",
@@ -342,7 +351,8 @@
       "type": "expense",
       "month": "2025-03",
       "isRecurring": false,
-      "isFromSharedAccount": true
+      "isFromSharedAccount": true,
+      "status": "pending"
     },
     {
       "id": "e9",
@@ -353,9 +363,10 @@
       "type": "expense",
       "month": "2025-03",
       "isRecurring": true,
-      "isFromSharedAccount": true
+      "isFromSharedAccount": true,
+      "status": "pending",
+      "recurringTemplateId": "t1"
     },
-    // Einnahmen-Beispiele:
     {
       "id": "i1",
       "accountId": "a1",
@@ -365,7 +376,9 @@
       "type": "income",
       "month": "2025-01",
       "isRecurring": true,
-      "paidByMemberId": "b1"
+      "paidByMemberId": "b1",
+      "status": "booked",
+      "recurringTemplateId": "t2"
     },
     {
       "id": "i2",
@@ -376,7 +389,9 @@
       "type": "income",
       "month": "2025-01",
       "isRecurring": true,
-      "paidByMemberId": "b2"
+      "paidByMemberId": "b2",
+      "status": "booked",
+      "recurringTemplateId": "t3"
     },
     {
       "id": "i3",
@@ -387,7 +402,9 @@
       "type": "income",
       "month": "2025-02",
       "isRecurring": true,
-      "paidByMemberId": "b2"
+      "paidByMemberId": "b2",
+      "status": "pending",
+      "recurringTemplateId": "t4"
     },
     {
       "id": "i4",
@@ -398,7 +415,54 @@
       "type": "income",
       "month": "2025-07",
       "isRecurring": false,
-      "paidByMemberId": null
+      "paidByMemberId": null,
+      "status": "booked"
+    }
+  ],
+  "transactionTemplates": [
+    {
+      "id": "t1",
+      "accountId": "a1",
+      "categoryId": "c2",
+      "title": "Miete",
+      "amount": 950,
+      "type": "expense",
+      "isRecurring": true,
+      "isFromSharedAccount": true,
+      "createdBy": "b1"
+    },
+    {
+      "id": "t2",
+      "accountId": "a1",
+      "categoryId": null,
+      "title": "Gehalt Tony",
+      "amount": 2800,
+      "type": "income",
+      "isRecurring": true,
+      "paidByMemberId": "b1",
+      "createdBy": "b1"
+    },
+    {
+      "id": "t3",
+      "accountId": "a1",
+      "categoryId": null,
+      "title": "Gehalt Caro",
+      "amount": 2000,
+      "type": "income",
+      "isRecurring": true,
+      "paidByMemberId": "b2",
+      "createdBy": "b2"
+    },
+    {
+      "id": "t4",
+      "accountId": "a1",
+      "categoryId": null,
+      "title": "Kindergeld",
+      "amount": 250,
+      "type": "income",
+      "isRecurring": true,
+      "paidByMemberId": "b2",
+      "createdBy": "b2"
     }
   ]
 }

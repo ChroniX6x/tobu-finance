@@ -1,11 +1,16 @@
-export interface ExpenseModel {
+export type TransactionType = 'expense' | 'income';
+
+export interface TransactionModel {
   id: string;
   accountId: string;
-  categoryId: string;
+  categoryId: string | null; // kann auch null für Einkünfte sein
   title: string;
   amount: number;
-  month: string;
+  type: TransactionType; // "expense" | "income"
+  month: string; // Format: YYYY-MM
   isRecurring: boolean;
-  isFromSharedAccount: boolean;
-  paidBymemberId?: string;
+  isFromSharedAccount?: boolean;
+  paidByMemberId?: string;     // Optional, für nicht-gemeinsame Ausgaben/Einkünfte
+  status: 'pending' | 'booked'; // NEU
+  recurringTemplateId?: string; // falls aus einer Vorlage generiert
 }
