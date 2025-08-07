@@ -30,7 +30,7 @@ export class AccountDashboard {
     { id: 'u3', name: 'Anna', avatar: 'A', paid: true, role: 'Mitglied' }
   ];
 
-  you = signal({ id: 'u1', name: 'Tony', paid: true, monthlyDue: 400, paidAmount: 400 });
+  you = signal({ id: '4a7b', name: 'Tony', paid: true, monthlyDue: 400, paidAmount: 400 });
 
   // Quick-Stats & Aktionen
   quickStats = signal([
@@ -95,10 +95,12 @@ export class AccountDashboard {
 
   // Aufgaben
   tasks = signal([
-    { text: 'Dein Beitrag für August ist noch offen!', type: 'warn', icon: 'pi pi-exclamation-triangle' },
-    { text: 'Tony hat 45€ „Einkauf“ hinzugefügt', type: 'info', icon:'pi pi-info-circle' },
-    { text: 'Saldo nähert sich Limit', type: 'error', icon:'pi pi-times-circle' }
+    { text: 'Dein Beitrag für August ist noch offen!', type: 'warn', icon: 'pi pi-exclamation-triangle', memberId:"4a7b" },
+    { text: 'Tony hat 45€ „Einkauf“ hinzugefügt', type: 'info', icon:'pi pi-info-circle', memberId:"b4c4" },
+    { text: 'Saldo nähert sich Limit', type: 'error', icon:'pi pi-times-circle', memberId:"4a7b" }
   ]);
+
+  userTasks = computed(() => this.tasks().filter(t => t.memberId === this.you().id));
 
   // Letzte Aktivitäten (Timeline)
   activity = signal([

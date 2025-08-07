@@ -32,7 +32,7 @@
     </div>
 
     <!-- Mitgliederübersicht (Card) -->
-    <div class="p-3 rounded-lg shadow flex items-center gap-4 flex-wrap space-y-2">
+    <div class="p-3 shadow flex items-center gap-4 flex-wrap space-y-2">
         <div class="font-medium text-muted-color mr-4">Mitglieder:</div>
         @for (member of members; track member.id) {
             <div
@@ -48,15 +48,21 @@
     </div>
 
     <!-- Deine Übersicht (Personalisiert) -->
-    <div class="card p-5 rounded-lg shadow flex flex-col sm:flex-row items-center justify-between gap-4 space-y-2">
-        <div class="text-lg">
+    <div class="card p-5 shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
             <span class="font-semibold text-color">Dein Beitrag für diesen Monat:</span>
-            <span class="text-2xl font-bold ml-2">{{ you().monthlyDue | currency: 'EUR' : 'symbol' : '1.0-0' }}</span>
-            <span *ngIf="you().paid" class="ml-2 text-green-500 font-medium flex items-center"><i class="pi pi-check-circle mr-1"></i>(bezahlt)</span>
-            <span *ngIf="!you().paid" class="ml-2 text-yellow-600 font-medium flex items-center"><i class="pi pi-clock mr-1"></i>(offen)</span>
+            <span class="text-2xl font-bold ml-2">{{ you().monthlyDue | currency: 'EUR' }}</span>
+            <span *ngIf="you().paid" class="ml-2 text-green-500 font-medium flex items-center"> <i class="pi pi-check-circle mr-1"></i>(bezahlt) </span>
+            <span *ngIf="!you().paid" class="ml-2 text-yellow-600 font-medium flex items-center"> <i class="pi pi-clock mr-1"></i>(offen) </span>
+            <button pButton label="Jetzt bezahlen" icon="pi pi-arrow-right" class="p-button-success ml-4" *ngIf="!you().paid"></button>
         </div>
         <div>
-            <button pButton label="Jetzt bezahlen" icon="pi pi-arrow-right" class="p-button-success" *ngIf="!you().paid"></button>
+            <div class="space-y-1 w-full max-w-md">
+                <div class="font-semibold mb-1 text-color">Deine Aufgaben & Hinweise:</div>
+                @for (task of userTasks(); track task.text) {
+                    <p-message [severity]="task.type" [icon]="task.icon" variant="simple">{{ task.text }}</p-message>
+                }
+            </div>
         </div>
     </div>
 
@@ -79,21 +85,21 @@
     <!-- Visualisierung -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 space-y-2">
         <!-- Verlauf -->
-        <div class="card p-4 rounded-lg shadow flex flex-col">
+        <div class="card p-4 shadow flex flex-col">
             <div class="font-medium leading-loose">Verlauf</div>
             <div class="flex-1 flex justify-center">
                 <p-chart type="line" [data]="lineChartData" [options]="lineChartOptions" class="w-full h-full"></p-chart>
             </div>
         </div>
         <!-- Einnahmen vs. Ausgaben -->
-        <div class="card p-4 rounded-lg shadow flex flex-col">
+        <div class="card p-4 shadow flex flex-col">
             <div class="font-medium leading-loose">Einnahmen vs. Ausgaben</div>
             <div class="flex-1 flex justify-center">
                 <p-chart type="doughnut" [data]="doughnutData" [options]="doughnutOptions" class="w-full h-full"></p-chart>
             </div>
         </div>
         <!-- Top Kategorien -->
-        <div class="card p-4 rounded-lg shadow flex flex-col">
+        <div class="card p-4 shadow flex flex-col">
             <div class="font-medium leading-loose">Top Kategorien</div>
             <div class="flex-1 flex justify-center">
                 <p-chart type="pie" [data]="pieChartData" [options]="pieChartOptions" class="w-full h-full"></p-chart>
@@ -101,16 +107,8 @@
         </div>
     </div>
 
-    <!-- Offene Aufgaben & Hinweise (Card) -->
-    <div class="card rounded-lg shadow space-y-2">
-        <div class="font-semibold mb-1 text-color">Offene Aufgaben & Hinweise:</div>
-        @for (task of tasks(); track task.text) {
-            <p-message [severity]="task.type" [icon]="task.icon" variant="simple" >{{task.text}}</p-message>
-        }
-    </div>
-
     <!-- Letzte Aktivitäten (PrimeNG Timeline, horizontal, Card) -->
-    <div class="card rounded-lg shadow space-y-2">
+    <div class="card shadow space-y-2">
         <div class="font-semibold mb-2 text-color">Letzte Aktivitäten:</div>
         <p-timeline [value]="activity()" layout="horizontal" align="top" class="w-full relative left-13">
             <ng-template #content let-event>
