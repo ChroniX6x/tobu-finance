@@ -88,21 +88,33 @@
         <div class="card p-4 shadow flex flex-col">
             <div class="font-medium leading-loose">Verlauf</div>
             <div class="flex-1 flex justify-center">
-                <p-chart type="line" [data]="lineChartData()" [options]="lineChartOptions" class="w-full h-full"></p-chart>
+                @if (lineChartData()?.datasets?.length) {
+                    <p-chart type="line" [data]="lineChartData()" [options]="lineChartOptions" class="w-full h-full"></p-chart>
+                } @else {
+                    <div class="text-muted-color text-center py-8 w-full">Keine Verlaufsdaten vorhanden</div>
+                }
             </div>
         </div>
         <!-- Einnahmen vs. Ausgaben -->
         <div class="card p-4 shadow flex flex-col">
             <div class="font-medium leading-loose">Einnahmen vs. Ausgaben</div>
             <div class="flex-1 flex justify-center">
-                <p-chart type="doughnut" [data]="doughnutData()" [options]="doughnutOptions" class="w-full h-full"></p-chart>
+                @if (doughnutData()?.datasets?.length && doughnutData()?.datasets[0]?.data?.length) {
+                    <p-chart type="doughnut" [data]="doughnutData()" [options]="doughnutOptions" class="w-full h-full"></p-chart>
+                } @else {
+                    <div class="text-muted-color text-center py-8 w-full">Keine Daten für Einnahmen/Ausgaben vorhanden</div>
+                }
             </div>
         </div>
         <!-- Top Kategorien -->
         <div class="card p-4 shadow flex flex-col">
             <div class="font-medium leading-loose">Top Kategorien</div>
             <div class="flex-1 flex justify-center">
-                <p-chart type="pie" [data]="pieChartData()" [options]="pieChartOptions" class="w-full h-full"></p-chart>
+                @if (pieChartData()?.datasets?.length && pieChartData()?.datasets[0]?.data?.length) {
+                    <p-chart type="pie" [data]="pieChartData()" [options]="pieChartOptions" class="w-full h-full"></p-chart>
+                } @else {
+                    <div class="text-muted-color text-center py-8 w-full">Keine Daten für Top Kategorien vorhanden</div>
+                }
             </div>
         </div>
     </div>

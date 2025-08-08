@@ -6,6 +6,7 @@ import { cloneDeep } from 'lodash';
 import { AccountState } from '@/state/account.state';
 import { CategoriesState } from '@/state/categories.state';
 import { TransactionsState } from '@/state/transactions.state';
+import { AccountDashboardStatistikService } from '../services/account-dashboard-statistik.service';
 
 export interface AccountDashboardStateModel {
     account: {
@@ -129,7 +130,7 @@ export class AccountDashboardState {
         return state.activity;
     }
 
-    constructor(private store: Store) {}
+    constructor(private store: Store, private statistik: AccountDashboardStatistikService) {}
 
     @Action(LoadAccountDashboard)
     loadAccountDashboard(ctx: StateContext<AccountDashboardStateModel>, action: LoadAccountDashboard) {
@@ -138,111 +139,28 @@ export class AccountDashboardState {
         // 1. Daten holen (aus Data-States)
         const account = this.store.selectSnapshot(AccountState.account);
         const allMembers = account.members;
-        const expenses = this.store.selectSnapshot(TransactionsState.expenses); // alle Transaktionen laden
-        const incomes = this.store.selectSnapshot(TransactionsState.income); // alle Transaktionen laden
+        const expenses = this.store.selectSnapshot(TransactionsState.expenses);
+        const incomes = this.store.selectSnapshot(TransactionsState.income);
         const categories = this.store.selectSnapshot(CategoriesState.categories);
 
-        // Aktueller Monat (z.B. "2025-08"), nimm letzten in balances als "aktuell"
-        const balances = account?.balances || [];
-        const months = balances.map((b) => b.month);
-        const currentMonth = months.at(-1);
-
-        // 2. Aggregation für Mitglieder: "paid" berechnen
-        const members = allMembers.map((member) => {
-            // Alle Transaktionen für diesen Account & Monat & Mitglied
-            const memberIncomes = incomes.filter(
-                (t) => t.month === currentMonth && t.paidByMemberId === member.id && t.status === 'booked' // nur gebuchte Transaktionen zählen!
-            );
-            // Monatsbeitrag (vereinfachtes Beispiel, ggf. komplexer ausrechnen!)
-            // Du kannst auch weitere Felder aus account.monthlyPlannedContributions etc. für "monthlyDue" nehmen!
-            const monthlyDue = 400; // <- berechnen!
-            const paidAmount = memberIncomes.reduce((sum, t) => sum + t.amount, 0);
-            const paid = paidAmount >= monthlyDue;
-
-            return {
-                ...member,
-                paid,
-                monthlyDue,
-                paidAmount
-            };
-        });
-
-        // 3. State Aggregation wie gehabt, "paid" ist jetzt im Member-Objekt!
-        const latestBalance = balances.at(-1)?.value ?? 0;
-        const previousBalance = balances.length > 1 ? balances.at(-2)?.value : 0;
-        const balanceChange = previousBalance ? +(((latestBalance - previousBalance) / previousBalance) * 100).toFixed(1) : 0;
-        const forecast = latestBalance + 100; // Dummy
-        const warnungen = latestBalance < 1000 ? 1 : 0;
-
-        // QuickStats
-        const offeneBeitraege = members.filter((m) => !m.paid).length;
-        const offeneTopUps = account.topUps?.length ?? 0 //?.filter((t) => !t.paid).length ?? 0;
-
-        const quickStats = [
-            { label: 'Offene Beiträge', value: offeneBeitraege, icon: 'pi pi-exclamation-circle', color: 'bg-yellow-100 text-yellow-700' },
-            { label: 'Offene TopUps', value: offeneTopUps, icon: 'pi pi-arrow-up', color: 'bg-blue-100 text-blue-700' },
-            { label: 'Warnungen', value: warnungen, icon: 'pi pi-exclamation-triangle', color: 'bg-red-100 text-red-700' },
-            { label: 'Deine Aufgaben', value: 1, icon: 'pi pi-user', color: 'bg-green-100 text-green-700' }
-        ];
-
-        // Charts...
-        const lineChartData = {
-            labels: months,
-            datasets: [
-                {
-                    label: 'Kontostand',
-                    data: balances.map((b) => b.value),
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34,197,94,0.2)',
-                    fill: true,
-                    tension: 0.4
-                }
-            ]
-        };
-        // Einnahmen/Ausgaben berechnen
-        const incomesSum = incomes.filter((t) => t.month === currentMonth && t.status === 'booked').reduce((sum, t) => sum + t.amount, 0);
-        const expensesSum = expenses.filter((t) => t.month === currentMonth && t.status === 'booked').reduce((sum, t) => sum + t.amount, 0);
-
-        const doughnutData = {
-            labels: ['Einnahmen', 'Ausgaben'],
-            datasets: [
-                {
-                    data: [incomesSum, expensesSum],
-                    backgroundColor: ['#16a34a', '#dc2626'],
-                    hoverBackgroundColor: ['#15803d', '#b91c1c']
-                }
-            ]
-        };
-
-        // PieChart Top Kategorien (Beispiel aus expenses im aktuellen Monat)
-        const categorySums: Record<string, number> = {};
-        expenses
-            .filter((t) => t.month === currentMonth && t.status === 'booked')
-            .forEach((t) => {
-                const name = categories.find((c) => c.id === t.categoryId)?.name ?? 'Unbekannt';
-                categorySums[name] = (categorySums[name] || 0) + t.amount;
-            });
-        const sortedCategories = Object.entries(categorySums)
-            .sort(([, a], [, b]) => b - a)
-            .slice(0, 3);
-        const pieChartData = {
-            labels: sortedCategories.map(([name]) => name),
-            datasets: [
-                {
-                    data: sortedCategories.map(([, sum]) => sum),
-                    backgroundColor: ['#3b82f6', '#facc15', '#ec4899'],
-                    hoverBackgroundColor: ['#1e40af', '#ca8a04', '#be185d']
-                }
-            ]
-        };
-
-        // Aufgaben und Aktivitäten (dummy)
-        const tasks = [{ text: 'Dein Beitrag für August ist noch offen!', type: 'warn', icon: 'pi pi-exclamation-triangle', memberId: 'u1' }];
-        const activity = [{ date: '01.08.', text: 'Miete bezahlt', user: 'Caro' }];
-
-        // "Du selbst"
-        const userId = 'u1'; // <- ggf. dynamisch bestimmen!
-        const you = members.find((m) => m.id === userId) || { id: userId, name: '', paid: false, monthlyDue: 0, paidAmount: 0 };
+        // 2. Berechnungen über Service
+        const months = this.statistik.getMonths(account);
+        const currentMonth = this.statistik.getCurrentMonth(months);
+        const members = this.statistik.getMembersWithPaidStatus(allMembers, incomes, currentMonth);
+        const latestBalance = this.statistik.getLatestBalance(account);
+        const balanceChange = this.statistik.getBalanceChange(account);
+        const forecast = this.statistik.getForecast(latestBalance);
+        const warnungen = this.statistik.getWarnungen(latestBalance);
+        const offeneBeitraege = this.statistik.getOffeneBeitraege(members);
+        const offeneTopUps = this.statistik.getOffeneTopUps(account);
+        const quickStats = this.statistik.getQuickStats(offeneBeitraege, offeneTopUps, warnungen);
+        const lineChartData = this.statistik.getLineChartData(account, months);
+        const doughnutData = this.statistik.getDoughnutData(incomes, expenses, currentMonth);
+        const pieChartData = this.statistik.getPieChartData(expenses, categories, currentMonth);
+        const tasks = this.statistik.getTasks(members, currentMonth);
+        const activity = this.statistik.getActivity();
+        const userId = this.statistik.getCurrentUserId();
+        const you = this.statistik.getYou(members, userId);
 
         ctx.setState({
             ...ctx.getState(),
