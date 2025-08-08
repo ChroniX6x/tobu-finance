@@ -27,7 +27,7 @@
     {
       "id": "a1",
       "name": "Gemeinschaftskonto",
-      "members": [
+      "memberIds": [
         "b1",
         "b2"
       ],
@@ -148,7 +148,7 @@
     {
       "id": "d52a",
       "name": "Account",
-      "members": [
+      "memberIds": [
         "4a7b",
         "b4c4"
       ],

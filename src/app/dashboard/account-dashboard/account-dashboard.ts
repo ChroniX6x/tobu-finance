@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -7,8 +7,10 @@ import { AvatarModule } from 'primeng/avatar';
 import { TooltipModule } from 'primeng/tooltip';
 import { TimelineModule } from 'primeng/timeline';
 import { MessageModule } from 'primeng/message';
-import { select } from '@ngxs/store';
+import { select, Store } from '@ngxs/store';
 import { AccountDashboardState } from '../state/account-dashboard.state';
+import { LoadAccountDashboard } from '../state/account-dashboard.actions';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'account-dashboard',
@@ -16,7 +18,10 @@ import { AccountDashboardState } from '../state/account-dashboard.state';
   imports: [CommonModule, CardModule, ButtonModule, ChartModule, AvatarModule, TooltipModule, TimelineModule, MessageModule],
   templateUrl: './account-dashboard.html',
 })
-export class AccountDashboard {
+export class AccountDashboard implements OnInit {
+
+  private store = inject(Store);
+  private route = inject(ActivatedRoute);
 
   account = select(AccountDashboardState.account);
   members = select(AccountDashboardState.members);
@@ -58,4 +63,13 @@ export class AccountDashboard {
     maintainAspectRatio: false,
     plugins: { legend: { position: 'bottom' } }
   };
+
+  ngOnInit() {
+    this.route.paramMap.subscribe(params => {
+      const accountId = params.get('accountId');
+      if (accountId) {
+        this.store.dispatch(new LoadAccountDashboard(accountId));
+      }
+    });
+  }
 }

@@ -7,7 +7,7 @@ import { DashboardAccountModel } from '../domain/dashboard-account.model';
 interface RawAccount {
   id: string;
   name: string;
-  members: string[];
+  memberIds: string[];
   balances: Array<{ month: string; value: number }>;
   // restliche Felder ignoriert, da fürs Dashboard nicht relevant
 }
@@ -28,7 +28,7 @@ export class AccountDataService {
           return {
             id: r.id,
             name: r.name,
-            participantCount: r.members.length,
+            participantCount: r.memberIds.length,
             currentBalance: sorted.length
               ? sorted[sorted.length - 1].value
               : 0,
