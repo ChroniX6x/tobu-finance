@@ -28,7 +28,7 @@ export class AccountDataService {
           return {
             id: r.id,
             name: r.name,
-            participantCount: r.memberIds.length,
+            memberCount: r.memberIds.length,
             currentBalance: sorted.length
               ? sorted[sorted.length - 1].value
               : 0,

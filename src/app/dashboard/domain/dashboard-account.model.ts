@@ -2,7 +2,7 @@
 export interface DashboardAccountModel {
   id: string;
   name: string;
-  participantCount: number;
+  memberCount: number;
   currentBalance: number;
   balanceHistory: number[]; // z. B. letzte 5 Monate
 }
