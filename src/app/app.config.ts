@@ -13,6 +13,7 @@ import { providePrimeNG } from 'primeng/config';
 import { AccountState } from './state/account.state';
 import { CategoriesState } from './state/categories.state';
 import { TransactionsState } from './state/transactions.state';
+import { API_BASE_URL } from './core/api-base-url.token';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -32,6 +33,7 @@ export const appConfig: ApplicationConfig = {
     provideStore([AccountState,CategoriesState,TransactionsState], {developmentMode: true}, withNgxsLoggerPlugin(), withNgxsReduxDevtoolsPlugin(), withNgxsRouterPlugin()),
     providePrimeNG({
       theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } }
-    })
+    }),
+    { provide: API_BASE_URL, useValue: 'http://localhost:4000' } // z.B. 'https://api.example.com'
   ]
 };

@@ -1,43 +1,35 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { DashboardAccountModel } from '../domain/dashboard-account.model';
-
-// Entspricht dem aktuellen db.json-Schema:
-interface RawAccount {
-  id: string;
-  name: string;
-  memberIds: string[];
-  balances: Array<{ month: string; value: number }>;
-  // restliche Felder ignoriert, da fürs Dashboard nicht relevant
-}
+import { ApiDashboardAccount } from '@/domain/models/api.types';
+import { DashboardAccountModel } from '@/dashboard/domain/dashboard-account.model';
+import { API_BASE_URL } from '@/core/api-base-url.token';
 
 @Injectable({ providedIn: 'root' })
-export class AccountDataService {
-  private API = 'http://localhost:3000';
-  private readonly url = this.API + '/accounts'; // json-server Basis-URL
+export class DashboardDataService {
+  private http = inject(HttpClient);
+  private baseUrl = inject(API_BASE_URL);
 
-  /** Liefert Dashboard-DTOs basierend auf RawAccount */
-  getDashboardAccounts(): Observable<DashboardAccountModel[]> {
-    return this.http.get<RawAccount[]>(this.url).pipe(
-      map(rawList =>
-        rawList.map(r => {
-          const sorted = [...r.balances].sort((a, b) =>
-            a.month.localeCompare(b.month)
-          );
-          return {
-            id: r.id,
-            name: r.name,
-            memberCount: r.memberIds.length,
-            currentBalance: sorted.length
-              ? sorted[sorted.length - 1].value
-              : 0,
-            balanceHistory: sorted.map(b => b.value).slice(-5)
-          } as DashboardAccountModel;
-        })
-      )
-    );
+  getDashboardAccounts(opts?: {
+    userId?: string;
+    memberId?: string;
+    months?: number;
+  }): Observable<DashboardAccountModel[]> {
+    let params = new HttpParams();
+    if (opts?.userId)   params = params.set('userId', opts.userId);
+    if (opts?.memberId) params = params.set('memberId', opts.memberId);
+    if (opts?.months)   params = params.set('months', String(opts.months));
+
+    return this.http
+      .get<ApiDashboardAccount[]>(`${this.baseUrl}/api/dashboard/accounts`, { params })
+      .pipe(
+        map(list => list.map(a => ({
+          id: a.id,
+          name: a.name,
+          participantCount: a.memberCount,
+          currentBalanceMinor: a.currentBalance,             // keep minor units
+          balanceHistoryMinor: a.balanceHistory ?? []        // keep minor units
+        })))
+      );
   }
-
-  constructor(private http: HttpClient) {}
 }
