@@ -12,6 +12,7 @@ import { AccountDashboardState } from '../state/account-dashboard.state';
 import { LoadAccountDashboard } from '../state/account-dashboard.actions';
 import { ActivatedRoute } from '@angular/router';
 import { AccountMemberUi } from '@/account-dashboard/domain/account-overview.ui-model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'account-dashboard',
@@ -77,7 +78,7 @@ export class AccountDashboard implements OnInit {
   };
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
       const accountId = params.get('accountId');
       if (accountId) {
         this.store.dispatch(new LoadAccountDashboard(accountId));
