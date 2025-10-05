@@ -1,135 +1,174 @@
 <div class="p-6 bg-surface min-h-screen">
-    <!-- Kopfbereich + Saldo -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div class="flex items-center gap-4">
-            <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100">
-                {{ account().name }}
-            </h1>
-            <button type="button" class="text-primary-600 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 p-2 rounded-full transition-colors" aria-label="Bearbeiten">
-                <i class="pi pi-pencil text-lg"></i>
-            </button>
-        </div>
-        <div>
-            <div class="flex items-end gap-4">
-                <div class="text-4xl font-bold text-success-600 leading-tight">
-                    {{ account().currentBalance | currency: 'EUR' : 'symbol' : '1.0-0' }}
-                </div>
-                <div class="text-sm text-muted-color-emphasis pb-1">{{ months().at(-1) ?? '–' }} 2025</div>
-            </div>
-            <div class="text-base mt-1 flex items-center gap-3">
-                <span [ngClass]="account().balanceChange >= 0 ? 'text-green-600' : 'text-red-500'">
-                    <i class="pi pi-arrow-up" *ngIf="account().balanceChange >= 0"></i>
-                    <i class="pi pi-arrow-down" *ngIf="account().balanceChange < 0"></i>
-                    {{ account().balanceChange >= 0 ? '+' : '' }}{{ account().balanceChange }}%
-                </span>
-                <span class="mx-2 text-muted-color-emphasis">•</span>
-                <span
-                    >Prognose: <b>{{ account().forecast | currency: 'EUR' : 'symbol' : '1.0-0' }}</b></span
-                >
-            </div>
-            <div *ngIf="account().warning" class="mt-2 px-2 py-1 bg-red-50 text-red-600 font-semibold rounded flex items-center gap-2 text-xs w-fit"><i class="pi pi-exclamation-triangle"></i> {{ account().warning }}</div>
-        </div>
+  <!-- Kopfbereich + Saldo -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="flex items-center gap-4">
+      <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100">
+        {{ account()?.name }}
+      </h1>
+      <button
+        type="button"
+        class="text-primary-600 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 p-2 rounded-full transition-colors"
+        aria-label="Bearbeiten">
+        <i class="pi pi-pencil text-lg"></i>
+      </button>
     </div>
 
-    <!-- Mitgliederübersicht (Card) -->
-    <div class="p-3 shadow flex items-center gap-4 flex-wrap space-y-2">
-        <div class="font-medium text-muted-color mr-4">Mitglieder:</div>
-        @for (member of members(); track member.id) {
-            <div
-                class="flex items-center gap-2 px-3 py-1 rounded-full"
-                [ngClass]="member.paid ? 'bg-success-50 text-success-700' : 'bg-yellow-50 text-yellow-700'"
-                pTooltip="{{ member.paid ? 'Beitrag gezahlt' : 'Beitrag offen' }}"
-                tooltipPosition="top">
-                <p-avatar shape="circle" label="{{ member.avatar }}"></p-avatar>
-                <span>{{ member.name }}</span>
-                <i class="pi" [ngClass]="member.paid ? 'pi-check' : 'pi-clock'"></i>
-            </div>
+    <div>
+      <div class="flex items-end gap-4">
+        <div class="text-4xl font-bold text-success-600 leading-tight">
+          {{ currentBalanceMajor() | currency:'EUR':'symbol':'1.0-0' }}
+        </div>
+        <div class="text-sm text-muted-color-emphasis pb-1">
+          {{ currentMonthLabel() }}
+        </div>
+      </div>
+
+      <div class="text-base mt-1 flex items-center gap-3">
+        <span [ngClass]="balanceChangePct() >= 0 ? 'text-green-600' : 'text-red-500'">
+          <i class="pi" [ngClass]="balanceChangePct() >= 0 ? 'pi-arrow-up' : 'pi-arrow-down'"></i>
+          {{ balanceChangePct() >= 0 ? '+' : '' }}{{ balanceChangePct() }}%
+        </span>
+        <span class="mx-2 text-muted-color-emphasis">•</span>
+        <span>
+          Prognose:
+          <b>{{ forecastMajor() | currency:'EUR':'symbol':'1.0-0' }}</b>
+        </span>
+      </div>
+
+      @if (accountWarning()) {
+        <div class="mt-2 px-2 py-1 bg-red-50 text-red-600 font-semibold rounded flex items-center gap-2 text-xs w-fit">
+          <i class="pi pi-exclamation-triangle"></i> {{ accountWarning() }}
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Mitgliederübersicht (Card) -->
+  <div class="card p-3 shadow flex items-center gap-4 flex-wrap">
+    <div class="font-medium text-muted-color mr-2">Mitglieder:</div>
+    @for (member of members(); track member.id) {
+      <div
+        class="flex items-center gap-2 px-3 py-1 rounded-full"
+        [ngClass]="member.paid ? 'bg-success-50 text-success-700' : 'bg-yellow-50 text-yellow-700'"
+        pTooltip="{{ member.paid ? 'Beitrag gezahlt' : 'Beitrag offen' }}"
+        tooltipPosition="top">
+        <p-avatar shape="circle" [label]="member.avatar || (member.name | slice:0:1)"></p-avatar>
+        <span>{{ member.name }}</span>
+        <i class="pi" [ngClass]="member.paid ? 'pi-check' : 'pi-clock'"></i>
+      </div>
+    }
+  </div>
+
+  <!-- Deine Übersicht (Personalisiert) + Hinweise -->
+  <div class="card p-5 shadow grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Beitrag -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="text-lg">
+        <span class="font-semibold text-color">Dein Beitrag für diesen Monat:</span>
+        <span class="text-2xl font-bold ml-2">
+          {{
+            ((currentMember() || { monthlyDueMinor: 0 }).monthlyDueMinor / 100)
+              | currency:'EUR':'symbol':'1.0-0'
+          }}
+        </span>
+        @if (currentMember().paid === true) {
+          <span class="ml-2 text-green-500 font-medium flex items-center"><i class="pi pi-check-circle mr-1"></i>(bezahlt)</span>
+        } @else {
+          <span class="ml-2 text-yellow-600 font-medium flex items-center"><i class="pi pi-clock mr-1"></i>(offen)</span>
         }
-    </div>
-
-    <!-- Deine Übersicht (Personalisiert) -->
-    <div class="card p-5 shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-            <span class="font-semibold text-color">Dein Beitrag für diesen Monat:</span>
-            <span class="text-2xl font-bold ml-2">{{ you().monthlyDue | currency: 'EUR' }}</span>
-            <span *ngIf="you().paid" class="ml-2 text-green-500 font-medium flex items-center"> <i class="pi pi-check-circle mr-1"></i>(bezahlt) </span>
-            <span *ngIf="!you().paid" class="ml-2 text-yellow-600 font-medium flex items-center"> <i class="pi pi-clock mr-1"></i>(offen) </span>
-            <button pButton label="Jetzt bezahlen" icon="pi pi-arrow-right" class="p-button-success ml-4" *ngIf="!you().paid"></button>
-        </div>
-        <div>
-            <div class="space-y-1 w-full max-w-md">
-                <div class="font-semibold mb-1 text-color">Deine Aufgaben & Hinweise:</div>
-                @for (task of userTasks(); track task.text) {
-                    <p-message [severity]="task.type" [icon]="task.icon" variant="simple">{{ task.text }}</p-message>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="grid md:grid-cols-4 gap-4 mb-2">
-        @for (stat of quickStats(); track stat.label) {
-            <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center" [ngClass]="stat.color">
-                <i class="{{ stat.icon }} text-xl"></i>
-                <span class="font-medium">{{ stat.value }}</span>
-                <span class="text-sm">{{ stat.label }}</span>
-            </div>
+      </div>
+      <div>
+        @if (currentMember().paid === false) {
+          <button pButton type="button" label="Jetzt bezahlen" icon="pi pi-arrow-right" class="p-button-success w-full sm:w-auto"></button>
         }
-    </div>
-    <div class="grid md:grid-cols-4 gap-4 mb-2">
-        <button pButton label="Ausgabe hinzufügen" icon="pi pi-money-bill" class="w-full p-button-success hover:scale-[1.01] transition-transform"></button>
-        <button pButton label="Beitrag einzahlen" icon="pi pi-wallet" class="w-full p-button-info hover:scale-[1.01] transition-transform"></button>
-        <button pButton label="TopUp machen" icon="pi pi-arrow-up" class="w-full p-button-help hover:scale-[1.01] transition-transform"></button>
-        <button pButton label="Zu Einstellungen" icon="pi pi-cog" class="w-full p-button-secondary hover:scale-[1.01] transition-transform"></button>
+      </div>
     </div>
 
-    <!-- Visualisierung -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 space-y-2">
-        <!-- Verlauf -->
-        <div class="card p-4 shadow flex flex-col">
-            <div class="font-medium leading-loose">Verlauf</div>
-            <div class="flex-1 flex justify-center">
-                @if (lineChartData()?.datasets?.length) {
-                    <p-chart type="line" [data]="lineChartData()" [options]="lineChartOptions" class="w-full h-full"></p-chart>
-                } @else {
-                    <div class="text-muted-color text-center py-8 w-full">Keine Verlaufsdaten vorhanden</div>
-                }
-            </div>
-        </div>
-        <!-- Einnahmen vs. Ausgaben -->
-        <div class="card p-4 shadow flex flex-col">
-            <div class="font-medium leading-loose">Einnahmen vs. Ausgaben</div>
-            <div class="flex-1 flex justify-center">
-                @if (doughnutData()?.datasets?.length && doughnutData()?.datasets[0]?.data?.length) {
-                    <p-chart type="doughnut" [data]="doughnutData()" [options]="doughnutOptions" class="w-full h-full"></p-chart>
-                } @else {
-                    <div class="text-muted-color text-center py-8 w-full">Keine Daten für Einnahmen/Ausgaben vorhanden</div>
-                }
-            </div>
-        </div>
-        <!-- Top Kategorien -->
-        <div class="card p-4 shadow flex flex-col">
-            <div class="font-medium leading-loose">Top Kategorien</div>
-            <div class="flex-1 flex justify-center">
-                @if (pieChartData()?.datasets?.length && pieChartData()?.datasets[0]?.data?.length) {
-                    <p-chart type="pie" [data]="pieChartData()" [options]="pieChartOptions" class="w-full h-full"></p-chart>
-                } @else {
-                    <div class="text-muted-color text-center py-8 w-full">Keine Daten für Top Kategorien vorhanden</div>
-                }
-            </div>
-        </div>
+    <!-- Nur für dich: Hinweise/Aufgaben -->
+    <div class="space-y-2">
+      <div class="font-semibold text-color">Deine Hinweise & Aufgaben</div>
+      @for (ins of insights(); track ins.id) {
+        @if (ins.scope === 'me') {
+          <p-message [severity]="ins.severity" variant="simple">
+            {{ ins.code }}
+          </p-message>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid md:grid-cols-4 gap-4 my-4">
+    @if (quickStats()) {
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card">
+        <i class="pi pi-exclamation-circle text-xl"></i>
+        <span class="font-medium">{{ quickStats()!.openDuesCount }}</span>
+        <span class="text-sm">Offene Beiträge</span>
+      </div>
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card">
+        <i class="pi pi-refresh text-xl"></i>
+        <span class="font-medium">{{ quickStats()!.pendingRecurringCount }}</span>
+        <span class="text-sm">Wiederkehrend (offen)</span>
+      </div>
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card">
+        <i class="pi pi-coins text-xl"></i>
+        <span class="font-medium">{{ quickStats()!.extraContributionsCount }}</span>
+        <span class="text-sm">Zusatzbeiträge</span>
+      </div>
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card">
+        <i class="pi pi-bell text-xl"></i>
+        <span class="font-medium">{{ quickStats()!.warningsCount }}</span>
+        <span class="text-sm">Warnungen</span>
+      </div>
+    }
+  </div>
+
+  <!-- Schnellaktionen -->
+  <div class="grid md:grid-cols-4 gap-4 mb-4">
+    <button pButton type="button" label="Ausgabe hinzufügen" icon="pi pi-money-bill" class="w-full p-button-success hover:scale-[1.01] transition-transform"></button>
+    <button pButton type="button" label="Beitrag einzahlen" icon="pi pi-wallet" class="w-full p-button-info hover:scale-[1.01] transition-transform"></button>
+    <button pButton type="button" label="TopUp machen" icon="pi pi-arrow-up" class="w-full p-button-help hover:scale-[1.01] transition-transform"></button>
+    <button pButton type="button" label="Zu Einstellungen" icon="pi pi-cog" class="w-full p-button-secondary hover:scale-[1.01] transition-transform"></button>
+  </div>
+
+  <!-- Visualisierung -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Verlauf -->
+    <div class="card p-4 shadow flex flex-col h-80">
+      <div class="font-medium leading-loose">Verlauf</div>
+      <div class="flex-1 flex">
+        <p-chart type="line" [data]="lineChartData()" [options]="lineChartOptions" class="w-full h-full"></p-chart>
+      </div>
     </div>
 
-    <!-- Letzte Aktivitäten (PrimeNG Timeline, horizontal, Card) -->
-    <div class="card shadow space-y-2">
-        <div class="font-semibold mb-2 text-color">Letzte Aktivitäten:</div>
-        <p-timeline [value]="activity()" layout="horizontal" align="top" class="w-full relative left-13">
-            <ng-template #content let-event>
-                <div class="flex flex-col items-center w-[120px] relative right-13">
-                    <span class="font-mono text-muted-color-emphasis">{{ event.date }}</span>
-                    <span class="font-semibold text-color">{{ event.user }}</span>
-                    <span class="text-sm text-muted-color">{{ event.text }}</span>
-                </div>
-            </ng-template>
-        </p-timeline>
+    <!-- Einnahmen vs. Ausgaben -->
+    <div class="card p-4 shadow flex flex-col h-80">
+      <div class="font-medium leading-loose">Einnahmen vs. Ausgaben</div>
+      <div class="flex-1 flex">
+        <p-chart type="doughnut" [data]="doughnutData()" [options]="doughnutOptions" class="w-full h-full"></p-chart>
+      </div>
     </div>
+
+    <!-- Top Kategorien -->
+    <div class="card p-4 shadow flex flex-col h-80">
+      <div class="font-medium leading-loose">Top Kategorien</div>
+      <div class="flex-1 flex">
+        <p-chart type="pie" [data]="pieChartData()" [options]="pieChartOptions" class="w-full h-full"></p-chart>
+      </div>
+    </div>
+  </div>
+
+  <!-- Letzte Aktivitäten (PrimeNG Timeline, horizontal) -->
+  <div class="card shadow p-4 mt-6">
+    <div class="font-semibold mb-2 text-color">Letzte Aktivitäten:</div>
+    <p-timeline [value]="timeline()" layout="horizontal" align="top" class="w-full">
+      <ng-template #content let-event>
+        <div class="flex flex-col items-center w-[140px]">
+          <span class="font-mono text-muted-color-emphasis">{{ event.date | date:'dd.MM.' }}</span>
+          <span class="font-semibold text-color">{{ event.user || '—' }}</span>
+          <span class="text-sm text-muted-color text-center">{{ event.text }}</span>
+        </div>
+      </ng-template>
+    </p-timeline>
+  </div>
 </div>

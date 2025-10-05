@@ -11,6 +11,7 @@ import { select, Store } from '@ngxs/store';
 import { AccountDashboardState } from '../state/account-dashboard.state';
 import { LoadAccountDashboard } from '../state/account-dashboard.actions';
 import { ActivatedRoute } from '@angular/router';
+import { AccountMemberUi } from '@/account-dashboard/domain/account-overview.ui-model';
 
 @Component({
   selector: 'account-dashboard',
@@ -23,21 +24,32 @@ export class AccountDashboard implements OnInit {
   private store = inject(Store);
   private route = inject(ActivatedRoute);
 
-  account = select(AccountDashboardState.account);
-  members = select(AccountDashboardState.members);
-  you = select(AccountDashboardState.you);
-  quickStats = select(AccountDashboardState.quickStats);
-  months = select(AccountDashboardState.months);
+  currentMember   = computed<AccountMemberUi>(() => this.members().find(m => m.id === 'm1' || m.id === '4a7b')!); // TODO aktueller User (über AuthService)
+  account         = select(AccountDashboardState.account);
+  members         = select(AccountDashboardState.members);
+  quickStats      = select(AccountDashboardState.quickStats);
+  lineChartData   = select(AccountDashboardState.lineChartData);
+  doughnutData    = select(AccountDashboardState.doughnutData);
+  pieChartData    = select(AccountDashboardState.pieChartData);
+  insights        = select(AccountDashboardState.insights);
+  timeline        = select(AccountDashboardState.timeline);
+  loading         = select(AccountDashboardState.loading);
 
-  lineChartData = select(AccountDashboardState.lineChartData);
-  doughnutData = select(AccountDashboardState.doughnutData);
-  pieChartData = select(AccountDashboardState.pieChartData);
+  // ---- Helper: formatiere aus ISO YYYY-MM oder YYYY-MM-DD → z.B. "Aug 2025" ----
+  private monthLabel = (iso: string | undefined) => {
+    if (!iso) return '—';
+    // Wenn nur YYYY-MM kommt, auf den 1. des Monats ergänzen:
+    const isoFull = iso.length === 7 ? `${iso}-01` : iso;
+    const d = new Date(isoFull);
+    return new Intl.DateTimeFormat('de-DE', { month: 'short', year: 'numeric' }).format(d);
+  };
 
-  tasks = select(AccountDashboardState.tasks);
-  activity = select(AccountDashboardState.activity);
-
-  currentMonth = computed(() => this.months().at(-1) ?? '—');
-  userTasks = computed(() => this.tasks().filter(t => t.memberId === this.you().id));
+  // ---- Header-Anzeigen (berechnet) ----
+  currentMonthLabel = computed(() => this.monthLabel(this.account()?.currentMonthIso));
+  currentBalanceMajor = computed(() => (this.account()?.currentBalanceMinor ?? 0) / 100);
+  forecastMajor = computed(() => (this.account()?.forecastMinor ?? 0) / 100);
+  balanceChangePct = computed(() => this.account()?.balanceChangePct ?? 0);
+  accountWarning = computed(() => this.account()?.warning);
 
   // Verlauf Chart
   lineChartOptions = {

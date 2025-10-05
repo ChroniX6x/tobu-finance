@@ -1,12 +1,12 @@
-// ACHTUNG: Beträge in Cents; Labels (Zeiten) als ISO-Strings.
+// currency-neutral: amounts in minor units (e.g., cents)
 
 export interface AccountHeaderModel {
   id: string;
   name: string;
-  currentMonthIso: string;     // ISO
-  currentBalanceCents: number;
+  currentMonthIso: string;        // ISO date string
+  currentBalanceMinor: number;    // was ...Cents
   balanceChangePct: number;
-  forecastCents: number;
+  forecastMinor: number;          // was ...Cents
   warning?: string;
 }
 
@@ -15,8 +15,8 @@ export interface AccountMemberUi {
   name: string;
   role?: string;
   avatar?: string | null;
-  monthlyDueCents: number;
-  paidAmountCents: number;
+  monthlyDueMinor: number;        // was ...Cents
+  paidAmountMinor: number;        // was ...Cents
   paid: boolean;
 }
 
@@ -24,17 +24,15 @@ export interface QuickStatsUi {
   openDuesCount: number;
   pendingRecurringCount: number;
   extraContributionsCount: number;
-  extraContributionsSumCents: number;
+  extraContributionsSumMinor: number; // was ...Cents
   warningsCount: number;
 }
 
-// Wir lassen Farbangaben draußen (dynamische Färbung in der Komponente via CSS-Variablen).
 export interface ChartLineData {
-  labelsIso: string[];           // ISO
+  labelsIso: string[];            // ISO
   datasets: Array<{
     label: string;
-    dataCents: number[];
-    // Farbe/Styling in der Komponente setzen
+    dataMinor: number[];          // was dataCents
     fill?: boolean;
     tension?: number;
   }>;
@@ -43,8 +41,7 @@ export interface ChartLineData {
 export interface ChartDoughnutData {
   labels: string[];
   datasets: Array<{
-    dataCents: number[];
-    // Farben in der Komponente setzen
+    dataMinor: number[];          // was dataCents
   }>;
 }
 
@@ -52,8 +49,8 @@ export interface ChartPieData extends ChartDoughnutData {}
 
 export interface InsightUi {
   id: string;
-  createdAt: string;             // ISO
-  month?: string;                // ISO
+  createdAt: string;              // ISO
+  month?: string;                 // ISO
   kind: 'task' | 'warning' | 'info' | 'critical';
   severity: 'info' | 'warn' | 'error';
   scope: 'all' | 'me';
@@ -67,7 +64,7 @@ export interface InsightUi {
 
 export interface TimelineItem {
   id: string;
-  date: string;                  // ISO
+  date: string;                   // ISO
   user?: string;
   text: string;
 }
@@ -76,9 +73,9 @@ export interface AccountOverviewUi {
   account: AccountHeaderModel;
   members: AccountMemberUi[];
   quickStats: QuickStatsUi;
-  lineChartDataCents: ChartLineData;
-  doughnutDataCents: ChartDoughnutData;
-  pieChartDataCents: ChartPieData;
+  lineChartDataMinor: ChartLineData;    // was ...Cents
+  doughnutDataMinor: ChartDoughnutData; // was ...Cents
+  pieChartDataMinor: ChartPieData;      // was ...Cents
   insights: InsightUi[];
   timeline: TimelineItem[];
 }

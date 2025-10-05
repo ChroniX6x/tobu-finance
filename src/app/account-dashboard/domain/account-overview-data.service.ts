@@ -8,11 +8,12 @@ import {
   AccountMemberUi,
   QuickStatsUi
 } from '@/account-dashboard/domain/account-overview.ui-model';
+import { API_BASE_URL } from '@/core/api-base-url.token';
 
 @Injectable({ providedIn: 'root' })
 export class AccountOverviewDataService {
   private http = inject(HttpClient);
-  private baseUrl = environment.apiUrl ?? 'http://localhost:4000';
+  private baseUrl = inject(API_BASE_URL);
 
   getAccountOverview(accountId: string): Observable<AccountOverviewUi> {
     return this.http

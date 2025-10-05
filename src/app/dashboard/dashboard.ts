@@ -26,7 +26,7 @@ export class Dashboard implements OnInit {
 
   svgAccounts = computed(() =>
     this.accounts().map(acc => {
-      const data = acc.balanceHistory ?? [];
+      const data = acc.balanceHistoryMinor ?? [];
       // Durchschnittliche prozentuale Änderung über die letzten bis zu 3 Intervalle
       let pctChange: number | null = null,
           forecastValue: number | null = null;
@@ -70,7 +70,7 @@ export class Dashboard implements OnInit {
   );
 
   ngOnInit() {
-    this.store.dispatch(new LoadDashboardAccounts());
+    this.store.dispatch(new LoadDashboardAccounts({ months: 6 }));
   }
 
   goToAccount(id: string) {

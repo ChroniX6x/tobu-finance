@@ -1,186 +1,128 @@
-// account-dashboard.state.ts
-import { State, Action, StateContext, Selector, Store } from '@ngxs/store';
-import { Injectable } from '@angular/core';
-import { LoadAccountDashboard } from './account-dashboard.actions';
-import { cloneDeep } from 'lodash';
-import { AccountState } from '@/state/account.state';
-import { CategoriesState } from '@/state/categories.state';
-import { TransactionsState } from '@/state/transactions.state';
-import { AccountDashboardStatistikService } from '../services/account-dashboard-statistik.service';
+import { State, Selector, Action, StateContext } from '@ngxs/store';
+import { Injectable, inject } from '@angular/core';
+import { AccountOverviewUi } from '@/account-dashboard/domain/account-overview.ui-model';
+import { tap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { AccountOverviewDataService } from '@/account-dashboard/domain/account-overview-data.service';
 
+// Actions
+export class LoadAccountDashboard {
+    static readonly type = '[AccountDashboard] Load Overview';
+    constructor(public accountId: string) {}
+}
+
+// Model
 export interface AccountDashboardStateModel {
-    account: {
-        id: string;
-        name: string;
-        currentBalance: number;
-        balanceChange: number;
-        forecast: number;
-        warning?: string;
+    data: AccountOverviewUi | null; // entire overview payload (minor units, ISO dates)
+    loading: boolean;
+    error: string | null;
+    ui: {
+        lineChartData: { labels: string[]; datasets: Array<{ label: string; data: number[]; fill?: boolean; tension?: number }> };
+        doughnutData: { labels: string[]; datasets: Array<{ data: number[] }> };
+        pieChartData: { labels: string[]; datasets: Array<{ data: number[] }> };
     };
-    members: Array<{ id: string; name: string; avatar?: string; paid: boolean; role?: string }>;
-    you: { id: string; name: string; paid: boolean; monthlyDue: number; paidAmount: number };
-    quickStats: Array<{ label: string; value: number; icon: string; color: string }>;
-    months: string[];
-    lineChartData: any;
-    doughnutData: any;
-    pieChartData: any;
-    tasks: Array<{ text: string; type: string; icon?: string; memberId: string }>;
-    activity: Array<{ date: string; text: string; user: string }>;
 }
 
 @State<AccountDashboardStateModel>({
     name: 'accountDashboard',
-    // defaults: {
-    //     account: {
-    //         id: 'a1',
-    //         name: 'Gemeinschaftskonto',
-    //         currentBalance: 5672,
-    //         balanceChange: 2.2,
-    //         forecast: 5800,
-    //         warning: 'Saldo unter 1000€ in 2 Monaten möglich!'
-    //     },
-    //     members: [
-    //         { id: 'u1', name: 'Tony', avatar: 'T', paid: true, role: 'Admin' },
-    //         { id: 'u2', name: 'Caro', avatar: 'C', paid: false, role: 'Mitglied' },
-    //         { id: 'u3', name: 'Anna', avatar: 'A', paid: true, role: 'Mitglied' }
-    //     ],
-    //     you: { id: 'u1', name: 'Tony', paid: true, monthlyDue: 400, paidAmount: 400 },
-    //     quickStats: [
-    //         { label: 'Offene Beiträge', value: 1, icon: 'pi pi-exclamation-circle', color: 'bg-yellow-100 text-yellow-700' },
-    //         { label: 'Offene TopUps', value: 0, icon: 'pi pi-arrow-up', color: 'bg-blue-100 text-blue-700' },
-    //         { label: 'Warnungen', value: 1, icon: 'pi pi-exclamation-triangle', color: 'bg-red-100 text-red-700' },
-    //         { label: 'Deine Aufgaben', value: 1, icon: 'pi pi-user', color: 'bg-green-100 text-green-700' }
-    //     ],
-    //     months: ['Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep'],
-    //     lineChartData: {
-    //         labels: ['Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep'],
-    //         datasets: [
-    //             {
-    //                 label: 'Kontostand',
-    //                 data: [4200, 4700, 5150, 4975, 5672, 5500],
-    //                 borderColor: '#22c55e',
-    //                 backgroundColor: 'rgba(34,197,94,0.2)',
-    //                 fill: true,
-    //                 tension: 0.4
-    //             }
-    //         ]
-    //     },
-    //     doughnutData: {
-    //         labels: ['Einnahmen', 'Ausgaben'],
-    //         datasets: [
-    //             {
-    //                 data: [2470, 2250],
-    //                 backgroundColor: ['#16a34a', '#dc2626'],
-    //                 hoverBackgroundColor: ['#15803d', '#b91c1c']
-    //             }
-    //         ]
-    //     },
-    //     pieChartData: {
-    //         labels: ['Miete', 'Lebensmittel', 'Freizeit'],
-    //         datasets: [
-    //             {
-    //                 data: [1200, 600, 300],
-    //                 backgroundColor: ['#3b82f6', '#facc15', '#ec4899'],
-    //                 hoverBackgroundColor: ['#1e40af', '#ca8a04', '#be185d']
-    //             }
-    //         ]
-    //     },
-    //     tasks: [
-    //         { text: 'Dein Beitrag für August ist noch offen!', type: 'warn', icon: 'pi pi-exclamation-triangle', memberId: 'u1' },
-    //         { text: 'Tony hat 45€ „Einkauf“ hinzugefügt', type: 'info', icon: 'pi pi-info-circle', memberId: 'u2' },
-    //         { text: 'Saldo nähert sich Limit', type: 'error', icon: 'pi pi-times-circle', memberId: 'u1' }
-    //     ],
-    //     activity: [
-    //         { date: '01.08.', text: 'Miete bezahlt', user: 'Caro' },
-    //         { date: '28.07.', text: 'Einkauf hinzugefügt', user: 'Tony' },
-    //         { date: '27.07.', text: 'Beitrag bezahlt', user: 'Anna' }
-    //     ]
-    // }
+    defaults: {
+        data: null,
+        loading: false,
+        error: null,
+        ui: {
+            lineChartData: { labels: [], datasets: [] },
+            doughnutData: { labels: [], datasets: [] },
+            pieChartData: { labels: [], datasets: [] }
+        }
+    }
 })
 @Injectable()
 export class AccountDashboardState {
-    @Selector() static account(state: AccountDashboardStateModel) {
-        return state.account;
+    private svc = inject(AccountOverviewDataService);
+
+    // ---- Selectors (klassisch für NGXS Signal-Select) ----
+    @Selector() static data(s: AccountDashboardStateModel) {
+        return s.data;
     }
-    @Selector() static members(state: AccountDashboardStateModel) {
-        return state.members;
+    @Selector() static loading(s: AccountDashboardStateModel) {
+        return s.loading;
     }
-    @Selector() static you(state: AccountDashboardStateModel) {
-        return state.you;
-    }
-    @Selector() static quickStats(state: AccountDashboardStateModel) {
-        return state.quickStats;
-    }
-    @Selector() static months(state: AccountDashboardStateModel) {
-        return state.months;
-    }
-    @Selector() static lineChartData(state: AccountDashboardStateModel) {
-        return cloneDeep(state.lineChartData);
-    }
-    @Selector() static doughnutData(state: AccountDashboardStateModel) {
-        return cloneDeep(state.doughnutData);
-    }
-    @Selector() static pieChartData(state: AccountDashboardStateModel) {
-        return cloneDeep(state.pieChartData);
-    }
-    @Selector() static tasks(state: AccountDashboardStateModel) {
-        return state.tasks;
-    }
-    @Selector() static activity(state: AccountDashboardStateModel) {
-        return state.activity;
+    @Selector() static error(s: AccountDashboardStateModel) {
+        return s.error;
     }
 
-    constructor(private store: Store, private statistik: AccountDashboardStatistikService) {}
+    // bequeme Sub-Selectoren, damit die Komponente granular subscriben kann
+    @Selector() static account(s: AccountDashboardStateModel) {
+        return s.data?.account ?? null;
+    }
+    @Selector() static members(s: AccountDashboardStateModel) {
+        return s.data?.members ?? [];
+    }
+    @Selector() static quickStats(s: AccountDashboardStateModel) {
+        return s.data?.quickStats ?? null;
+    }
 
+    @Selector() static lineChartData(s: AccountDashboardStateModel) {
+        return s.ui?.lineChartData;
+    }
+    @Selector() static doughnutData(s: AccountDashboardStateModel) {
+        return s.ui?.doughnutData;
+    }
+    @Selector() static pieChartData(s: AccountDashboardStateModel) {
+        return s.ui?.pieChartData;
+    }
+
+    @Selector() static insights(s: AccountDashboardStateModel) {
+        return s.data?.insights ?? [];
+    }
+    @Selector() static timeline(s: AccountDashboardStateModel) {
+        return s.data?.timeline ?? [];
+    }
+
+    // ---- Actions ----
     @Action(LoadAccountDashboard)
-    loadAccountDashboard(ctx: StateContext<AccountDashboardStateModel>, action: LoadAccountDashboard) {
-        const accountId = action.accountId;
+    loadOverview(ctx: StateContext<AccountDashboardStateModel>, { accountId }: LoadAccountDashboard) {
+        ctx.patchState({ loading: true, error: null });
 
-        // 1. Daten holen (aus Data-States)
-        const account = this.store.selectSnapshot(AccountState.account);
-        const allMembers = account.members;
-        const expenses = this.store.selectSnapshot(TransactionsState.expenses);
-        const incomes = this.store.selectSnapshot(TransactionsState.income);
-        const categories = this.store.selectSnapshot(CategoriesState.categories);
+        const toMajor = (v?: number) => (v ?? 0) / 100;
+        const fmtMonth = (iso?: string) => {
+            if (!iso) return '—';
+            const full = iso.length === 7 ? `${iso}-01` : iso;
+            return new Intl.DateTimeFormat('de-DE', { month: 'short', year: '2-digit' }).format(new Date(full));
+        };
 
-        // 2. Berechnungen über Service
-        const months = this.statistik.getMonths(account);
-        const currentMonth = this.statistik.getCurrentMonth(months);
-        const members = this.statistik.getMembersWithPaidStatus(allMembers, incomes, currentMonth);
-        const latestBalance = this.statistik.getLatestBalance(account);
-        const balanceChange = this.statistik.getBalanceChange(account);
-        const forecast = this.statistik.getForecast(latestBalance);
-        const warnungen = this.statistik.getWarnungen(latestBalance);
-        const offeneBeitraege = this.statistik.getOffeneBeitraege(members);
-        const offeneTopUps = this.statistik.getOffeneTopUps(account);
-        const quickStats = this.statistik.getQuickStats(offeneBeitraege, offeneTopUps, warnungen);
-        const lineChartData = this.statistik.getLineChartData(account, months);
-        const doughnutData = this.statistik.getDoughnutData(incomes, expenses, currentMonth);
-        const pieChartData = this.statistik.getPieChartData(expenses, categories, currentMonth);
-        const tasks = this.statistik.getTasks(members, currentMonth);
-        const activity = this.statistik.getActivity();
-        const userId = this.statistik.getCurrentUserId();
-        const you = this.statistik.getYou(members, userId);
+        return this.svc.getAccountOverview(accountId).pipe(
+            tap((apiUi) => {
+                // Charts aus Minor → Major & Labels formatieren
+                const lineLabels = (apiUi.lineChartDataMinor.labelsIso ?? []).map(fmtMonth);
+                const lineData = (apiUi.lineChartDataMinor.datasets?.[0]?.dataMinor ?? []).map(toMajor);
+                const lineChartData = {
+                    labels: lineLabels,
+                    datasets: [{ label: 'Kontostand', data: lineData, fill: true, tension: 0.4 }]
+                };
 
-        ctx.setState({
-            ...ctx.getState(),
-            account: {
-                id: account.id,
-                name: account.name,
-                currentBalance: latestBalance,
-                balanceChange,
-                forecast,
-                warning: warnungen ? 'Saldo unter 1000€ in 2 Monaten möglich!' : undefined
-            },
-            members,
-            you,
-            quickStats,
-            months,
-            lineChartData,
-            doughnutData,
-            pieChartData,
-            tasks,
-            activity
-        });
+                const doughnutLabels = apiUi.doughnutDataMinor.labels ?? ['Einnahmen', 'Ausgaben'];
+                const doughnutData = (apiUi.doughnutDataMinor.datasets?.[0]?.dataMinor ?? []).map(toMajor);
+                const doughnut = { labels: doughnutLabels, datasets: [{ data: doughnutData }] };
+
+                const pieLabels = apiUi.pieChartDataMinor.labels ?? [];
+                const pieValues = (apiUi.pieChartDataMinor.datasets?.[0]?.dataMinor ?? []).map(toMajor);
+                const pie = { labels: pieLabels, datasets: [{ data: pieValues }] };
+
+                ctx.patchState({
+                    data: apiUi, // Rohpaket (für Members, QuickStats, Insights, Timeline, Minor-Werte)
+                    ui: {
+                        lineChartData: lineChartData,
+                        doughnutData: doughnut,
+                        pieChartData: pie,
+                    },
+                    loading: false
+                });
+            }),
+            catchError((err) => {
+                ctx.patchState({ error: err?.message ?? 'Load failed', loading: false });
+                return of(null);
+            })
+        );
     }
 }
