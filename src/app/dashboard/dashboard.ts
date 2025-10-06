@@ -70,7 +70,7 @@ export class Dashboard implements OnInit {
   );
 
   ngOnInit() {
-    this.store.dispatch(new LoadDashboardAccounts({ months: 6 }));
+    this.store.dispatch(new LoadDashboardAccounts({ months: 6, userId: '68b89626e75b2e94436a86f9' }));
   }
 
   goToAccount(id: string) {
