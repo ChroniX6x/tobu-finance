@@ -22,9 +22,9 @@ export const routes: Routes = [
                 loadChildren: () => import('@/wizard/wizard.routes')
             },
             {
-                path: 'dashboard',
-                data: { breadcrumb: 'Dashboard' },
-                loadChildren: () => import('@/dashboard/dashboard.routes')
+                path: 'accounts',
+                data: { breadcrumb: 'Accounts' },
+                loadChildren: () => import('@/dashboard/accounts.routes')
             },
             // {
             //     path: 'documentation',

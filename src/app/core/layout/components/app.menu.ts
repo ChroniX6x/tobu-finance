@@ -51,9 +51,9 @@ export class AppMenu {
             icon: 'pi pi-home',
             items: [
                 {
-                    label: 'Dashboard',
+                    label: 'Accounts',
                     icon: 'pi pi-fw pi-home',
-                    routerLink: ['/dashboard']
+                    routerLink: ['/accounts']
                 },
                 {
                     label: 'Calculation',

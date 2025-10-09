@@ -4,15 +4,10 @@ import { AccountOverviewUi } from '@/account-overview/domain/account-overview.ui
 import { tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AccountOverviewDataService } from '@/account-overview/domain/account-overview-data.service';
-
-// Actions
-export class LoadAccountDashboard {
-    static readonly type = '[AccountDashboard] Load Overview';
-    constructor(public accountId: string) {}
-}
+import { LoadAccountOverview } from './account-overview.actions';
 
 // Model
-export interface AccountDashboardStateModel {
+export interface AccountOverviewStateModel {
     data: AccountOverviewUi | null; // entire overview payload (minor units, ISO dates)
     loading: boolean;
     error: string | null;
@@ -23,8 +18,8 @@ export interface AccountDashboardStateModel {
     };
 }
 
-@State<AccountDashboardStateModel>({
-    name: 'accountDashboard',
+@State<AccountOverviewStateModel>({
+    name: 'accountOverview',
     defaults: {
         data: null,
         loading: false,
@@ -37,51 +32,51 @@ export interface AccountDashboardStateModel {
     }
 })
 @Injectable()
-export class AccountDashboardState {
+export class AccountOverviewState {
     private svc = inject(AccountOverviewDataService);
 
     // ---- Selectors (klassisch für NGXS Signal-Select) ----
-    @Selector() static data(s: AccountDashboardStateModel) {
+    @Selector() static data(s: AccountOverviewStateModel) {
         return s.data;
     }
-    @Selector() static loading(s: AccountDashboardStateModel) {
+    @Selector() static loading(s: AccountOverviewStateModel) {
         return s.loading;
     }
-    @Selector() static error(s: AccountDashboardStateModel) {
+    @Selector() static error(s: AccountOverviewStateModel) {
         return s.error;
     }
 
     // bequeme Sub-Selectoren, damit die Komponente granular subscriben kann
-    @Selector() static account(s: AccountDashboardStateModel) {
+    @Selector() static account(s: AccountOverviewStateModel) {
         return s.data?.account ?? null;
     }
-    @Selector() static members(s: AccountDashboardStateModel) {
+    @Selector() static members(s: AccountOverviewStateModel) {
         return s.data?.members ?? [];
     }
-    @Selector() static quickStats(s: AccountDashboardStateModel) {
+    @Selector() static quickStats(s: AccountOverviewStateModel) {
         return s.data?.quickStats ?? null;
     }
 
-    @Selector() static lineChartData(s: AccountDashboardStateModel) {
+    @Selector() static lineChartData(s: AccountOverviewStateModel) {
         return s.ui?.lineChartData;
     }
-    @Selector() static doughnutData(s: AccountDashboardStateModel) {
+    @Selector() static doughnutData(s: AccountOverviewStateModel) {
         return s.ui?.doughnutData;
     }
-    @Selector() static pieChartData(s: AccountDashboardStateModel) {
+    @Selector() static pieChartData(s: AccountOverviewStateModel) {
         return s.ui?.pieChartData;
     }
 
-    @Selector() static insights(s: AccountDashboardStateModel) {
+    @Selector() static insights(s: AccountOverviewStateModel) {
         return s.data?.insights ?? [];
     }
-    @Selector() static timeline(s: AccountDashboardStateModel) {
+    @Selector() static timeline(s: AccountOverviewStateModel) {
         return s.data?.timeline ?? [];
     }
 
     // ---- Actions ----
-    @Action(LoadAccountDashboard)
-    loadOverview(ctx: StateContext<AccountDashboardStateModel>, { accountId }: LoadAccountDashboard) {
+    @Action(LoadAccountOverview)
+    loadOverview(ctx: StateContext<AccountOverviewStateModel>, { accountId }: LoadAccountOverview) {
         ctx.patchState({ loading: true, error: null });
 
         const toMajor = (v?: number) => (v ?? 0) / 100;

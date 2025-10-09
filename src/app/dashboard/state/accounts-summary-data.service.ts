@@ -6,11 +6,11 @@ import { DashboardAccountModel } from '@/dashboard/domain/dashboard-account.mode
 import { API_BASE_URL } from '@/core/api-base-url.token';
 
 @Injectable({ providedIn: 'root' })
-export class DashboardDataService {
+export class AccountsSummaryDataService {
   private http = inject(HttpClient);
   private baseUrl = inject(API_BASE_URL);
 
-  getDashboardAccounts(opts?: {
+  getAccountsSummary(opts?: {
     userId?: string;
     memberId?: string;
     months?: number;

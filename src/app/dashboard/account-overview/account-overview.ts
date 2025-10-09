@@ -8,33 +8,34 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TimelineModule } from 'primeng/timeline';
 import { MessageModule } from 'primeng/message';
 import { select, Store } from '@ngxs/store';
-import { AccountDashboardState } from '../state/account-dashboard.state';
-import { LoadAccountDashboard } from '../state/account-dashboard.actions';
+import { AccountOverviewState } from '../state/account-overview.state';
+import { LoadAccountOverview } from '../state/account-overview.actions';
 import { ActivatedRoute } from '@angular/router';
-import { AccountMemberUi } from '@/account-dashboard/domain/account-overview.ui-model';
+import { AccountMemberUi } from '@/account-overview/domain/account-overview.ui-model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
-  selector: 'account-dashboard',
+  selector: 'tbf-account-overview',
   standalone: true,
   imports: [CommonModule, CardModule, ButtonModule, ChartModule, AvatarModule, TooltipModule, TimelineModule, MessageModule],
-  templateUrl: './account-dashboard.html',
+  templateUrl: './account-overview.html',
+  styleUrls: ['./account-overview.scss']
 })
-export class AccountDashboard implements OnInit {
+export class AccountOverview implements OnInit {
 
   private store = inject(Store);
   private route = inject(ActivatedRoute);
 
   currentMember   = computed<AccountMemberUi>(() => this.members().find(m => m.id === 'm1' || m.id === '4a7b')!); // TODO aktueller User (über AuthService)
-  account         = select(AccountDashboardState.account);
-  members         = select(AccountDashboardState.members);
-  quickStats      = select(AccountDashboardState.quickStats);
-  lineChartData   = select(AccountDashboardState.lineChartData);
-  doughnutData    = select(AccountDashboardState.doughnutData);
-  pieChartData    = select(AccountDashboardState.pieChartData);
-  insights        = select(AccountDashboardState.insights);
-  timeline        = select(AccountDashboardState.timeline);
-  loading         = select(AccountDashboardState.loading);
+  account         = select(AccountOverviewState.account);
+  members         = select(AccountOverviewState.members);
+  quickStats      = select(AccountOverviewState.quickStats);
+  lineChartData   = select(AccountOverviewState.lineChartData);
+  doughnutData    = select(AccountOverviewState.doughnutData);
+  pieChartData    = select(AccountOverviewState.pieChartData);
+  insights        = select(AccountOverviewState.insights);
+  timeline        = select(AccountOverviewState.timeline);
+  loading         = select(AccountOverviewState.loading);
 
   // ---- Helper: formatiere aus ISO YYYY-MM oder YYYY-MM-DD → z.B. "Aug 2025" ----
   private monthLabel = (iso: string | undefined) => {
@@ -81,7 +82,7 @@ export class AccountDashboard implements OnInit {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
       const accountId = params.get('accountId');
       if (accountId) {
-        this.store.dispatch(new LoadAccountDashboard(accountId));
+        this.store.dispatch(new LoadAccountOverview(accountId));
       }
     });
   }

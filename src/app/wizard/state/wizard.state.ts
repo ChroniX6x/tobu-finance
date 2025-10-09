@@ -191,7 +191,7 @@ export class WizardState {
   public saveWizardData(ctx: StateContext<WizardStateModel>, {}: SaveWizardData) {
     let accountId = this.dataService.createNewAccount(ctx.getState().data as WizardModel)
 
-    this.router.navigate(['dashboard', accountId])
+  this.router.navigate(['accounts', accountId])
   }
 }
 

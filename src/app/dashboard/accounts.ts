@@ -1,30 +1,39 @@
-// dashboard.component.ts
+// accounts.component.ts
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { select, Store } from '@ngxs/store';
-import { DashboardState, LoadDashboardAccounts } from './state/dashboard.state';
+import { AccountsSummaryState, LoadAccountsSummary } from './state/accounts-summary.state';
 import { DashboardAccountModel } from './domain/dashboard-account.model';
 import { CommonModule } from '@angular/common';
 
 interface SvgPoint { x: number; y: number; label: string; value: number; }
 
+interface AccountsWithChart extends DashboardAccountModel {
+  points: SvgPoint[];
+  dLine: string;
+  dFill: string;
+  currentBalance: number;
+  pctChange: number | null;
+  forecastValue: number | null;
+}
+
 @Component({
-  selector: 'tbf-dashboard',
+  selector: 'tbf-accounts',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './dashboard.html',
-  styleUrls: ['./dashboard.scss']
+  templateUrl: './accounts.html',
+  styleUrls: ['./accounts.scss']
 })
-export class Dashboard implements OnInit {
+export class Accounts implements OnInit {
   private store = inject(Store);
   private router = inject(Router);
 
-  accounts = select(DashboardState.accounts);
-  loading  = select(DashboardState.loading);
+  accounts = select(AccountsSummaryState.accounts);
+  loading  = select(AccountsSummaryState.loading);
 
   hovered = signal<{ accountId: string; pt: SvgPoint; px: number; py: number } | null>(null);
 
-  svgAccounts = computed(() =>
+  svgAccounts = computed<AccountsWithChart[]>(() =>
     this.accounts().map(acc => {
       const data = acc.balanceHistoryMinor ?? [];
       // Durchschnittliche prozentuale Änderung über die letzten bis zu 3 Intervalle
@@ -94,11 +103,11 @@ export class Dashboard implements OnInit {
   );
 
   ngOnInit() {
-    this.store.dispatch(new LoadDashboardAccounts({ months: 6, userId: '68e8239b3af0e59e79f6af40' }));
+  this.store.dispatch(new LoadAccountsSummary({ months: 6, userId: '68e8239b3af0e59e79f6af40' }));
   }
 
   goToAccount(id: string) {
-    this.router.navigate(['/dashboard', id]);
+    this.router.navigate(['/accounts', id]);
   }
 
   goToWizard() {

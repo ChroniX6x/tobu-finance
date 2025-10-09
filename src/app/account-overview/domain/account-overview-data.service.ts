@@ -6,7 +6,7 @@ import {
   AccountOverviewUi,
   AccountMemberUi,
   QuickStatsUi
-} from '@/account-dashboard/domain/account-overview.ui-model';
+} from '@/account-overview/domain/account-overview.ui-model';
 import { API_BASE_URL } from '@/core/api-base-url.token';
 
 @Injectable({ providedIn: 'root' })
