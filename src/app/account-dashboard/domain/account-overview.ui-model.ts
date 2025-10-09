@@ -3,11 +3,14 @@
 export interface AccountHeaderModel {
   id: string;
   name: string;
-  currentMonthIso: string;        // ISO date string
+  currentMonthIso: string;        // ISO month of last reliable snapshot
   currentBalanceMinor: number;    // was ...Cents
   balanceChangePct: number;
   forecastMinor: number;          // was ...Cents
   warning?: string;
+  stalenessDays: number;          // days since last reliable data
+  isStale: boolean;               // true if stalenessDays > threshold
+  missingMonthsIso?: string[];    // optional: months without snapshots
 }
 
 export interface AccountMemberUi {

@@ -27,8 +27,12 @@ export class DashboardDataService {
           id: a.id,
           name: a.name,
           participantCount: a.memberCount,
-          currentBalanceMinor: a.currentBalance,             // keep minor units
-          balanceHistoryMinor: a.balanceHistory ?? []        // keep minor units
+          currentBalanceMinor: a.currentBalanceMinor,             // keep minor units
+          balanceHistoryMinor: a.balanceHistoryMinor ?? [],       // keep minor units
+          currentMonthIso: a.currentMonth,                   // ISO month
+          stalenessDays: a.stalenessDays,
+          isStale: a.isStale,
+          missingMonthsIso: a.missingMonths
         })))
       );
   }

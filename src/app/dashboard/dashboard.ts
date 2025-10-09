@@ -35,16 +35,25 @@ export class Dashboard implements OnInit {
         const changes: number[] = [];
         for (let i = data.length - n; i < data.length; i++) {
           const prev = data[i - 1], curr = data[i];
-          changes.push((curr - prev) / prev * 100);
+          // Vermeide Division durch Null
+          if (prev !== 0) {
+            changes.push((curr - prev) / prev * 100);
+          } else if (curr !== 0) {
+            // Wenn prev = 0 aber curr != 0, setze sehr große Änderung
+            changes.push(curr > 0 ? 100 : -100);
+          }
+          // Wenn beide 0 sind, ignoriere diese Änderung (kein push)
         }
-        const avg = changes.reduce((a, b) => a + b, 0) / changes.length;
-        pctChange = avg;
-        const last = data.at(-1)!;
-        forecastValue = Math.round(last * (1 + avg / 100));
+        if (changes.length > 0) {
+          const avg = changes.reduce((a, b) => a + b, 0) / changes.length;
+          pctChange = avg;
+          const last = data.at(-1)!;
+          forecastValue = Math.round(last * (1 + avg / 100));
+        }
       }
       const len = data.length;
-      const max = Math.max(...data);
-      const min = Math.min(...data);
+      const max = Math.max(...data, 0); // Mindestens 0 für leere Arrays
+      const min = Math.min(...data, 0);
       const range = max - min || 1;
       const stepX = 100 / (len - 1 || 1);
       const scaleY = 30 / range;
@@ -53,24 +62,39 @@ export class Dashboard implements OnInit {
         x: i * stepX,
         y: 30 - (v - min) * scaleY,
         label: i === len - 1 ? 'Jetzt' : `-${len - 1 - i}M`,
-        value: v
+        value: v / 100  // Convert to major units (EUR) for display
       }));
 
-      let dLine = `M${points[0].x},${points[0].y}`;
-      for (let i = 1; i < points.length; i++) {
-        const p0 = points[i - 1], p1 = points[i];
-        const cx = (p0.x + p1.x) / 2, cy = (p0.y + p1.y) / 2;
-        dLine += ` Q${p0.x},${p0.y} ${cx},${cy}`;
-      }
-      dLine += ` T${points[len - 1]?.x},${points[len - 1]?.y}`;
-      const dFill = dLine + ` L${points[len - 1]?.x},30 L0,30 Z`;
+      let dLine = '';
+      let dFill = '';
 
-      return { ...acc, points, dLine, dFill, currentBalance: points[len - 1]?.value ?? 0, pctChange, forecastValue };
+      if (points.length > 0) {
+        dLine = `M${points[0].x},${points[0].y}`;
+        for (let i = 1; i < points.length; i++) {
+          const p0 = points[i - 1], p1 = points[i];
+          const cx = (p0.x + p1.x) / 2, cy = (p0.y + p1.y) / 2;
+          dLine += ` Q${p0.x},${p0.y} ${cx},${cy}`;
+        }
+        if (points.length > 1) {
+          dLine += ` T${points[points.length - 1].x},${points[points.length - 1].y}`;
+        }
+        dFill = dLine + ` L${points[points.length - 1].x},30 L0,30 Z`;
+      }
+
+      return {
+        ...acc,
+        points,
+        dLine,
+        dFill,
+        currentBalance: (points[points.length - 1]?.value ?? 0), // Already in major units (EUR)
+        pctChange,
+        forecastValue: forecastValue !== null ? forecastValue / 100 : null // Convert to major units
+      };
     })
   );
 
   ngOnInit() {
-    this.store.dispatch(new LoadDashboardAccounts({ months: 6, userId: '68b89626e75b2e94436a86f9' }));
+    this.store.dispatch(new LoadDashboardAccounts({ months: 6, userId: '68e8239b3af0e59e79f6af40' }));
   }
 
   goToAccount(id: string) {
@@ -82,6 +106,8 @@ export class Dashboard implements OnInit {
   }
 
   onMouseMove(accId: string, evt: MouseEvent, points: SvgPoint[]) {
+    if (points.length === 0) return;
+
     const svg = (evt.target as SVGElement).closest('svg')!;
     const bbox = svg.getBoundingClientRect();
     // Prozentuale Position innerhalb des SVG

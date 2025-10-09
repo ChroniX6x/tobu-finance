@@ -2,19 +2,26 @@ export interface ApiDashboardAccount {
   id: string;
   name: string;
   memberCount: number;
-  currentBalance: number;       // cents
-  balanceHistory: number[];     // cents (rolling)
+  currentBalanceMinor: number;       // cents
+  balanceHistoryMinor: number[];     // cents (rolling)
+  currentMonth: string;         // ISO month of last reliable snapshot
+  stalenessDays: number;        // days since last reliable data
+  isStale: boolean;             // true if stalenessDays > threshold
+  missingMonths?: string[];     // optional: months without snapshots
 }
 
 export interface ApiAccountOverview {
   account: {
     id: string;
     name?: string;
-    currentMonth: string;       // ISO
+    currentMonth: string;       // ISO month of last reliable snapshot
     currentBalance: number;     // cents
     balanceChangePct: number;   // %
     forecast: number;           // cents
     warning?: string;
+    stalenessDays: number;      // days since last reliable data
+    isStale: boolean;           // true if stalenessDays > threshold
+    missingMonths?: string[];   // optional: months without snapshots
   };
   members: Array<{
     id: string;

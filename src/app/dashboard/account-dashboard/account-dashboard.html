@@ -11,6 +11,12 @@
         aria-label="Bearbeiten">
         <i class="pi pi-pencil text-lg"></i>
       </button>
+      @if (account()?.isStale) {
+        <span class="px-3 py-1 text-sm bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full flex items-center gap-2"
+              [title]="'Daten sind ' + account()?.stalenessDays + ' Tage alt'">
+          <i class="pi pi-clock"></i> Daten veraltet ({{ account()?.stalenessDays }} Tage)
+        </span>
+      }
     </div>
 
     <div>

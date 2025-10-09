@@ -1,14 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { WizardModel } from '../domain/wizard.model';
 import { DateTime } from 'luxon';
+import { API_BASE_URL } from '@/core/api-base-url.token';
 
 @Injectable({ providedIn: 'root' })
 export class WizardDataService {
-  private API = 'http://localhost:3000';
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
+  private baseUrl = inject(API_BASE_URL);
 
   async createNewAccount(wizardData: WizardModel) {
 
@@ -18,7 +18,7 @@ export class WizardDataService {
     const memberMap = new Map<string, number>();
     for (const member of wizardData.members) {
       const real = await firstValueFrom(
-        this.http.post<{ id: number }>(`${this.API}/member`, {
+        this.http.post<{ id: number }>(`${this.baseUrl}/member`, {
           name: member.name,
           email: member.email,
           userID: member.userId
@@ -43,7 +43,7 @@ export class WizardDataService {
     };
 
     const account = await firstValueFrom(
-      this.http.post<{ id: number }>(`${this.API}/accounts`, accountBody)
+      this.http.post<{ id: number }>(`${this.baseUrl}/accounts`, accountBody)
     );
     const accountId = account.id;
 
@@ -61,7 +61,7 @@ export class WizardDataService {
         }));
       }
       const realCat = await firstValueFrom(
-        this.http.post<{ id: number }>(`${this.API}/categories`, body)
+        this.http.post<{ id: number }>(`${this.baseUrl}/categories`, body)
       );
       catMap.set(category.tempId, realCat.id);
     }
@@ -74,7 +74,7 @@ export class WizardDataService {
       startMonth: currentMonth
     }));
     await firstValueFrom(
-      this.http.patch(`${this.API}/accounts/${accountId}`, { monthlyPlannedContributions: planned })
+      this.http.patch(`${this.baseUrl}/accounts/${accountId}`, { monthlyPlannedContributions: planned })
     );
 
     console.log(`Account ${accountId} erfolgreich angelegt und Kategorien + Beiträge gesetzt.`);

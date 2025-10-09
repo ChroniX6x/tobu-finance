@@ -28,7 +28,10 @@ export class AccountOverviewDataService {
       currentBalanceMinor: api.account.currentBalance, // minor units
       balanceChangePct: api.account.balanceChangePct ?? 0,
       forecastMinor: api.account.forecast,             // minor units
-      warning: api.account.warning
+      warning: api.account.warning,
+      stalenessDays: api.account.stalenessDays,
+      isStale: api.account.isStale,
+      missingMonthsIso: api.account.missingMonths
     };
 
     const members: AccountMemberUi[] = (api.members ?? []).map(m => ({
