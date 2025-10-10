@@ -73,18 +73,18 @@
         <span class="font-semibold text-color">Dein Beitrag für diesen Monat:</span>
         <span class="text-2xl font-bold ml-2">
           {{
-            ((currentMember() || { monthlyDueMinor: 0 }).monthlyDueMinor / 100)
+            ((currentMember()?.monthlyDueMinor ?? 0) / 100)
               | currency:'EUR':'symbol':'1.0-0'
           }}
         </span>
-        @if (currentMember().paid === true) {
+        @if (currentMember()?.paid === true) {
           <span class="ml-2 text-green-500 font-medium flex items-center"><i class="pi pi-check-circle mr-1"></i>(bezahlt)</span>
-        } @else {
+        } @else if (currentMember()?.paid === false) {
           <span class="ml-2 text-yellow-600 font-medium flex items-center"><i class="pi pi-clock mr-1"></i>(offen)</span>
         }
       </div>
       <div>
-        @if (currentMember().paid === false) {
+        @if (currentMember()?.paid === false) {
           <button pButton type="button" label="Jetzt bezahlen" icon="pi pi-arrow-right" class="p-button-success w-full sm:w-auto"></button>
         }
       </div>
@@ -106,22 +106,22 @@
   <!-- Quick Stats -->
   <div class="grid md:grid-cols-4 gap-4 my-4">
     @if (quickStats()) {
-      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card">
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card bg-yellow-100 text-yellow-700">
         <i class="pi pi-exclamation-circle text-xl"></i>
         <span class="font-medium">{{ quickStats()!.openDuesCount }}</span>
         <span class="text-sm">Offene Beiträge</span>
       </div>
-      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card">
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card bg-blue-100 text-blue-700">
         <i class="pi pi-refresh text-xl"></i>
         <span class="font-medium">{{ quickStats()!.pendingRecurringCount }}</span>
         <span class="text-sm">Wiederkehrend (offen)</span>
       </div>
-      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card">
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card bg-green-100 text-green-700">
         <i class="pi pi-coins text-xl"></i>
         <span class="font-medium">{{ quickStats()!.extraContributionsCount }}</span>
         <span class="text-sm">Zusatzbeiträge</span>
       </div>
-      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card">
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card bg-red-100 text-red-700">
         <i class="pi pi-bell text-xl"></i>
         <span class="font-medium">{{ quickStats()!.warningsCount }}</span>
         <span class="text-sm">Warnungen</span>

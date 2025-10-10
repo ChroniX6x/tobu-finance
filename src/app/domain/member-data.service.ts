@@ -8,7 +8,7 @@ import { API_BASE_URL } from '@/core/api-base-url.token';
 export class MembersDataService {
   private http = inject(HttpClient);
   private baseUrl = inject(API_BASE_URL);
-  private readonly url = this.baseUrl + '/member'; // json-server Basis-URL
+  private readonly url = this.baseUrl + '/api/members'; // API v2 Basis-URL
 
   getMembersWithIds(memberIds: string[]): Observable<MemberModel[]> {
     if (!memberIds.length) return of([]);

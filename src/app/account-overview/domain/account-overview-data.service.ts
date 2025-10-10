@@ -25,9 +25,9 @@ export class AccountOverviewDataService {
       id: api.account.id,
       name: api.account.name ?? '—',
       currentMonthIso: api.account.currentMonth,       // ISO passt
-      currentBalanceMinor: api.account.currentBalance, // minor units
+      currentBalanceMinor: api.account.currentBalanceMinor, // minor units
       balanceChangePct: api.account.balanceChangePct ?? 0,
-      forecastMinor: api.account.forecast,             // minor units
+      forecastMinor: api.account.forecastMinor,             // minor units
       warning: api.account.warning,
       stalenessDays: api.account.stalenessDays,
       isStale: api.account.isStale,
@@ -48,7 +48,7 @@ export class AccountOverviewDataService {
       openDuesCount: api.quickStats.openDuesCount ?? 0,
       pendingRecurringCount: api.quickStats.pendingRecurringCount ?? 0,
       extraContributionsCount: api.quickStats.extraContributionsCount ?? 0,
-      extraContributionsSumMinor: api.quickStats.extraContributionsSum ?? 0, // minor units
+      extraContributionsSumMinor: api.quickStats.extraContributionsSumMinor ?? 0, // minor units
       warningsCount: api.quickStats.warningsCount ?? 0
     };
 
@@ -66,8 +66,8 @@ export class AccountOverviewDataService {
       labels: ['Einnahmen', 'Ausgaben'],
       datasets: [{
         dataMinor: [
-          api.charts.incomeVsExpense.income ?? 0,             // minor units
-          api.charts.incomeVsExpense.expense ?? 0             // minor units
+          api.charts.incomeVsExpenseMinor.incomeMinor ?? 0,             // minor units
+          api.charts.incomeVsExpenseMinor.expenseMinor ?? 0             // minor units
         ]
       }]
     };

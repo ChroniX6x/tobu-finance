@@ -26,7 +26,7 @@ export class AccountOverview implements OnInit {
   private store = inject(Store);
   private route = inject(ActivatedRoute);
 
-  currentMember   = computed<AccountMemberUi>(() => this.members().find(m => m.id === 'm1' || m.id === '4a7b')!); // TODO aktueller User (über AuthService)
+  currentMember   = computed<AccountMemberUi | undefined>(() => this.members().find((m: AccountMemberUi) => m.id === 'm1' || m.id === '4a7b')); // TODO aktueller User (über AuthService)
   account         = select(AccountOverviewState.account);
   members         = select(AccountOverviewState.members);
   quickStats      = select(AccountOverviewState.quickStats);
@@ -36,6 +36,15 @@ export class AccountOverview implements OnInit {
   insights        = select(AccountOverviewState.insights);
   timeline        = select(AccountOverviewState.timeline);
   loading         = select(AccountOverviewState.loading);
+
+constructor() {
+  this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
+    const accountId = params.get('accountId');
+    if (accountId) {
+      this.store.dispatch(new LoadAccountOverview(accountId));
+    }
+  });
+}
 
   // ---- Helper: formatiere aus ISO YYYY-MM oder YYYY-MM-DD → z.B. "Aug 2025" ----
   private monthLabel = (iso: string | undefined) => {
@@ -79,11 +88,5 @@ export class AccountOverview implements OnInit {
   };
 
   ngOnInit() {
-    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
-      const accountId = params.get('accountId');
-      if (accountId) {
-        this.store.dispatch(new LoadAccountOverview(accountId));
-      }
-    });
   }
 }

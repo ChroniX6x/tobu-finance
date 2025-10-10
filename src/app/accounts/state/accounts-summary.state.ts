@@ -1,6 +1,6 @@
 import { State, Selector, Action, StateContext } from '@ngxs/store';
 import { Injectable, inject } from '@angular/core';
-import { DashboardAccountModel } from '@/dashboard/domain/dashboard-account.model';
+import { DashboardAccountModel } from '@/accounts/domain/dashboard-account.model';
 import { tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AccountsSummaryDataService } from './accounts-summary-data.service';

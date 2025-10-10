@@ -5,7 +5,7 @@ export interface TransactionModel {
   accountId: string;
   categoryId: string | null; // kann auch null für Einkünfte sein
   title: string;
-  amount: number;
+  amountMinor: number;  // cents
   type: TransactionType; // "expense" | "income"
   month: string; // Format: YYYY-MM
   isRecurring: boolean;

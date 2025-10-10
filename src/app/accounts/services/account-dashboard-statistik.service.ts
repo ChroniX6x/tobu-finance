@@ -39,20 +39,20 @@ export class AccountDashboardStatistikService {
                 (t) => t.month === currentMonth && t.paidByMemberId === member.id && t.status === 'booked'
             );
             const monthlyDue = 400; // TODO: Berechnung ggf. anpassen
-            const paidAmount = memberIncomes.reduce((sum, t) => sum + t.amount, 0);
+            const paidAmount = memberIncomes.reduce((sum, t) => sum + t.amountMinor, 0);
             const paid = paidAmount >= monthlyDue;
             return { ...member, paid, monthlyDue, paidAmount };
         });
     }
 
     getLatestBalance(account: AccountModel): number {
-        return account?.balances?.at(-1)?.value ?? 0;
+        return account?.balances?.at(-1)?.balanceMinor ?? 0;
     }
 
     getBalanceChange(account: AccountModel): number {
         const balances = account?.balances ?? [];
-        const latest = balances.at(-1)?.value ?? 0;
-        const previous = balances.length > 1 ? balances.at(-2)?.value : 0;
+        const latest = balances.at(-1)?.balanceMinor ?? 0;
+        const previous = balances.length > 1 ? balances.at(-2)?.balanceMinor : 0;
         return previous ? +(((latest - previous) / previous) * 100).toFixed(1) : 0;
     }
 
@@ -93,7 +93,7 @@ export class AccountDashboardStatistikService {
             datasets: [
                 {
                     label: 'Kontostand',
-                    data: account?.balances?.map((b) => b.value) ?? [],
+                    data: account?.balances?.map((b) => b.balanceMinor / 100) ?? [], // Convert to major units (EUR)
                     borderColor: '#22c55e',
                     backgroundColor: 'rgba(34,197,94,0.2)',
                     fill: true,
@@ -108,8 +108,8 @@ export class AccountDashboardStatistikService {
         expenses: TransactionModel[],
         currentMonth: string
     ): ChartData {
-        const incomesSum = incomes.filter((t) => t.month === currentMonth && t.status === 'booked').reduce((sum, t) => sum + t.amount, 0);
-        const expensesSum = expenses.filter((t) => t.month === currentMonth && t.status === 'booked').reduce((sum, t) => sum + t.amount, 0);
+        const incomesSum = incomes.filter((t) => t.month === currentMonth && t.status === 'booked').reduce((sum, t) => sum + t.amountMinor, 0);
+        const expensesSum = expenses.filter((t) => t.month === currentMonth && t.status === 'booked').reduce((sum, t) => sum + t.amountMinor, 0);
         if (incomesSum === 0 && expensesSum === 0) {
             return {
                 labels: [],
@@ -120,7 +120,7 @@ export class AccountDashboardStatistikService {
             labels: ['Einnahmen', 'Ausgaben'],
             datasets: [
                 {
-                    data: [incomesSum, expensesSum],
+                    data: [incomesSum / 100, expensesSum / 100], // Convert to major units (EUR)
                     backgroundColor: ['#16a34a', '#dc2626'],
                     hoverBackgroundColor: ['#15803d', '#b91c1c']
                 }
@@ -138,7 +138,7 @@ export class AccountDashboardStatistikService {
             .filter((t) => t.month === currentMonth && t.status === 'booked')
             .forEach((t) => {
                 const name = categories.find((c) => c.id === t.categoryId)?.name ?? 'Unbekannt';
-                categorySums[name] = (categorySums[name] || 0) + t.amount;
+                categorySums[name] = (categorySums[name] || 0) + t.amountMinor;
             });
         const sortedCategories = Object.entries(categorySums)
             .sort(([, a], [, b]) => b - a)
@@ -147,7 +147,7 @@ export class AccountDashboardStatistikService {
             labels: sortedCategories.map(([name]) => name),
             datasets: [
                 {
-                    data: sortedCategories.map(([, sum]) => sum),
+                    data: sortedCategories.map(([, sum]) => sum / 100), // Convert to major units (EUR)
                     backgroundColor: ['#3b82f6', '#facc15', '#ec4899'],
                     hoverBackgroundColor: ['#1e40af', '#ca8a04', '#be185d']
                 }

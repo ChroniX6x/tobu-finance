@@ -67,7 +67,7 @@ export class Accounts implements OnInit {
       const stepX = 100 / (len - 1 || 1);
       const scaleY = 30 / range;
 
-      const points: SvgPoint[] = data.map((v, i) => ({
+      const points: SvgPoint[] = data.map((v: number, i: number) => ({
         x: i * stepX,
         y: 30 - (v - min) * scaleY,
         label: i === len - 1 ? 'Jetzt' : `-${len - 1 - i}M`,
@@ -95,7 +95,7 @@ export class Accounts implements OnInit {
         points,
         dLine,
         dFill,
-        currentBalance: (points[points.length - 1]?.value ?? 0), // Already in major units (EUR)
+        currentBalance: acc.currentBalanceMinor / 100, // Convert to major units (EUR)
         pctChange,
         forecastValue: forecastValue !== null ? forecastValue / 100 : null // Convert to major units
       };

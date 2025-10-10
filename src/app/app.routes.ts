@@ -24,7 +24,7 @@ export const routes: Routes = [
             {
                 path: 'accounts',
                 data: { breadcrumb: 'Accounts' },
-                loadChildren: () => import('@/dashboard/accounts.routes')
+                loadChildren: () => import('@/accounts/accounts.routes')
             },
             // {
             //     path: 'documentation',

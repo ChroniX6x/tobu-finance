@@ -2,12 +2,12 @@ import { MemberModel } from "./member.model";
 
 export interface AccountBalanceModel {
   month: string;   // z.B. "2025-08"
-  value: number;
+  balanceMinor: number;  // cents
 }
 
 export interface MonthlyIncomeModel {
   memberId: string;
-  amount: number;
+  amountMinor: number;  // cents
   startMonth: string;
   endMonth?: string;
 }
@@ -15,14 +15,14 @@ export interface MonthlyIncomeModel {
 export interface PlannedContributionModel {
   memberId?: string;
   categoryId?: string;
-  amount: number;
+  amountMinor: number;  // cents
   startMonth: string;
   endMonth?: string;
 }
 
 export interface AdditionalContributionModel {
   memberId: string;
-  amount: number;
+  amountMinor: number;  // cents
   startMonth: string;
   description?: string;
   recurring: boolean;
@@ -30,17 +30,17 @@ export interface AdditionalContributionModel {
 
 export interface CarryOverBalanceModel {
   memberId: string;
-  amount: number;
+  amountMinor: number;  // cents
   month: string;
 }
 
 export interface TopUpModel {
   id: string;
-  amount: number;
+  amountMinor: number;  // cents
   month: string;
   reason: string;
   date: string;
-  customSplit?: { [memberId: string]: number }; // optional
+  customSplit?: { [memberId: string]: number }; // optional, in cents
 }
 
 export interface AccountModel {

@@ -1,4 +1,4 @@
-export interface ApiDashboardAccount {
+export interface ApiAccountsSummaryItem {
   id: string;
   name: string;
   memberCount: number;
@@ -15,9 +15,9 @@ export interface ApiAccountOverview {
     id: string;
     name?: string;
     currentMonth: string;       // ISO month of last reliable snapshot
-    currentBalance: number;     // cents
+    currentBalanceMinor: number;     // cents
     balanceChangePct: number;   // %
-    forecast: number;           // cents
+    forecastMinor: number;           // cents
     warning?: string;
     stalenessDays: number;      // days since last reliable data
     isStale: boolean;           // true if stalenessDays > threshold
@@ -36,7 +36,7 @@ export interface ApiAccountOverview {
     openDuesCount: number;
     pendingRecurringCount: number;
     extraContributionsCount: number;
-    extraContributionsSum: number; // cents
+    extraContributionsSumMinor: number; // cents
     warningsCount: number;
   };
   charts: {
@@ -44,9 +44,9 @@ export interface ApiAccountOverview {
       labels: string[];         // ISO (Monatsgrenzen oder Tageswerte, laut API)
       data: number[];           // cents
     };
-    incomeVsExpense: {
-      income: number;           // cents
-      expense: number;          // cents
+    incomeVsExpenseMinor: {
+      incomeMinor: number;           // cents
+      expenseMinor: number;          // cents
     };
     topCategories: Array<{ name?: string; sum: number }>; // cents
   };

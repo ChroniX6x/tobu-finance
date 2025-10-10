@@ -5,6 +5,7 @@ import { tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AccountOverviewDataService } from '@/account-overview/domain/account-overview-data.service';
 import { LoadAccountOverview } from './account-overview.actions';
+import { cloneDeep } from 'lodash';
 
 // Model
 export interface AccountOverviewStateModel {
@@ -58,13 +59,13 @@ export class AccountOverviewState {
     }
 
     @Selector() static lineChartData(s: AccountOverviewStateModel) {
-        return s.ui?.lineChartData;
+        return cloneDeep(s.ui?.lineChartData);
     }
     @Selector() static doughnutData(s: AccountOverviewStateModel) {
-        return s.ui?.doughnutData;
+        return cloneDeep(s.ui?.doughnutData);
     }
     @Selector() static pieChartData(s: AccountOverviewStateModel) {
-        return s.ui?.pieChartData;
+        return cloneDeep(s.ui?.pieChartData);
     }
 
     @Selector() static insights(s: AccountOverviewStateModel) {
