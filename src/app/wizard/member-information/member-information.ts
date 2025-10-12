@@ -1,4 +1,3 @@
-import { Participant } from '@/domain/participant';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,

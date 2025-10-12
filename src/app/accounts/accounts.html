@@ -13,7 +13,15 @@
           (click)="goToAccount(acc.id)"
         >
           <div>
-            <h3 class="text-xl font-medium mb-1">{{ acc.name }}</h3>
+            <div class="flex items-center gap-2 mb-1">
+              <h3 class="text-xl font-medium">{{ acc.name }}</h3>
+              @if (acc.isStale) {
+                <span class="px-2 py-0.5 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full"
+                      title="Daten sind {{ acc.stalenessDays }} Tage alt">
+                  <i class="pi pi-clock text-xs"></i> veraltet
+                </span>
+              }
+            </div>
             <p class="text-sm text-surface-600 mb-3">{{ acc.participantCount }} Teilnehmer</p>
             <div class="flex items-end justify-between mb-4">
               <!-- Kontostand -->

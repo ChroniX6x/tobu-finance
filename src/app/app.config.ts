@@ -10,6 +10,10 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import Aura from '@primeng/themes/aura';
 import { providePrimeNG } from 'primeng/config';
+import { AccountState } from './state/account.state';
+import { CategoriesState } from './state/categories.state';
+import { TransactionsState } from './state/transactions.state';
+import { API_BASE_URL } from './core/api-base-url.token';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,9 +30,10 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch()),
     provideAnimationsAsync(),
-    provideStore([], {developmentMode: true}, withNgxsLoggerPlugin(), withNgxsReduxDevtoolsPlugin(), withNgxsRouterPlugin()),
+    provideStore([AccountState,CategoriesState,TransactionsState], {developmentMode: true}, withNgxsLoggerPlugin(), withNgxsReduxDevtoolsPlugin(), withNgxsRouterPlugin()),
     providePrimeNG({
       theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } }
-    })
+    }),
+    { provide: API_BASE_URL, useValue: 'http://localhost:4000' } // z.B. 'https://api.example.com'
   ]
 };
