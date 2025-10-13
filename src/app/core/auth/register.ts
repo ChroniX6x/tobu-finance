@@ -33,7 +33,7 @@ import {AuthService} from './services/auth.service';
                             <span class="block text-surface-600 dark:text-surface-200 font-medium mb-6">Let's get started</span>
 
                             @if (errorMessage()) {
-                                <div class="p-3 mb-4 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 border border-red-200 dark:border-red-800 rounded">
+                                <div class="p-3 mb-4 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 border border-red-200 dark:border-red-800 rounded" style="white-space: pre-line;">
                                     {{ errorMessage() }}
                                 </div>
                             }
@@ -118,7 +118,8 @@ export class Register {
             },
             error: (err) => {
                 this.isLoading.set(false);
-                this.errorMessage.set(err.message || 'Registration failed. Please try again.');
+                const message = err.message || 'Registration failed. Please check your input and try again.';
+                this.errorMessage.set(message);
                 console.error('[Register] Error:', err);
             }
         });

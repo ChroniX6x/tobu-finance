@@ -200,10 +200,40 @@ export class AuthService {
       };
     }
 
-    if (status === 400 && error?.error?.message?.includes('credential')) {
+    if (status === 400) {
+      // Check for field validation errors
+      const fieldErrors = error?.error?.error?.fieldErrors;
+      if (fieldErrors) {
+        // Format field errors into readable message
+        const errorMessages: string[] = [];
+        for (const [field, messages] of Object.entries(fieldErrors)) {
+          if (Array.isArray(messages) && messages.length > 0) {
+            const fieldName = field.charAt(0).toUpperCase() + field.slice(1);
+            errorMessages.push(`${fieldName}: ${messages.join(', ')}`);
+          }
+        }
+        if (errorMessages.length > 0) {
+          return {
+            type: AuthErrorType.INVALID_CREDENTIALS,
+            message: errorMessages.join('\n'),
+            originalError: error
+          };
+        }
+      }
+
+      // Check for general credential errors
+      if (error?.error?.message?.includes('credential')) {
+        return {
+          type: AuthErrorType.INVALID_CREDENTIALS,
+          message: 'Invalid email or password.',
+          originalError: error
+        };
+      }
+
+      // Generic 400 error
       return {
         type: AuthErrorType.INVALID_CREDENTIALS,
-        message: 'Invalid email or password.',
+        message: error?.error?.message || 'Invalid request. Please check your input.',
         originalError: error
       };
     }
