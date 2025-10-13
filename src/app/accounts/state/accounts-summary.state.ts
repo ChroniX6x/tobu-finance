@@ -8,7 +8,7 @@ import { AccountsSummaryDataService } from './accounts-summary-data.service';
 // Actions
 export class LoadAccountsSummary {
   static readonly type = '[AccountsSummary] Load';
-  constructor(public opts?: { userId?: string; memberId?: string; months?: number }) {}
+  constructor(public opts?: { months?: number }) {}
 }
 
 // Model

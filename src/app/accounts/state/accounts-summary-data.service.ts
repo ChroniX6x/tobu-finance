@@ -11,13 +11,9 @@ export class AccountsSummaryDataService {
   private baseUrl = inject(API_BASE_URL);
 
   getAccountsSummary(opts?: {
-    userId?: string;
-    memberId?: string;
     months?: number;
   }): Observable<DashboardAccountModel[]> {
     let params = new HttpParams();
-    if (opts?.userId)   params = params.set('userId', opts.userId);
-    if (opts?.memberId) params = params.set('memberId', opts.memberId);
     if (opts?.months)   params = params.set('months', String(opts.months));
 
     return this.http
