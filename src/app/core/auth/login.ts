@@ -1,6 +1,6 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {RouterModule} from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
 import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
 import {InputTextModule} from 'primeng/inputtext';
@@ -12,6 +12,7 @@ import {LayoutService} from '@/core/layout/service/layout.service';
 import {Fluid} from 'primeng/fluid';
 import {AppConfigurator} from "@/core/layout/components/app.configurator";
 import {CommonModule} from "@angular/common";
+import {AuthService} from './services/auth.service';
 
 @Component({
     selector: 'app-login',
@@ -59,5 +60,34 @@ import {CommonModule} from "@angular/common";
         <app-configurator [simple]="true"/>`
 })
 export class Login {
-    layoutService = inject(LayoutService);
+    private authService = inject(AuthService);
+    private router = inject(Router);
+    protected layoutService = inject(LayoutService);
+
+    protected email = '';
+    protected password = '';
+    protected isLoading = signal(false);
+    protected errorMessage = signal<string | null>(null);
+
+    protected onLogin(): void {
+        if (!this.email || !this.password) {
+            this.errorMessage.set('Please enter email and password');
+            return;
+        }
+
+        this.isLoading.set(true);
+        this.errorMessage.set(null);
+
+        this.authService.login({ email: this.email, password: this.password }).subscribe({
+            next: () => {
+                this.isLoading.set(false);
+                this.router.navigate(['/accounts']);
+            },
+            error: (err) => {
+                this.isLoading.set(false);
+                this.errorMessage.set(err.message || 'Login failed. Please try again.');
+                console.error('[Login] Error:', err);
+            }
+        });
+    }
 }

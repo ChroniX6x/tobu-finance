@@ -1,8 +1,8 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
 import {ButtonModule} from 'primeng/button';
-import {RouterModule} from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
 import {Checkbox} from 'primeng/checkbox';
@@ -11,6 +11,7 @@ import {LayoutService} from '@/core/layout/service/layout.service';
 import {Ripple} from 'primeng/ripple';
 import {AppConfigurator} from "@/core/layout/components/app.configurator";
 import {CommonModule} from "@angular/common";
+import {AuthService} from './services/auth.service';
 
 @Component({
     selector: 'app-register',
@@ -31,18 +32,24 @@ import {CommonModule} from "@angular/common";
                             <span class="text-2xl font-semibold m-0 mb-2">Register</span>
                             <span class="block text-surface-600 dark:text-surface-200 font-medium mb-6">Let's get started</span>
 
+                            @if (errorMessage()) {
+                                <div class="p-3 mb-4 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 border border-red-200 dark:border-red-800 rounded">
+                                    {{ errorMessage() }}
+                                </div>
+                            }
+
                             <p-icon-field>
                                 <p-inputicon class="pi pi-user" />
-                                <input pInputText type="text" placeholder="Username" class="block mb-4" style="max-width: 320px; min-width: 270px" />
+                                <input pInputText type="text" [(ngModel)]="name" placeholder="Username" class="block mb-4" style="max-width: 320px; min-width: 270px" />
                             </p-icon-field>
 
                             <p-icon-field>
                                 <p-inputicon class="pi pi-envelope" />
-                                <input pInputText type="text" autocomplete="off" placeholder="Email" class="block mb-4" style="max-width: 320px; min-width: 270px" />
+                                <input pInputText type="email" [(ngModel)]="email" autocomplete="off" placeholder="Email" class="block mb-4" style="max-width: 320px; min-width: 270px" />
                             </p-icon-field>
                             <p-icon-field>
                                 <p-inputicon class="pi pi-key" />
-                                <input pInputText type="password" autocomplete="off" placeholder="Password" class="block mb-4" style="max-width: 320px; min-width: 270px" />
+                                <input pInputText type="password" [(ngModel)]="password" autocomplete="off" placeholder="Password" class="block mb-4" style="max-width: 320px; min-width: 270px" />
                             </p-icon-field>
 
                             <div class="mt-2 flex flex-wrap">
@@ -53,11 +60,11 @@ import {CommonModule} from "@angular/common";
                         </div>
                         <div class="mt-6 text-left" style="max-width: 320px; min-width: 270px">
                             <div class="flex items-center gap-4">
-                                <button pButton pRipple type="button" [routerLink]="['/']" class="block" severity="danger" outlined style="max-width: 320px; margin-bottom: 32px">Cancel</button>
-                                <button pButton pRipple type="button" class="block" style="max-width: 320px; margin-bottom: 32px">Submit</button>
+                                <button pButton pRipple type="button" [routerLink]="['/auth/login']" class="block" severity="danger" outlined style="max-width: 320px; margin-bottom: 32px">Cancel</button>
+                                <button pButton pRipple type="button" (click)="onRegister()" [disabled]="isLoading()" [loading]="isLoading()" class="block" style="max-width: 320px; margin-bottom: 32px">Submit</button>
                             </div>
                             <span class="font-medium text-surface-600 dark:text-surface-200"
-                                >Already have an account? <a class="font-semibold cursor-pointer text-surface-900 dark:text-surface-0 hover:text-primary transition-colors duration-300">Login</a></span
+                                >Already have an account? <a [routerLink]="['/auth/login']" class="font-semibold cursor-pointer text-surface-900 dark:text-surface-0 hover:text-primary transition-colors duration-300">Login</a></span
                             >
                         </div>
                     </div>
@@ -75,7 +82,45 @@ import {CommonModule} from "@angular/common";
         <app-configurator [simple]="true"/>`
 })
 export class Register {
-    confirmed: boolean = false;
+    private authService = inject(AuthService);
+    private router = inject(Router);
+    protected layoutService = inject(LayoutService);
 
-    layoutService = inject(LayoutService);
+    protected name = '';
+    protected email = '';
+    protected password = '';
+    protected confirmed = false;
+    protected isLoading = signal(false);
+    protected errorMessage = signal<string | null>(null);
+
+    protected onRegister(): void {
+        if (!this.name || !this.email || !this.password) {
+            this.errorMessage.set('Please fill in all fields');
+            return;
+        }
+
+        if (!this.confirmed) {
+            this.errorMessage.set('Please accept the Terms and Conditions');
+            return;
+        }
+
+        this.isLoading.set(true);
+        this.errorMessage.set(null);
+
+        this.authService.register({
+            name: this.name,
+            email: this.email,
+            password: this.password
+        }).subscribe({
+            next: () => {
+                this.isLoading.set(false);
+                this.router.navigate(['/accounts']);
+            },
+            error: (err) => {
+                this.isLoading.set(false);
+                this.errorMessage.set(err.message || 'Registration failed. Please try again.');
+                console.error('[Register] Error:', err);
+            }
+        });
+    }
 }

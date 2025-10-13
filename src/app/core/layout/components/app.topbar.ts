@@ -1,9 +1,10 @@
 import {Component, computed, ElementRef, inject, ViewChild} from '@angular/core';
 import {MenuItem} from 'primeng/api';
-import {RouterModule} from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {StyleClassModule} from 'primeng/styleclass';
 import {LayoutService} from '@/core/layout/service/layout.service';
+import {AuthService} from '@/core/auth/services/auth.service';
 import {Ripple} from 'primeng/ripple';
 import {InputText} from 'primeng/inputtext';
 import {ButtonModule} from 'primeng/button';
@@ -100,8 +101,8 @@ import {AppBreadcrumb} from '@/core/layout/components/app.breadcrumb';
                         </li>
                         <li role="menuitem" class="!m-0">
                             <a
-                                href="#"
-                                class="flex items-center hover:text-primary-500 duration-200"
+                                (click)="onLogout($event)"
+                                class="flex items-center hover:text-primary-500 duration-200 cursor-pointer"
                                 pStyleClass="@grandparent"
                                 enterFromClass="!hidden"
                                 enterActiveClass="animate-scalein"
@@ -137,6 +138,8 @@ export class AppTopbar {
     @ViewChild(AppSidebar) appSidebar!: AppSidebar;
 
     el = inject(ElementRef);
+    private authService = inject(AuthService);
+    private router = inject(Router);
 
     constructor(public layoutService: LayoutService) {}
 
@@ -180,5 +183,20 @@ export class AppTopbar {
             ...val,
             rightMenuActive: true
         }));
+    }
+
+    onLogout(event: Event): void {
+        event.preventDefault();
+        this.authService.logout().subscribe({
+            next: () => {
+                console.log('[Topbar] Logout successful');
+                this.router.navigate(['/auth/login']);
+            },
+            error: (err) => {
+                console.error('[Topbar] Logout error:', err);
+                // Navigate to login anyway since session is cleared
+                this.router.navigate(['/auth/login']);
+            }
+        });
     }
 }

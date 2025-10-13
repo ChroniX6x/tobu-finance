@@ -1,16 +1,19 @@
 import { Routes } from '@angular/router';
 import { AppLayout } from './core/layout/components/app.layout';
 
+import { authGuard } from './core/auth/guards/auth.guard';
+
 export const routes: Routes = [
     {
         path: '',
         component: AppLayout,
+        canActivate: [authGuard],
         children: [
-            // {
-            //     path: '',
-            //     data: { breadcrumb: 'E-Commerce Dashboard' },
-            //     loadComponent: () => import('@/pages/dashboard/ecommercedashboard').then((c) => c.EcommerceDashboard)
-            // },
+            {
+                path: '',
+                redirectTo: 'accounts',
+                pathMatch: 'full'
+            },
             {
                 path: 'calculation',
                 data: { breadcrumb: 'Calculation' },
