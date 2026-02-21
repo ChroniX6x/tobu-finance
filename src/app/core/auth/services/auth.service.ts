@@ -35,7 +35,7 @@ export class AuthService {
    */
   register(data: RegisterData): Observable<User> {
     return this.http
-      .post<AuthResponse>(`${this.baseUrl}/api/auth/register`, data)
+      .post<AuthResponse>(`${this.baseUrl}/api/auth/register`, data, { withCredentials: true })
       .pipe(
         tap(response => {
           this.authStore.setAccessToken(response.accessToken);
@@ -55,7 +55,7 @@ export class AuthService {
    */
   login(credentials: LoginCredentials): Observable<User> {
     return this.http
-      .post<AuthResponse>(`${this.baseUrl}/api/auth/login`, credentials)
+      .post<AuthResponse>(`${this.baseUrl}/api/auth/login`, credentials, { withCredentials: true })
       .pipe(
         tap(response => {
           this.authStore.setAccessToken(response.accessToken);
