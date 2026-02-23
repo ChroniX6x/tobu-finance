@@ -103,7 +103,7 @@ export class Accounts implements OnInit {
   );
 
   ngOnInit() {
-  this.store.dispatch(new LoadAccountsSummary({ months: 6, userId: '68e8239b3af0e59e79f6af40' }));
+    this.store.dispatch(new LoadAccountsSummary({ months: 6 }));
   }
 
   goToAccount(id: string) {

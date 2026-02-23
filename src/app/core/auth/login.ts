@@ -1,6 +1,6 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {RouterModule} from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
 import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
 import {InputTextModule} from 'primeng/inputtext';
@@ -12,6 +12,7 @@ import {LayoutService} from '@/core/layout/service/layout.service';
 import {Fluid} from 'primeng/fluid';
 import {AppConfigurator} from "@/core/layout/components/app.configurator";
 import {CommonModule} from "@angular/common";
+import {AuthService} from './services/auth.service';
 
 @Component({
     selector: 'app-login',
@@ -28,21 +29,28 @@ import {CommonModule} from "@angular/common";
                             <img src="/images/logo-{{ layoutService.isDarkTheme() ? 'light' : 'dark' }}.png" style="width: 45px" alt="logo" />
                             <img src="/images/appname-{{ layoutService.isDarkTheme() ? 'light' : 'dark' }}.png" class="ml-4" style="width: 100px" alt="logo" />
                         </div>
+
+                        @if (errorMessage()) {
+                            <div class="p-3 mb-4 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 border border-red-200 dark:border-red-800 rounded" style="max-width: 320px; white-space: pre-line;">
+                                {{ errorMessage() }}
+                            </div>
+                        }
+
                         <div class="form-container">
                             <p-iconfield>
                                 <p-inputicon class="pi pi-envelope" />
-                                <input pInputText type="text" placeholder="Email" class="block mb-4" style="max-width: 320px; min-width: 270px" />
+                                <input pInputText type="email" [(ngModel)]="email" placeholder="Email" class="block mb-4" style="max-width: 320px; min-width: 270px" />
                             </p-iconfield>
 
                             <p-iconfield>
                                 <p-inputicon class="pi pi-key" />
-                                <input pInputText type="password" placeholder="Password" class="block mb-4" style="max-width: 320px; min-width: 270px" />
+                                <input pInputText type="password" [(ngModel)]="password" (keyup.enter)="onLogin()" placeholder="Password" class="block mb-4" style="max-width: 320px; min-width: 270px" />
                             </p-iconfield>
-                            <a href="#" class="flex text-surface-500 dark:text-surface-400 mb-6 text-sm">Forgot your password?</a>
+                            <a [routerLink]="['/auth/forgotpassword']" class="flex text-surface-500 dark:text-surface-400 mb-6 text-sm cursor-pointer">Forgot your password?</a>
                         </div>
                         <div class="mt-6">
-                            <button pButton pRipple type="button" [routerLink]="['/']" class="block" style="max-width: 320px; margin-bottom: 32px">Login</button>
-                            <span class="flex text-sm text-surface-500 dark:text-surface-400">Don’t have an account?<a class="cursor-pointer ml-1">Sign-up here</a></span>
+                            <button pButton pRipple type="button" (click)="onLogin()" [disabled]="isLoading()" [loading]="isLoading()" class="block" style="max-width: 320px; margin-bottom: 32px">Login</button>
+                            <span class="flex text-sm text-surface-500 dark:text-surface-400">Don't have an account?<a [routerLink]="['/auth/register']" class="cursor-pointer ml-1">Sign-up here</a></span>
                         </div>
                     </div>
 
@@ -59,5 +67,35 @@ import {CommonModule} from "@angular/common";
         <app-configurator [simple]="true"/>`
 })
 export class Login {
-    layoutService = inject(LayoutService);
+    private authService = inject(AuthService);
+    private router = inject(Router);
+    protected layoutService = inject(LayoutService);
+
+    protected email = '';
+    protected password = '';
+    protected isLoading = signal(false);
+    protected errorMessage = signal<string | null>(null);
+
+    protected onLogin(): void {
+        if (!this.email || !this.password) {
+            this.errorMessage.set('Please enter email and password');
+            return;
+        }
+
+        this.isLoading.set(true);
+        this.errorMessage.set(null);
+
+        this.authService.login({ email: this.email, password: this.password }).subscribe({
+            next: () => {
+                this.isLoading.set(false);
+                this.router.navigate(['/accounts']);
+            },
+            error: (err) => {
+                this.isLoading.set(false);
+                const message = err.message || 'Login failed. Please check your credentials and try again.';
+                this.errorMessage.set(message);
+                console.error('[Login] Error:', err);
+            }
+        });
+    }
 }
