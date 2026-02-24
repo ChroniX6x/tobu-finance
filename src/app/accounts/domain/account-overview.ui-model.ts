@@ -4,9 +4,9 @@ export interface AccountHeaderModel {
   id: string;
   name: string;
   currentMonthIso: string;        // ISO month of last reliable snapshot
-  currentBalanceMinor: number;    // was ...Cents
+  currentBalanceMinor: number;
   balanceChangePct: number;
-  forecastMinor: number;          // was ...Cents
+  forecastMinor: number;
   warning?: string;
   stalenessDays: number;          // days since last reliable data
   isStale: boolean;               // true if stalenessDays > threshold
@@ -18,8 +18,8 @@ export interface AccountMemberUi {
   name: string;
   role?: string;
   avatar?: string | null;
-  monthlyDueMinor: number;        // was ...Cents
-  paidAmountMinor: number;        // was ...Cents
+  monthlyDueMinor: number;
+  paidAmountMinor: number;
   paid: boolean;
 }
 
@@ -27,7 +27,7 @@ export interface QuickStatsUi {
   openDuesCount: number;
   pendingRecurringCount: number;
   extraContributionsCount: number;
-  extraContributionsSumMinor: number; // was ...Cents
+  extraContributionsSumMinor: number;
   warningsCount: number;
 }
 
@@ -35,7 +35,7 @@ export interface ChartLineData {
   labelsIso: string[];            // ISO
   datasets: Array<{
     label: string;
-    dataMinor: number[];          // was dataCents
+    dataMinor: number[];
     fill?: boolean;
     tension?: number;
   }>;
@@ -44,7 +44,7 @@ export interface ChartLineData {
 export interface ChartDoughnutData {
   labels: string[];
   datasets: Array<{
-    dataMinor: number[];          // was dataCents
+    dataMinor: number[];
   }>;
 }
 
@@ -61,7 +61,7 @@ export interface InsightUi {
   status?: 'open' | 'in_progress' | 'resolved' | 'dismissed';
   code: string;
   params?: Record<string, any>;
-  entityRef?: { type: 'transaction'|'category'|'member'|'account'; id: string };
+  entityRef?: { type: 'transaction' | 'category' | 'member' | 'account'; id: string };
   actions?: Array<{ labelCode: string; route?: string }>;
 }
 
@@ -76,9 +76,9 @@ export interface AccountOverviewUi {
   account: AccountHeaderModel;
   members: AccountMemberUi[];
   quickStats: QuickStatsUi;
-  lineChartDataMinor: ChartLineData;    // was ...Cents
-  doughnutDataMinor: ChartDoughnutData; // was ...Cents
-  pieChartDataMinor: ChartPieData;      // was ...Cents
+  lineChartDataMinor: ChartLineData;
+  doughnutDataMinor: ChartDoughnutData;
+  pieChartDataMinor: ChartPieData;
   insights: InsightUi[];
   timeline: TimelineItem[];
 }

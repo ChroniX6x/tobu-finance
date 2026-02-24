@@ -1,9 +1,9 @@
 import { State, Selector, Action, StateContext } from '@ngxs/store';
 import { Injectable, inject } from '@angular/core';
-import { AccountOverviewUi } from '@/account-overview/domain/account-overview.ui-model';
+import { AccountOverviewUi } from '@/accounts/domain/account-overview.ui-model';
 import { tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { AccountOverviewDataService } from '@/account-overview/domain/account-overview-data.service';
+import { AccountOverviewDataService } from '@/accounts/domain/account-overview-data.service';
 import { LoadAccountOverview } from './account-overview.actions';
 import { cloneDeep } from 'lodash';
 

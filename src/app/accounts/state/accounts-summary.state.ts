@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { DashboardAccountModel } from '@/accounts/domain/dashboard-account.model';
 import { tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { AccountsSummaryDataService } from './accounts-summary-data.service';
+import { AccountsSummaryDataService } from '@/accounts/domain/accounts-summary-data.service';
 
 // Actions
 export class LoadAccountsSummary {

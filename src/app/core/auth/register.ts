@@ -7,9 +7,9 @@ import {FormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
 import {Checkbox} from 'primeng/checkbox';
 import {Fluid} from 'primeng/fluid';
-import {LayoutService} from '@/core/layout/service/layout.service';
+import {LayoutService} from '@/shell/service/layout.service';
 import {Ripple} from 'primeng/ripple';
-import {AppConfigurator} from "@/core/layout/components/app.configurator";
+import {AppConfigurator} from "@/shell/components/app.configurator";
 import {CommonModule} from "@angular/common";
 import {AuthService} from './services/auth.service';
 

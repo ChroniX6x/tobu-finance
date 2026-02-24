@@ -3,13 +3,13 @@ import {CommonModule} from '@angular/common';
 import {NavigationEnd, Router, RouterModule} from '@angular/router';
 import {filter, Subscription} from 'rxjs';
 import {AppTopbar} from './app.topbar';
-import {LayoutService} from '@/core/layout/service/layout.service';
+import {LayoutService} from '@/shell/service/layout.service';
 import {AppConfigurator} from './app.configurator';
 import {AppBreadcrumb} from './app.breadcrumb';
 import {AppSidebar} from './app.sidebar';
 import {ToastModule} from 'primeng/toast';
 import {MessageService} from 'primeng/api';
-import {AppProfileMenu} from "@/core/layout/components/app.profilemenu";
+import {AppProfileMenu} from "@/shell/components/app.profilemenu";
 
 @Component({
     selector: 'app-layout',

@@ -4,7 +4,7 @@ import {
   CreateTransactionDto,
   PatchTransactionDto,
   TransactionModel,
-} from '@/domain/transaction.model';
+} from '../domain/transaction.model';
 
 export class LoadTransactions {
   static readonly type = '[TransactionPage] Load';

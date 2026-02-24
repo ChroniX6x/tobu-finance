@@ -6,7 +6,7 @@ import Aura from '@primeng/themes/aura';
 import Lara from '@primeng/themes/lara';
 import { PrimeNG } from 'primeng/config';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { LayoutService, MenuMode } from '@/core/layout/service/layout.service';
+import { LayoutService, MenuMode } from '@/shell/service/layout.service';
 import { Router } from '@angular/router';
 import { DrawerModule } from 'primeng/drawer';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';

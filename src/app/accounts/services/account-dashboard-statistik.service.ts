@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { AccountModel } from '@/domain/account.model';
-import { MemberModel } from '@/domain/member.model';
-import { CategoryModel } from '@/domain/category.model';
-import { TransactionModel } from '@/domain/transaction.model';
+import { AccountModel } from '@/shared/models/account.model';
+import { MemberModel } from '@/shared/models/member.model';
+import { CategoryModel } from '@/shared/models/category.model';
+import { TransactionModel } from '@/transactions/domain/transaction.model';
 
 // Chart types
 export interface ChartDataset {

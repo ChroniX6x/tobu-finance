@@ -8,7 +8,7 @@ import {InputIcon} from 'primeng/inputicon';
 import {InputText} from 'primeng/inputtext';
 import {ButtonModule} from 'primeng/button';
 import {RippleModule} from 'primeng/ripple';
-import {LayoutService} from '@/core/layout/service/layout.service';
+import {LayoutService} from '@/shell/service/layout.service';
 
 interface Breadcrumb {
     label: string;

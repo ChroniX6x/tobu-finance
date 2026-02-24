@@ -1,14 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { MemberModel } from './member.model';
+import { MemberModel } from '@/shared/models/member.model';
 import { API_BASE_URL } from '@/core/api-base-url.token';
 
 @Injectable({ providedIn: 'root' })
 export class MembersDataService {
   private http = inject(HttpClient);
   private baseUrl = inject(API_BASE_URL);
-  private readonly url = this.baseUrl + '/api/members'; // API v2 Basis-URL
+  private readonly url = this.baseUrl + '/api/members';
 
   getMembersWithIds(memberIds: string[]): Observable<MemberModel[]> {
     if (!memberIds.length) return of([]);

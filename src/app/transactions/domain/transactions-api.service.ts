@@ -41,17 +41,7 @@ export class TransactionsApiService {
     return this.http.delete<void>(`${this.url}/${id}`);
   }
 
-  /**
-   * Für den „Teil von"-Autocomplete: sucht Parents nach Titel.
-   * FE berechnet rest = amountMinor - sum(children.amountMinor) aus der Response.
-   */
-  searchParents(accountId: string, q: string): Observable<TransactionWithChildren[]> {
-    let params = new HttpParams()
-      .set('accountId', accountId)
-      .set('parentTransactionId', 'null')
-      .set('q', q);
-    return this.http
-      .get<TransactionsPagedResponse>(this.url, { params })
-      .pipe(map(res => res.items));
+  getTransaction(id: string): Observable<TransactionWithChildren> {
+    return this.http.get<TransactionWithChildren>(`${this.url}/${id}`);
   }
 }

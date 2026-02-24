@@ -11,10 +11,10 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import Aura from '@primeng/themes/aura';
 import { providePrimeNG } from 'primeng/config';
-import { AccountState } from './state/account.state';
-import { CategoriesState } from './state/categories.state';
-import { TransactionPageState } from './state/transaction-page.state';
-import { TransactionCaptureState } from './state/transaction-capture.state';
+import { AccountState } from './shared/state/account.state';
+import { CategoriesState } from './shared/state/categories.state';
+import { TransactionPageState } from './transactions/state/transaction-page.state';
+import { TransactionCaptureState } from './transactions/state/transaction-capture.state';
 import { API_BASE_URL } from './core/api-base-url.token';
 import { authInterceptor } from './core/auth/interceptors/auth.interceptor';
 import { AuthService } from './core/auth/services/auth.service';

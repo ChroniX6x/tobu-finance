@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {DrawerModule} from "primeng/drawer";
-import {LayoutService} from "@/core/layout/service/layout.service";
+import {LayoutService} from "@/shell/service/layout.service";
 import {DatePickerModule} from "primeng/datepicker";
 import {FormsModule} from "@angular/forms";
 import {CommonModule} from "@angular/common";

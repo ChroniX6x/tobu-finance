@@ -3,7 +3,7 @@ import {AppMenu} from './app.menu';
 import {ButtonModule} from 'primeng/button';
 import {Router, RouterModule} from '@angular/router';
 import {CommonModule} from '@angular/common';
-import {LayoutService} from '@/core/layout/service/layout.service';
+import {LayoutService} from '@/shell/service/layout.service';
 
 @Component({
     selector: '[app-sidebar]',

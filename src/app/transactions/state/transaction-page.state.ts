@@ -9,8 +9,8 @@ import {
   TransactionsPagedResponse,
   SplitMeta,
   PatchTransactionDto,
-} from '@/domain/transaction.model';
-import { TransactionsApiService } from '@/domain/transactions-api.service';
+} from '../domain/transaction.model';
+import { TransactionsApiService } from '../domain/transactions-api.service';
 import {
   LoadTransactions,
   SetPage,

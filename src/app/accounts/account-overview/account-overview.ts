@@ -11,7 +11,7 @@ import { select, Store } from '@ngxs/store';
 import { AccountOverviewState } from '../state/account-overview.state';
 import { LoadAccountOverview } from '../state/account-overview.actions';
 import { ActivatedRoute } from '@angular/router';
-import { AccountMemberUi } from '@/account-overview/domain/account-overview.ui-model';
+import { AccountMemberUi } from '@/accounts/domain/account-overview.ui-model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({

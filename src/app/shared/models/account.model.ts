@@ -1,4 +1,4 @@
-import { MemberModel } from "./member.model";
+import { MemberModel } from './member.model';
 
 export interface AccountBalanceModel {
   month: string;   // z.B. "2025-08"
@@ -47,7 +47,7 @@ export interface AccountModel {
   id: string;
   name: string;
   memberIds: string[];
-  members: MemberModel[]; // memberIds
+  members: MemberModel[];
   balances: AccountBalanceModel[];
   monthlyIncomes: MonthlyIncomeModel[];
   monthlyPlannedContributions: PlannedContributionModel[];

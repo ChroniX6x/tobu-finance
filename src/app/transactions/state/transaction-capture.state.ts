@@ -4,7 +4,7 @@ import { tap, catchError, concatMap } from 'rxjs/operators';
 import { of, from, EMPTY } from 'rxjs';
 import { produce } from 'immer';
 import { v4 as uuidv4 } from 'uuid';
-import { TransactionsApiService } from '@/domain/transactions-api.service';
+import { TransactionsApiService } from '../domain/transactions-api.service';
 import { TransactionCreatedFromFinalize } from './transaction-page.actions';
 import {
   TransactionDraft,
@@ -23,7 +23,7 @@ import {
   RetryFailedDrafts,
 } from './transaction-capture.actions';
 
-// Re-export untuk vereinfachten Zugriff von Außen
+// Re-export für vereinfachten Zugriff von außen
 export type { TransactionDraft, DraftStatus, CaptureMode } from './transaction-capture.actions';
 export { computeDraftStatus } from './transaction-capture.actions';
 

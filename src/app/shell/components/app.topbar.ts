@@ -3,7 +3,7 @@ import {MenuItem} from 'primeng/api';
 import {Router, RouterModule} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {StyleClassModule} from 'primeng/styleclass';
-import {LayoutService} from '@/core/layout/service/layout.service';
+import {LayoutService} from '@/shell/service/layout.service';
 import {AuthService} from '@/core/auth/services/auth.service';
 import {Ripple} from 'primeng/ripple';
 import {InputText} from 'primeng/inputtext';
@@ -11,8 +11,8 @@ import {ButtonModule} from 'primeng/button';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
 import {FormsModule} from '@angular/forms';
-import {AppSidebar} from '@/core/layout/components/app.sidebar';
-import {AppBreadcrumb} from '@/core/layout/components/app.breadcrumb';
+import {AppSidebar} from '@/shell/components/app.sidebar';
+import {AppBreadcrumb} from '@/shell/components/app.breadcrumb';
 
 @Component({
     selector: '[app-topbar]',

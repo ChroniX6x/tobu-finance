@@ -1,4 +1,4 @@
-import { TransactionType } from '@/domain/transaction.model';
+import { TransactionType } from '../domain/transaction.model';
 
 // ─── Draft-Domäne ─────────────────────────────────────────────────────────────
 
