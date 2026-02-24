@@ -19,7 +19,6 @@ export interface TransactionModel {
   recurrenceId?: string | null;
   // Legacy (backward compat)
   isRecurring?: boolean;
-  recurringTemplateId?: string;
 }
 
 /** API-Response: Parent mit embedded Children */

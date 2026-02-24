@@ -13,8 +13,8 @@ import Aura from '@primeng/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 import { AccountState } from './state/account.state';
 import { CategoriesState } from './state/categories.state';
-import { TransactionsState } from './state/transactions.state';
-import { DraftsState } from './state/drafts.state';
+import { TransactionPageState } from './state/transaction-page.state';
+import { TransactionCaptureState } from './state/transaction-capture.state';
 import { API_BASE_URL } from './core/api-base-url.token';
 import { authInterceptor } from './core/auth/interceptors/auth.interceptor';
 import { AuthService } from './core/auth/services/auth.service';
@@ -44,7 +44,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideAnimationsAsync(),
-    provideStore([AccountState, CategoriesState, TransactionsState, DraftsState], {developmentMode: true}, withNgxsLoggerPlugin(), withNgxsReduxDevtoolsPlugin(), withNgxsRouterPlugin()),
+    provideStore([AccountState, CategoriesState, TransactionPageState, TransactionCaptureState], {developmentMode: true}, withNgxsLoggerPlugin(), withNgxsReduxDevtoolsPlugin(), withNgxsRouterPlugin()),
     providePrimeNG({
       theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } }
     }),

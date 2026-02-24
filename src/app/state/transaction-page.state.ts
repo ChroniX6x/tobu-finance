@@ -1,92 +1,39 @@
 import { Injectable, inject } from '@angular/core';
 import { State, Selector, Action, StateContext } from '@ngxs/store';
-import { tap, catchError, concatMap } from 'rxjs/operators';
-import { of, from, EMPTY } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
+import { of, EMPTY } from 'rxjs';
 import { produce } from 'immer';
 import {
   TransactionModel,
   TransactionsFilters,
   TransactionsPagedResponse,
-  TransactionSort,
   SplitMeta,
   PatchTransactionDto,
-  CreateTransactionDto,
 } from '@/domain/transaction.model';
 import { TransactionsApiService } from '@/domain/transactions-api.service';
+import {
+  LoadTransactions,
+  SetPage,
+  SetSort,
+  SelectTransaction,
+  ToggleParentExpanded,
+  CreateTransactionOptimistic,
+  PatchTransactionOptimistic,
+  DeleteTransactionOptimistic,
+  DeleteTransactionConfirmed,
+  UndoDeleteTransaction,
+  TransactionCreatedFromFinalize,
+} from './transaction-page.actions';
 
-// ─── Actions ─────────────────────────────────────────────────────────────────
+// ─── State Model ──────────────────────────────────────────────────────────────
 
-export class LoadTransactions {
-  static readonly type = '[Transactions] Load';
-  constructor(public filters: Partial<TransactionsFilters>) {}
-}
-
-export class SetPage {
-  static readonly type = '[Transactions] Set Page';
-  constructor(public page: number) {}
-}
-
-export class SetSort {
-  static readonly type = '[Transactions] Set Sort';
-  constructor(public sort: TransactionSort) {}
-}
-
-export class SelectTransaction {
-  static readonly type = '[Transactions] Select';
-  constructor(public id: string | null) {}
-}
-
-export class ToggleParentExpanded {
-  static readonly type = '[Transactions] Toggle Expanded';
-  constructor(public parentId: string) {}
-}
-
-export class CreateTransactionOptimistic {
-  static readonly type = '[Transactions] Create Optimistic';
-  constructor(public dto: CreateTransactionDto) {}
-}
-
-export class PatchTransactionOptimistic {
-  static readonly type = '[Transactions] Patch Optimistic';
-  constructor(public id: string, public patch: PatchTransactionDto) {}
-}
-
-/**
- * Optimistisches Delete für Child oder Parent-ohne-Children.
- * Parent mit Children → nicht hier, sondern DeleteTransactionConfirmed nach manuellem Confirm + API-Call.
- */
-export class DeleteTransactionOptimistic {
-  static readonly type = '[Transactions] Delete Optimistic';
-  constructor(public id: string) {}
-}
-
-/**
- * Wird nach erfolgreichem serverseitigem Delete eines Parents mit Children dispatched.
- * Kein Optimistic, kein Undo — State-Bereinigung nach dem Faktum.
- */
-export class DeleteTransactionConfirmed {
-  static readonly type = '[Transactions] Delete Confirmed';
-  constructor(public id: string) {}
-}
-
-export class UndoDeleteTransaction {
-  static readonly type = '[Transactions] Undo Delete';
-}
-
-/** Wird von DraftsState dispatched nachdem ein Draft erfolgreich finalisiert wurde */
-export class TransactionCreatedFromFinalize {
-  static readonly type = '[Transactions] Created From Finalize';
-  constructor(public transaction: TransactionModel) {}
-}
-
-// ─── State Model ─────────────────────────────────────────────────────────────
-
-export interface UndoDeleteBuffer {
+export interface TransactionPageUndoBuffer {
   parent: TransactionModel;
   children: TransactionModel[];
 }
 
-export interface TransactionsStateModel {
+/** Server-Daten: Entities, Paginierung, Filter */
+interface TransactionPageData {
   /** Flache Entity-Map: enthält Parents UND Children */
   entities: Record<string, TransactionModel>;
   /** Geordnete Parent-IDs der aktuellen Seite */
@@ -94,12 +41,21 @@ export interface TransactionsStateModel {
   /** Gesamt-Anzahl Parents server-seitig (ohne Children) */
   total: number;
   filters: TransactionsFilters;
+}
+
+/** UI-Zustand: Ladezustand, Selektion, Expansion, Undo */
+interface TransactionPageUi {
   loading: boolean;
   error: string | null;
   selectedId: string | null;
   expandedParents: string[];
-  undoBuffer: UndoDeleteBuffer | null;
+  undoBuffer: TransactionPageUndoBuffer | null;
 }
+
+// Derived state (SplitMeta, effectiveAmounts) wird ausschließlich über @Selector berechnet,
+// kein persistiertes State nötig.
+
+export interface TransactionPageStateModel extends TransactionPageData, TransactionPageUi {}
 
 export const DEFAULT_TRANSACTION_FILTERS: TransactionsFilters = {
   accountId: null,
@@ -111,15 +67,17 @@ export const DEFAULT_TRANSACTION_FILTERS: TransactionsFilters = {
   sort: 'bookDateDesc',
 };
 
-// ─── State ───────────────────────────────────────────────────────────────────
+// ─── State ────────────────────────────────────────────────────────────────────
 
-@State<TransactionsStateModel>({
-  name: 'transactions',
+@State<TransactionPageStateModel>({
+  name: 'transactionPage',
   defaults: {
+    // Data
     entities: {},
     parentIds: [],
     total: 0,
     filters: DEFAULT_TRANSACTION_FILTERS,
+    // UI
     loading: false,
     error: null,
     selectedId: null,
@@ -128,38 +86,41 @@ export const DEFAULT_TRANSACTION_FILTERS: TransactionsFilters = {
   },
 })
 @Injectable()
-export class TransactionsState {
+export class TransactionPageState {
   private api = inject(TransactionsApiService);
 
-  // ─── Basis-Selektoren ──────────────────────────────────────────────────────
+  // ─── Data-Selektoren ──────────────────────────────────────────────────────
 
-  @Selector() static entities(s: TransactionsStateModel) { return s.entities; }
-  @Selector() static parentIds(s: TransactionsStateModel) { return s.parentIds; }
-  @Selector() static total(s: TransactionsStateModel) { return s.total; }
-  @Selector() static loading(s: TransactionsStateModel) { return s.loading; }
-  @Selector() static error(s: TransactionsStateModel) { return s.error; }
-  @Selector() static filters(s: TransactionsStateModel) { return s.filters; }
-  @Selector() static selectedId(s: TransactionsStateModel) { return s.selectedId; }
-  @Selector() static expandedParents(s: TransactionsStateModel) { return s.expandedParents; }
+  @Selector() static entities(s: TransactionPageStateModel) { return s.entities; }
+  @Selector() static parentIds(s: TransactionPageStateModel) { return s.parentIds; }
+  @Selector() static total(s: TransactionPageStateModel) { return s.total; }
+  @Selector() static filters(s: TransactionPageStateModel) { return s.filters; }
 
   @Selector()
-  static parents(s: TransactionsStateModel): TransactionModel[] {
+  static parents(s: TransactionPageStateModel): TransactionModel[] {
     return s.parentIds.map(id => s.entities[id]).filter(Boolean);
   }
 
   @Selector()
-  static selectedTransaction(s: TransactionsStateModel): TransactionModel | null {
+  static selectedTransaction(s: TransactionPageStateModel): TransactionModel | null {
     return s.selectedId ? (s.entities[s.selectedId] ?? null) : null;
   }
 
-  // ─── Split-Selektoren (Task 5) ─────────────────────────────────────────────
+  // ─── UI-Selektoren ────────────────────────────────────────────────────────
+
+  @Selector() static loading(s: TransactionPageStateModel) { return s.loading; }
+  @Selector() static error(s: TransactionPageStateModel) { return s.error; }
+  @Selector() static selectedId(s: TransactionPageStateModel) { return s.selectedId; }
+  @Selector() static expandedParents(s: TransactionPageStateModel) { return s.expandedParents; }
+
+  // ─── Derived Selektoren (Split-Logik) ─────────────────────────────────────
 
   /**
    * Record<parentId, children[]> — aus der flachen entities-Map abgeleitet.
    * Nur Parents die tatsächlich Children haben tauchen hier auf.
    */
   @Selector()
-  static childrenByParentId(s: TransactionsStateModel): Record<string, TransactionModel[]> {
+  static childrenByParentId(s: TransactionPageStateModel): Record<string, TransactionModel[]> {
     const map: Record<string, TransactionModel[]> = {};
     for (const tx of Object.values(s.entities)) {
       if (tx.parentTransactionId) {
@@ -173,7 +134,7 @@ export class TransactionsState {
    * Record<parentId, SplitMeta> — Split-Kennzahlen pro Parent.
    * Nur Parents mit Children sind enthalten (kein Eintrag = splitCount=0, rest=amountMinor).
    */
-  @Selector([TransactionsState.entities, TransactionsState.childrenByParentId])
+  @Selector([TransactionPageState.entities, TransactionPageState.childrenByParentId])
   static splitMetaMap(
     entities: Record<string, TransactionModel>,
     childrenMap: Record<string, TransactionModel[]>,
@@ -200,28 +161,25 @@ export class TransactionsState {
    * - Parent ohne Children → voller amountMinor
    * - Parent mit Children → restMinor (0 = Container-only)
    */
-  @Selector([TransactionsState.entities, TransactionsState.splitMetaMap])
+  @Selector([TransactionPageState.entities, TransactionPageState.splitMetaMap])
   static effectiveAmountMap(
     entities: Record<string, TransactionModel>,
     splitMeta: Record<string, SplitMeta>,
   ): Record<string, number> {
     const result: Record<string, number> = {};
     for (const [id, tx] of Object.entries(entities)) {
-      if (tx.parentTransactionId) {
-        result[id] = tx.amountMinor;
-      } else {
-        result[id] = splitMeta[id]?.restMinor ?? tx.amountMinor;
-      }
+      result[id] = tx.parentTransactionId
+        ? tx.amountMinor
+        : (splitMeta[id]?.restMinor ?? tx.amountMinor);
     }
     return result;
   }
 
   /**
    * Record<txId, signedAmountMinor> — für Charts.
-   * type=expense ? -effectiveAmountMinor : +effectiveAmountMinor
-   * Charts konsumieren ausschließlich diesen Selektor.
+   * type=expense → negativ, type=income → positiv.
    */
-  @Selector([TransactionsState.entities, TransactionsState.effectiveAmountMap])
+  @Selector([TransactionPageState.entities, TransactionPageState.effectiveAmountMap])
   static signedAmountMap(
     entities: Record<string, TransactionModel>,
     effectiveMap: Record<string, number>,
@@ -234,10 +192,10 @@ export class TransactionsState {
     return result;
   }
 
-  // ─── Actions ──────────────────────────────────────────────────────────────
+  // ─── Action-Handler ───────────────────────────────────────────────────────
 
   @Action(LoadTransactions)
-  load(ctx: StateContext<TransactionsStateModel>, { filters }: LoadTransactions) {
+  load(ctx: StateContext<TransactionPageStateModel>, { filters }: LoadTransactions) {
     const merged: TransactionsFilters = { ...ctx.getState().filters, ...filters };
     ctx.patchState({ loading: true, error: null, filters: merged });
 
@@ -265,22 +223,22 @@ export class TransactionsState {
   }
 
   @Action(SetPage)
-  setPage(ctx: StateContext<TransactionsStateModel>, { page }: SetPage) {
+  setPage(ctx: StateContext<TransactionPageStateModel>, { page }: SetPage) {
     return ctx.dispatch(new LoadTransactions({ ...ctx.getState().filters, page }));
   }
 
   @Action(SetSort)
-  setSort(ctx: StateContext<TransactionsStateModel>, { sort }: SetSort) {
+  setSort(ctx: StateContext<TransactionPageStateModel>, { sort }: SetSort) {
     return ctx.dispatch(new LoadTransactions({ ...ctx.getState().filters, sort, page: 1 }));
   }
 
   @Action(SelectTransaction)
-  select(ctx: StateContext<TransactionsStateModel>, { id }: SelectTransaction) {
+  select(ctx: StateContext<TransactionPageStateModel>, { id }: SelectTransaction) {
     ctx.patchState({ selectedId: id });
   }
 
   @Action(ToggleParentExpanded)
-  toggleExpanded(ctx: StateContext<TransactionsStateModel>, { parentId }: ToggleParentExpanded) {
+  toggleExpanded(ctx: StateContext<TransactionPageStateModel>, { parentId }: ToggleParentExpanded) {
     ctx.setState(produce(s => {
       const idx = s.expandedParents.indexOf(parentId);
       if (idx >= 0) {
@@ -292,7 +250,7 @@ export class TransactionsState {
   }
 
   @Action(CreateTransactionOptimistic)
-  createOptimistic(ctx: StateContext<TransactionsStateModel>, { dto }: CreateTransactionOptimistic) {
+  createOptimistic(ctx: StateContext<TransactionPageStateModel>, { dto }: CreateTransactionOptimistic) {
     return this.api.createTransaction(dto).pipe(
       tap(created => {
         ctx.setState(produce(s => {
@@ -302,7 +260,6 @@ export class TransactionsState {
             s.total++;
           }
         }));
-        // Selektiere Parent nach Child-Create, damit der Split-Editor aktuell bleibt
         if (dto.parentTransactionId) {
           ctx.patchState({ selectedId: dto.parentTransactionId });
         }
@@ -315,20 +272,19 @@ export class TransactionsState {
   }
 
   @Action(PatchTransactionOptimistic)
-  patchOptimistic(ctx: StateContext<TransactionsStateModel>, { id, patch }: PatchTransactionOptimistic) {
+  patchOptimistic(ctx: StateContext<TransactionPageStateModel>, { id, patch }: PatchTransactionOptimistic) {
     const original = ctx.getState().entities[id];
     if (!original) return EMPTY;
 
-    // Optimistisch aktualisieren inkl. Cascade-Spiegelung
     ctx.setState(produce(s => {
       Object.assign(s.entities[id], patch);
       // UI-Cascade: spiegelt server-seitige Cascade für type/status/bookDate
       if ('status' in patch || 'bookDate' in patch || 'type' in patch) {
         for (const tx of Object.values(s.entities)) {
           if (tx.parentTransactionId === id) {
-            if ('status' in patch) tx.status = patch.status!;
-            if ('bookDate' in patch) tx.bookDate = patch.bookDate!;
-            if ('type' in patch) tx.type = patch.type!;
+            if ('status' in patch) tx.status = (patch as PatchTransactionDto).status!;
+            if ('bookDate' in patch) tx.bookDate = (patch as PatchTransactionDto).bookDate!;
+            if ('type' in patch) tx.type = (patch as PatchTransactionDto).type!;
           }
         }
       }
@@ -339,7 +295,6 @@ export class TransactionsState {
         ctx.setState(produce(s => { s.entities[updated.id] = updated; }));
       }),
       catchError(err => {
-        // Rollback
         ctx.setState(produce(s => { s.entities[id] = original; }));
         ctx.patchState({ error: err?.message ?? 'Speichern fehlgeschlagen' });
         return of(null);
@@ -348,13 +303,13 @@ export class TransactionsState {
   }
 
   @Action(DeleteTransactionOptimistic)
-  deleteOptimistic(ctx: StateContext<TransactionsStateModel>, { id }: DeleteTransactionOptimistic) {
+  deleteOptimistic(ctx: StateContext<TransactionPageStateModel>, { id }: DeleteTransactionOptimistic) {
     const state = ctx.getState();
     const tx = state.entities[id];
     if (!tx) return EMPTY;
 
     const children = tx.parentTransactionId
-      ? [] // ist selbst ein Child
+      ? []
       : Object.values(state.entities).filter(e => e.parentTransactionId === id);
 
     ctx.patchState({ undoBuffer: { parent: tx, children } });
@@ -368,7 +323,6 @@ export class TransactionsState {
 
     return this.api.deleteTransaction(id).pipe(
       catchError(err => {
-        // Rollback
         ctx.setState(produce(s => {
           s.entities[tx.id] = tx;
           if (!tx.parentTransactionId) { s.parentIds.push(tx.id); s.total++; }
@@ -381,7 +335,7 @@ export class TransactionsState {
   }
 
   @Action(DeleteTransactionConfirmed)
-  deleteConfirmed(ctx: StateContext<TransactionsStateModel>, { id }: DeleteTransactionConfirmed) {
+  deleteConfirmed(ctx: StateContext<TransactionPageStateModel>, { id }: DeleteTransactionConfirmed) {
     ctx.setState(produce(s => {
       const children = Object.values(s.entities).filter(e => e.parentTransactionId === id);
       delete s.entities[id];
@@ -393,7 +347,7 @@ export class TransactionsState {
   }
 
   @Action(UndoDeleteTransaction)
-  undoDelete(ctx: StateContext<TransactionsStateModel>) {
+  undoDelete(ctx: StateContext<TransactionPageStateModel>) {
     const { undoBuffer } = ctx.getState();
     if (!undoBuffer) return;
 
@@ -411,7 +365,7 @@ export class TransactionsState {
   }
 
   @Action(TransactionCreatedFromFinalize)
-  addFromFinalize(ctx: StateContext<TransactionsStateModel>, { transaction }: TransactionCreatedFromFinalize) {
+  addFromFinalize(ctx: StateContext<TransactionPageStateModel>, { transaction }: TransactionCreatedFromFinalize) {
     ctx.setState(produce(s => {
       s.entities[transaction.id] = transaction;
       if (!transaction.parentTransactionId) {
@@ -421,4 +375,3 @@ export class TransactionsState {
     }));
   }
 }
-
