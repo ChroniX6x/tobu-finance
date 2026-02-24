@@ -206,10 +206,10 @@ export class TransactionPageState {
 
         for (const parent of response.items) {
           const { children, ...parentTx } = parent;
-          entities[parentTx.id] = parentTx;
-          parentIds.push(parentTx.id);
+          entities[parentTx._id] = parentTx;
+          parentIds.push(parentTx._id);
           for (const child of children ?? []) {
-            entities[child.id] = child;
+            entities[child._id] = child;
           }
         }
 
@@ -254,9 +254,9 @@ export class TransactionPageState {
     return this.api.createTransaction(dto).pipe(
       tap(created => {
         ctx.setState(produce(s => {
-          s.entities[created.id] = created;
+          s.entities[created._id] = created;
           if (!created.parentTransactionId) {
-            s.parentIds.unshift(created.id);
+            s.parentIds.unshift(created._id);
             s.total++;
           }
         }));
@@ -292,7 +292,7 @@ export class TransactionPageState {
 
     return this.api.patchTransaction(id, patch).pipe(
       tap(updated => {
-        ctx.setState(produce(s => { s.entities[updated.id] = updated; }));
+        ctx.setState(produce(s => { s.entities[updated._id] = updated; }));
       }),
       catchError(err => {
         ctx.setState(produce(s => { s.entities[id] = original; }));
@@ -317,16 +317,16 @@ export class TransactionPageState {
       delete s.entities[id];
       const idx = s.parentIds.indexOf(id);
       if (idx >= 0) { s.parentIds.splice(idx, 1); s.total--; }
-      for (const child of children) { delete s.entities[child.id]; }
+      for (const child of children) { delete s.entities[child._id]; }
       if (s.selectedId === id) s.selectedId = null;
     }));
 
     return this.api.deleteTransaction(id).pipe(
       catchError(err => {
         ctx.setState(produce(s => {
-          s.entities[tx.id] = tx;
-          if (!tx.parentTransactionId) { s.parentIds.push(tx.id); s.total++; }
-          for (const child of children) { s.entities[child.id] = child; }
+          s.entities[tx._id] = tx;
+          if (!tx.parentTransactionId) { s.parentIds.push(tx._id); s.total++; }
+          for (const child of children) { s.entities[child._id] = child; }
         }));
         ctx.patchState({ undoBuffer: null, error: err?.message ?? 'Löschen fehlgeschlagen' });
         return of(null);
@@ -341,7 +341,7 @@ export class TransactionPageState {
       delete s.entities[id];
       const idx = s.parentIds.indexOf(id);
       if (idx >= 0) { s.parentIds.splice(idx, 1); s.total--; }
-      for (const child of children) { delete s.entities[child.id]; }
+      for (const child of children) { delete s.entities[child._id]; }
       if (s.selectedId === id) s.selectedId = null;
     }));
   }
@@ -352,13 +352,13 @@ export class TransactionPageState {
     if (!undoBuffer) return;
 
     ctx.setState(produce(s => {
-      s.entities[undoBuffer.parent.id] = undoBuffer.parent;
+      s.entities[undoBuffer.parent._id] = undoBuffer.parent;
       if (!undoBuffer.parent.parentTransactionId) {
-        s.parentIds.push(undoBuffer.parent.id);
+        s.parentIds.push(undoBuffer.parent._id);
         s.total++;
       }
       for (const child of undoBuffer.children) {
-        s.entities[child.id] = child;
+        s.entities[child._id] = child;
       }
       s.undoBuffer = null;
     }));
@@ -367,9 +367,9 @@ export class TransactionPageState {
   @Action(TransactionCreatedFromFinalize)
   addFromFinalize(ctx: StateContext<TransactionPageStateModel>, { transaction }: TransactionCreatedFromFinalize) {
     ctx.setState(produce(s => {
-      s.entities[transaction.id] = transaction;
+      s.entities[transaction._id] = transaction;
       if (!transaction.parentTransactionId) {
-        s.parentIds.unshift(transaction.id);
+        s.parentIds.unshift(transaction._id);
         s.total++;
       }
     }));

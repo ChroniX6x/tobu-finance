@@ -3,7 +3,7 @@ export type TransactionStatus = 'pending' | 'booked';
 export type TransactionSort = 'bookDateDesc' | 'bookDateAsc' | 'amountDesc' | 'amountAsc';
 
 export interface TransactionModel {
-  id: string;
+  _id: string;
   accountId: string;
   type: TransactionType;
   amountMinor: number;               // Minor Units, immer >= 0
@@ -48,12 +48,12 @@ export interface TransactionsFilters {
 /** POST /api/transactions */
 export type CreateTransactionDto = Omit<
   TransactionModel,
-  'id' | 'month' | 'recurrenceId' | 'isRecurring' | 'recurringTemplateId'
+  '_id' | 'month' | 'recurrenceId' | 'isRecurring' | 'recurringTemplateId'
 >;
 
 /** PATCH /api/transactions/:id */
 export type PatchTransactionDto = Partial<
-  Omit<TransactionModel, 'id' | 'accountId' | 'parentTransactionId' | 'recurrenceId'>
+  Omit<TransactionModel, '_id' | 'accountId' | 'parentTransactionId' | 'recurrenceId'>
 >;
 
 /** Split-Metadaten pro Parent (computed) */

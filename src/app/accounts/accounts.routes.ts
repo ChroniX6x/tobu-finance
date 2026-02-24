@@ -20,10 +20,14 @@ export default [
     data: { breadcrumb: 'Account Overview' },
     component: AccountOverview,
     resolve: {
-      // accounts: createStateRouteInitializer(route => new LoadAccounts(route.params['accountId'])),
-      // categories: createStateRouteInitializer(route => new LoadCategories(route.params['accountId'])),
-      // transactions: createStateRouteInitializer(route => new LoadTransactions(route.params['accountId'])),
-    }
+      // accounts: createStateRouteInitializer((route) => new LoadAccounts(route.params['accountId'])),
+      // categories: createStateRouteInitializer((route) => new LoadCategories(route.params['accountId'])),
+    },
+  },
+  {
+    path: ':accountId/transactions',
+    data: { breadcrumb: 'Buchungen' },
+    loadChildren: () => import('@/transactions/transactions-page/transactions-page.routes'),
   },
   { path: '**', redirectTo: '/notfound' }
 ] as Routes;

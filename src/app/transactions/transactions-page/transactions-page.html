@@ -1,0 +1,41 @@
+<div class="transactions-page flex flex-col h-full">
+  <tbf-transaction-toolbar [accountId]="accountId" />
+
+  <p-splitter
+    class="flex-1 min-h-0"
+    [panelSizes]="[60, 40]"
+    [minSizes]="[30, 25]"
+    styleClass="h-full"
+  >
+    <ng-template #panel>
+      <div class="h-full overflow-auto p-2">
+        <tbf-transaction-list
+          [accountId]="accountId"
+          [selectedId]="selectedId()"
+          (transactionSelected)="onTransactionSelected($event)"
+        />
+      </div>
+    </ng-template>
+    <ng-template #panel>
+      <div class="h-full overflow-auto p-3">
+        @if (selectedId()) {
+          <tbf-transaction-detail-editor [accountId]="accountId" />
+        } @else {
+          <div class="flex flex-col items-center justify-center h-full text-surface-400 gap-3">
+            <i class="pi pi-file-edit text-5xl"></i>
+            <p class="text-sm">Buchung auswählen</p>
+            <p-button
+              label="Capture öffnen"
+              severity="secondary"
+              size="small"
+              icon="pi pi-plus"
+              (onClick)="toggleDock()"
+            />
+          </div>
+        }
+      </div>
+    </ng-template>
+  </p-splitter>
+
+  <tbf-transactions-dock [accountId]="accountId" />
+</div>

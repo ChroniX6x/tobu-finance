@@ -1,0 +1,66 @@
+:host {
+  display: block;
+}
+
+.parent-row {
+  transition: background 0.1s;
+
+  &:hover {
+    background: var(--surface-50);
+  }
+
+  &.row-selected {
+    background: var(--primary-50) !important;
+  }
+
+  &.row-container {
+    opacity: 0.75;
+  }
+}
+
+.child-row {
+  background: var(--surface-50);
+
+  &:hover {
+    background: var(--surface-100);
+  }
+
+  &.row-selected {
+    background: var(--primary-50) !important;
+  }
+}
+
+.split-badge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  background: var(--surface-200);
+  color: var(--surface-600);
+  font-weight: 600;
+}
+
+.amount-badge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  font-weight: 500;
+
+  &.assigned {
+    background: var(--blue-50);
+    color: var(--blue-700);
+  }
+
+  &.rest {
+    background: var(--orange-50);
+    color: var(--orange-700);
+  }
+
+  &.container {
+    background: var(--purple-50);
+    color: var(--purple-700);
+  }
+}
+
+.empty-state {
+  min-height: 300px;
+}
