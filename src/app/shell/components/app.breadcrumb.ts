@@ -22,7 +22,13 @@ interface Breadcrumb {
     template: ` <nav>
             <ol class="relative z-20">
                 <ng-template ngFor let-item let-last="last" [ngForOf]="breadcrumbs$ | async">
-                    <li style="cursor: pointer;">{{ item.label }}</li>
+                    <li>
+                        <a *ngIf="!last && item.url" [routerLink]="item.url"
+                           class="hover:text-primary-600 transition-colors cursor-pointer">
+                            {{ item.label }}
+                        </a>
+                        <span *ngIf="last || !item.url">{{ item.label }}</span>
+                    </li>
                     <li *ngIf="!last" class="layout-breadcrumb-chevron">/</li>
                 </ng-template>
             </ol>

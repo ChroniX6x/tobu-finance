@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { select, Store } from '@ngxs/store';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SplitterModule } from 'primeng/splitter';
 import { ButtonModule } from 'primeng/button';
+import { TabsModule } from 'primeng/tabs';
 import { TransactionPageState } from '../state/transaction-page.state';
 import { TransactionCaptureState } from '../state/transaction-capture.state';
 import { LoadTransactions, SelectTransaction } from '../state/transaction-page.actions';
@@ -17,11 +18,12 @@ import { TransactionsDock } from './capture-dock/transactions-dock';
   templateUrl: './transactions-page.html',
   styleUrl: './transactions-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, SplitterModule, TransactionToolbar, TransactionList, TransactionDetailEditor, TransactionsDock],
+  imports: [ButtonModule, TabsModule, SplitterModule, TransactionToolbar, TransactionList, TransactionDetailEditor, TransactionsDock],
 })
 export class TransactionsPage implements OnInit {
   private store = inject(Store);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   protected accountId = '';
 
@@ -32,6 +34,12 @@ export class TransactionsPage implements OnInit {
 
   ngOnInit(): void {
     this.accountId = this.route.snapshot.params['accountId'];
+  }
+
+  protected navigateTab(value: string | number): void {
+    if (value === 'overview') {
+      this.router.navigate(['/accounts', this.accountId]);
+    }
   }
 
   protected onTransactionSelected(id: string | null): void {

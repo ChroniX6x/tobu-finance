@@ -4,30 +4,28 @@ import { Accounts } from './accounts';
 import { AccountOverview } from './account-overview/account-overview';
 import { AccountsSummaryState } from './state/accounts-summary.state';
 import { AccountOverviewState } from './state/account-overview.state';
-import { createStateRouteInitializer } from '@/shared/state/route-initializer';
-import { LoadAccounts } from '@/shared/state/account.state';
-import { LoadCategories } from '@/shared/state/categories.state';
-import { LoadTransactions } from '@/transactions/state/transaction-page.actions';
 
 export default [
   {
     path: '',
     component: Accounts,
-    providers: [provideStates([AccountsSummaryState, AccountOverviewState])],
+    providers: [provideStates([AccountsSummaryState])],
   },
   {
     path: ':accountId',
     data: { breadcrumb: 'Account Overview' },
-    component: AccountOverview,
-    resolve: {
-      // accounts: createStateRouteInitializer((route) => new LoadAccounts(route.params['accountId'])),
-      // categories: createStateRouteInitializer((route) => new LoadCategories(route.params['accountId'])),
-    },
-  },
-  {
-    path: ':accountId/transactions',
-    data: { breadcrumb: 'Buchungen' },
-    loadChildren: () => import('@/transactions/transactions-page/transactions-page.routes'),
+    providers: [provideStates([AccountOverviewState])],
+    children: [
+      {
+        path: '',
+        component: AccountOverview,
+      },
+      {
+        path: 'transactions',
+        data: { breadcrumb: 'Buchungen' },
+        loadChildren: () => import('@/transactions/transactions-page/transactions-page.routes'),
+      },
+    ],
   },
   { path: '**', redirectTo: '/notfound' }
 ] as Routes;
