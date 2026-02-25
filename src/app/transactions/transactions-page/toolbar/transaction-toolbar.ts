@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, effect } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Store, select } from '@ngxs/store';
-import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { DateTime } from 'luxon';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -50,11 +52,10 @@ interface SourceOption {
     ChipModule,
   ],
 })
-export class TransactionToolbar implements OnInit, OnDestroy {
+export class TransactionToolbar {
   readonly accountId = input.required<string>();
 
   private store = inject(Store);
-  private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
 
   protected filters = select(TransactionPageState.filters);
@@ -107,51 +108,36 @@ export class TransactionToolbar implements OnInit, OnDestroy {
       chips.push({ key: 'paidBy', label: `Bezahlt von: ${m?.name ?? ''}` });
     }
     if (this.dateRange().length === 2) {
-      chips.push({ key: 'dateRange', label: `Zeitraum: ${this.formatDate(this.dateRange()[0])} – ${this.formatDate(this.dateRange()[1])}` });
+      const start = this.dateRange()[0];
+      const end = this.dateRange()[1];
+      chips.push({ key: 'dateRange', label: `Zeitraum: ${this.formatDateTime(start)} – ${this.formatDateTime(end)}` });
     }
     return chips;
   });
 
-  ngOnInit(): void {
-    this.searchSubject.pipe(
-      debounceTime(400),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$),
-    ).subscribe((q) => {
-      this.dispatchLoad({ q: q || undefined });
+  constructor() {
+    this.searchSubject
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        takeUntilDestroyed(),
+      )
+      .subscribe((q) => {
+        this.dispatchLoad({ q: q || undefined });
+      });
+
+    effect(() => {
+      const q = this.searchValue();
+      this.searchSubject.next(q);
     });
-  }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  protected onSearchInput(value: string): void {
-    this.searchValue.set(value);
-    this.searchSubject.next(value);
-  }
-
-  protected onCategoriesChange(ids: string[]): void {
-    this.selectedCategoryIds.set(ids);
-    this.dispatchLoad();
-  }
-
-  protected onSourceChange(value: string | null): void {
-    this.selectedSource.set(value);
-    this.dispatchLoad();
-  }
-
-  protected onPaidByChange(value: string | null): void {
-    this.selectedPaidBy.set(value);
-    this.dispatchLoad();
-  }
-
-  protected onDateRangeChange(range: Date[]): void {
-    this.dateRange.set(range);
-    if (range.length === 2 && range[1]) {
+    effect(() => {
+      this.selectedCategoryIds();
+      this.selectedSource();
+      this.selectedPaidBy();
+      this.dateRange();
       this.dispatchLoad();
-    }
+    });
   }
 
   protected removeFilter(key: string): void {
@@ -197,6 +183,9 @@ export class TransactionToolbar implements OnInit, OnDestroy {
   }
 
   private dispatchLoad(extra?: { q?: string }): void {
+    if (!this.accountId()) {
+      return;
+    }
     const range = this.dateRange();
     const monthFrom = range.length >= 1 ? this.toMonthString(range[0]) : undefined;
     const monthTo = range.length === 2 && range[1] ? this.toMonthString(range[1]) : undefined;
@@ -213,12 +202,10 @@ export class TransactionToolbar implements OnInit, OnDestroy {
   }
 
   private toMonthString(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    return `${y}-${m}`;
+    return DateTime.fromJSDate(d).toFormat('yyyy-MM');
   }
 
-  private formatDate(d: Date): string {
-    return `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getFullYear()}`;
+  private formatDateTime(d: Date): string {
+    return DateTime.fromJSDate(d).toFormat('dd.MM.yyyy');
   }
 }

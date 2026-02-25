@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, effect } from '@angular/core';
 import { select, Store } from '@ngxs/store';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SplitterModule } from 'primeng/splitter';
@@ -20,20 +20,25 @@ import { TransactionsDock } from './capture-dock/transactions-dock';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, TabsModule, SplitterModule, TransactionToolbar, TransactionList, TransactionDetailEditor, TransactionsDock],
 })
-export class TransactionsPage implements OnInit {
+export class TransactionsPage {
   private store = inject(Store);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  protected accountId = '';
+  protected accountId = signal<string>('');
 
   protected loading = select(TransactionPageState.loading);
   protected selectedId = select(TransactionPageState.selectedId);
   protected dockOpen = select(TransactionCaptureState.dockOpen);
   protected draftCount = select(TransactionCaptureState.draftCount);
 
-  ngOnInit(): void {
-    this.accountId = this.route.snapshot.params['accountId'];
+  constructor() {
+    effect(() => {
+      const id = this.route.snapshot.params['accountId'];
+      if (id) {
+        this.accountId.set(id);
+      }
+    });
   }
 
   protected navigateTab(value: string | number): void {

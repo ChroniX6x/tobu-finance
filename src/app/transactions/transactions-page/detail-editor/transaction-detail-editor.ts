@@ -4,12 +4,13 @@ import {
   computed,
   inject,
   input,
-  OnInit,
   signal,
   effect,
 } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store, select } from '@ngxs/store';
+import { DateTime } from 'luxon';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -55,7 +56,7 @@ interface TypeOption {
     ToastModule,
   ],
 })
-export class TransactionDetailEditor implements OnInit {
+export class TransactionDetailEditor {
   readonly accountId = input.required<string>();
 
   private store = inject(Store);
@@ -70,7 +71,6 @@ export class TransactionDetailEditor implements OnInit {
   protected account = select(AccountState.account);
 
   protected saving = signal(false);
-
   protected form!: FormGroup;
 
   protected typeOptions: TypeOption[] = [
@@ -113,16 +113,7 @@ export class TransactionDetailEditor implements OnInit {
   });
 
   constructor() {
-    // Whenever selected transaction changes, repopulate form
-    effect(() => {
-      const tx = this.selectedTx();
-      if (tx && this.form) {
-        this.populateForm(tx);
-      }
-    });
-  }
-
-  ngOnInit(): void {
+    // Initialize form
     this.form = this.fb.group({
       type: [null, Validators.required],
       amountMinor: [null, [Validators.required, Validators.min(0)]],
@@ -135,21 +126,26 @@ export class TransactionDetailEditor implements OnInit {
       status: [null, Validators.required],
     });
 
-    const tx = this.selectedTx();
-    if (tx) {
-      this.populateForm(tx);
-    }
-
     // Toggle paidBy validation based on source
-    this.form.get('isFromSharedAccount')?.valueChanges.subscribe((shared) => {
-      const paidByCtrl = this.form.get('paidByMemberId');
-      if (!shared) {
-        paidByCtrl?.setValidators(Validators.required);
-      } else {
-        paidByCtrl?.clearValidators();
-        paidByCtrl?.setValue(null);
+    this.form.get('isFromSharedAccount')?.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((shared) => {
+        const paidByCtrl = this.form.get('paidByMemberId');
+        if (!shared) {
+          paidByCtrl?.setValidators(Validators.required);
+        } else {
+          paidByCtrl?.clearValidators();
+          paidByCtrl?.setValue(null);
+        }
+        paidByCtrl?.updateValueAndValidity();
+      });
+
+    // Whenever selected transaction changes, repopulate form
+    effect(() => {
+      const tx = this.selectedTx();
+      if (tx && this.form) {
+        this.populateForm(tx);
       }
-      paidByCtrl?.updateValueAndValidity();
     });
   }
 
@@ -162,7 +158,7 @@ export class TransactionDetailEditor implements OnInit {
       categoryId: tx.categoryId,
       isFromSharedAccount: tx.isFromSharedAccount,
       paidByMemberId: tx.paidByMemberId,
-      bookDate: tx.bookDate ? new Date(tx.bookDate) : null,
+      bookDate: tx.bookDate ? DateTime.fromISO(tx.bookDate).toJSDate() : null,
       status: tx.status,
     }, { emitEvent: false });
 
@@ -199,16 +195,17 @@ export class TransactionDetailEditor implements OnInit {
         patch[key] = newVal;
       }
     }
+
     // amountMinor: form stores euros (display), backend needs cents
     const amountMinorNew = Math.round((raw['amountMinor'] ?? 0) * 100);
     if (amountMinorNew !== tx.amountMinor) {
       patch['amountMinor'] = amountMinorNew;
     }
 
-    // bookDate: convert Date object
+    // bookDate: convert Date object to ISO string using luxon
     const rawDate = raw['bookDate'];
     const newBookDate = rawDate instanceof Date
-      ? `${rawDate.getFullYear()}-${String(rawDate.getMonth() + 1).padStart(2, '0')}-${String(rawDate.getDate()).padStart(2, '0')}`
+      ? DateTime.fromJSDate(rawDate).toISODate()
       : (rawDate as string | null);
     if (newBookDate !== tx.bookDate) {
       patch['bookDate'] = newBookDate;
@@ -243,5 +240,4 @@ export class TransactionDetailEditor implements OnInit {
   protected isFieldInvalid(name: string): boolean {
     const ctrl = this.form.get(name);
     return !!ctrl && ctrl.invalid && ctrl.touched;
-  }
-}
+  }}

@@ -4,10 +4,11 @@ import {
   computed,
   inject,
   input,
-  OnInit,
   output,
+  signal,
 } from '@angular/core';
 import { Store, select } from '@ngxs/store';
+import * as _ from 'lodash';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
@@ -53,7 +54,7 @@ import { catchError, of } from 'rxjs';
     ToastModule,
   ],
 })
-export class TransactionList implements OnInit {
+export class TransactionList {
   readonly accountId = input.required<string>();
   readonly selectedId = input<string | null>(null);
   readonly transactionSelected = output<string | null>();
@@ -73,13 +74,7 @@ export class TransactionList implements OnInit {
   protected total = select(TransactionPageState.total);
   protected filters = select(TransactionPageState.filters);
 
-  protected expandedRows: Record<string, boolean> = {};
-
-  ngOnInit(): void {
-    // Sync NGXS expandedParents → p-table expandedRows
-    // (p-table uses its own expandedRows object; we keep NGXS as source-of-truth
-    //  and reflect into expandedRows on changes)
-  }
+  protected expandedRows = signal<Record<string, boolean>>({});
 
   protected isExpanded(parentId: string): boolean {
     return this.expandedParents().includes(parentId);
@@ -105,11 +100,10 @@ export class TransactionList implements OnInit {
   protected toggleExpand(parentId: string): void {
     this.store.dispatch(new ToggleParentExpanded(parentId));
     // Sync to p-table
-    if (this.expandedRows[parentId]) {
-      delete this.expandedRows[parentId];
-    } else {
-      this.expandedRows[parentId] = true;
-    }
+    this.expandedRows.update((rows) => ({
+      ...rows,
+      [parentId]: !rows[parentId],
+    }));
   }
 
   protected selectRow(tx: TransactionModel): void {

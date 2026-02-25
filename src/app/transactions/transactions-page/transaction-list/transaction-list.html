@@ -36,7 +36,7 @@
     (onPage)="onPageChange($event)"
     dataKey="id"
     styleClass="p-datatable-sm"
-    [expandedRowKeys]="expandedRows"
+    [expandedRowKeys]="expandedRows()"
   >
     <ng-template #header>
       <tr>

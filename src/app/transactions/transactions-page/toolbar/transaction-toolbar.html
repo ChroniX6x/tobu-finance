@@ -8,33 +8,29 @@
         type="text"
         placeholder="Suchen..."
         class="w-full"
-        [value]="searchValue()"
-        (input)="onSearchInput($any($event.target).value)"
+        [(ngModel)]="searchValue"
       />
     </p-iconfield>
 
     <!-- Zeitraum -->
     <p-datepicker
       selectionMode="range"
-      [ngModel]="dateRange()"
-      (onSelect)="onDateRangeChange($any($event))"
+      [(ngModel)]="dateRange"
       [showIcon]="true"
       view="month"
       dateFormat="mm/yy"
       placeholder="Zeitraum"
-      styleClass="w-44"
-      appendTo="body"
+      class="w-44"
     />
 
     <!-- Kategorie -->
     <p-multiselect
       [options]="categoryOptions()"
-      [ngModel]="selectedCategoryIds()"
-      (ngModelChange)="onCategoriesChange($event)"
+      [(ngModel)]="selectedCategoryIds"
       optionLabel="label"
       optionValue="value"
       placeholder="Kategorie"
-      styleClass="w-44"
+      class="w-44"
       appendTo="body"
       display="chip"
     />
@@ -42,8 +38,7 @@
     <!-- Quelle -->
     <p-select
       [options]="sourceOptions"
-      [ngModel]="selectedSource()"
-      (ngModelChange)="onSourceChange($event)"
+      [(ngModel)]="selectedSource"
       optionLabel="label"
       optionValue="value"
       placeholder="Quelle"
@@ -55,8 +50,7 @@
     @if (membersOptions().length > 0) {
       <p-select
         [options]="membersOptions()"
-        [ngModel]="selectedPaidBy()"
-        (ngModelChange)="onPaidByChange($event)"
+        [(ngModel)]="selectedPaidBy"
         optionLabel="label"
         optionValue="value"
         placeholder="Bezahlt von"

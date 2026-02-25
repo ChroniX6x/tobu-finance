@@ -7,7 +7,7 @@
       </p-tablist>
     </p-tabs>
 
-    <tbf-transaction-toolbar [accountId]="accountId" />
+    <tbf-transaction-toolbar [accountId]="accountId()" />
   </div>
 
   <p-splitter
@@ -19,7 +19,7 @@
     <ng-template #panel>
       <div class="h-full overflow-auto p-2">
         <tbf-transaction-list
-          [accountId]="accountId"
+          [accountId]="accountId()"
           [selectedId]="selectedId()"
           (transactionSelected)="onTransactionSelected($event)"
         />
@@ -28,7 +28,7 @@
     <ng-template #panel>
       <div class="h-full overflow-auto p-3">
         @if (selectedId()) {
-          <tbf-transaction-detail-editor [accountId]="accountId" />
+          <tbf-transaction-detail-editor [accountId]="accountId()" />
         } @else {
           <div class="flex flex-col items-center justify-center h-full text-surface-400 gap-3">
             <i class="pi pi-file-edit text-5xl"></i>
@@ -46,5 +46,5 @@
     </ng-template>
   </p-splitter>
 
-  <tbf-transactions-dock [accountId]="accountId" />
+  <tbf-transactions-dock [accountId]="accountId()" />
 </div>

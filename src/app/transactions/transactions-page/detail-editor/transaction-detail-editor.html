@@ -29,6 +29,8 @@
           optionValue="value"
           placeholder="Auswählen"
           [class.p-invalid]="isFieldInvalid('type')"
+          [disabled]="isChild()"
+          required
         />
         @if (isChild()) {
           <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
@@ -49,6 +51,7 @@
           [min]="0"
           placeholder="0,00"
           [class.p-invalid]="isFieldInvalid('amountMinor')"
+          required
         />
         @if (isFieldInvalid('amountMinor')) {
           <small class="text-red-500">Pflichtfeld (≥ 0)</small>
@@ -66,6 +69,7 @@
         placeholder="Titel eingeben..."
         [class.p-invalid]="isFieldInvalid('title')"
         maxlength="80"
+        required
       />
       @if (isFieldInvalid('title')) {
         <small class="text-red-500">Pflicht (2–80 Zeichen)</small>
@@ -83,6 +87,7 @@
           [showIcon]="true"
           placeholder="TT.MM.JJJJ"
           appendTo="body"
+          [disabled]="isChild()"
         />
         @if (isChild()) {
           <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
@@ -98,6 +103,7 @@
           optionLabel="label"
           optionValue="value"
           [class.p-invalid]="isFieldInvalid('status')"
+          required
         />
       </div>
     </div>
@@ -126,6 +132,8 @@
         optionLabel="label"
         optionValue="value"
         [class.p-invalid]="isFieldInvalid('isFromSharedAccount')"
+        [disabled]="isChild()"
+        required
       />
       @if (isChild()) {
         <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
@@ -145,6 +153,8 @@
           placeholder="Member auswählen"
           appendTo="body"
           [class.p-invalid]="isFieldInvalid('paidByMemberId')"
+          [disabled]="isChild()"
+          [required]="!form.get('isFromSharedAccount')?.value"
         />
         @if (isChild()) {
           <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
