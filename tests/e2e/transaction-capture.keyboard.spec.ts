@@ -169,6 +169,34 @@ test('supports keyboard flow for transaction capture', async ({ page }) => {
   await expect(page.locator('.queue-list .queue-item-title', { hasText: 'Milch' })).toHaveCount(0);
 });
 
+test('supports deterministic tabbing between amount, type and title', async ({ page }) => {
+  const amount = page.locator('.amount-field input').first();
+  const title = page.locator('#title-input');
+
+  await amount.click();
+  await expect(amount).toBeFocused();
+
+  await page.keyboard.press('Tab');
+  const onTypeAfterForwardTab = await page.evaluate(() => {
+    const active = document.activeElement as HTMLElement | null;
+    return !!active?.closest('.type-field');
+  });
+  expect(onTypeAfterForwardTab).toBe(true);
+
+  await page.keyboard.press('Tab');
+  await expect(title).toBeFocused();
+
+  await page.keyboard.press('Shift+Tab');
+  const onTypeAfterBackwardTab = await page.evaluate(() => {
+    const active = document.activeElement as HTMLElement | null;
+    return !!active?.closest('.type-field');
+  });
+  expect(onTypeAfterBackwardTab).toBe(true);
+
+  await page.keyboard.press('Shift+Tab');
+  await expect(amount).toBeFocused();
+});
+
 test('supports parent and member autocomplete in capture dock', async ({ page }) => {
   const memberInput = page.locator('input[id^="paid-by-select"]');
   await memberInput.click();

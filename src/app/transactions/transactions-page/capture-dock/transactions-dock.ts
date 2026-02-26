@@ -153,8 +153,9 @@ export class TransactionsDock {
     effect(() => {
       this.dockOpen();
       this.captureMode();
-      this.syncTypeButtonsTabIndex();
+      this.ensureTypeButtonsTabbable();
     });
+
   }
 
   protected setMode(mode: CaptureMode): void {
@@ -259,6 +260,29 @@ export class TransactionsDock {
     }
   }
 
+  private ensureTypeButtonsTabbable(): void {
+    queueMicrotask(() => {
+      requestAnimationFrame(() => {
+        const buttons = Array.from(
+          this.hostElement.nativeElement.querySelectorAll(
+            '.type-field p-togglebutton[role="button"]'
+          )
+        ) as HTMLElement[];
+
+        if (buttons.length === 0) {
+          return;
+        }
+
+        for (const button of buttons) {
+          button.tabIndex = -1;
+        }
+
+        const selected = buttons.find((button) => button.getAttribute('aria-pressed') === 'true');
+        (selected ?? buttons[0]).tabIndex = 11;
+      });
+    });
+  }
+
   protected draftStatusLabel(status: TransactionDraft['draftStatus']): string {
     switch (status) {
       case 'needsReview':
@@ -287,10 +311,6 @@ export class TransactionsDock {
     return this.drafts().some((draft) => draft.draftStatus === 'error');
   }
 
-  protected tabIndex(indexWithSplitParent: number): number {
-    return this.captureMode() === 'split' ? indexWithSplitParent : indexWithSplitParent - 1;
-  }
-
   protected onDocumentKeydown(event: KeyboardEvent): void {
     if (!this.dockOpen()) {
       return;
@@ -306,8 +326,10 @@ export class TransactionsDock {
       return;
     }
 
-    const target = event.target as HTMLElement | null;
-    const focusedInsideDock = !!target && this.hostElement.nativeElement.contains(target);
+    const eventTarget = event.target as HTMLElement | null;
+    const activeElement = document.activeElement as HTMLElement | null;
+    const focusNode = activeElement ?? eventTarget;
+    const focusedInsideDock = !!focusNode && this.hostElement.nativeElement.contains(focusNode);
     if (!focusedInsideDock) {
       return;
     }
@@ -318,8 +340,33 @@ export class TransactionsDock {
       return;
     }
 
+    if (event.key === 'Tab') {
+      const activeField = focusNode?.closest('.amount-field, .type-field, .title-field');
+      if (activeField?.classList.contains('amount-field') && !event.shiftKey) {
+        event.preventDefault();
+        this.focusTypeButton(0, true);
+        return;
+      }
+
+      if (activeField?.classList.contains('type-field')) {
+        event.preventDefault();
+        if (event.shiftKey) {
+          this.focusAmountInput(true);
+        } else {
+          this.focusTitleInput(true);
+        }
+        return;
+      }
+
+      if (activeField?.classList.contains('title-field') && event.shiftKey) {
+        event.preventDefault();
+        this.focusTypeButton(1, true);
+        return;
+      }
+    }
+
     if (event.key === 'Enter') {
-      if (target?.tagName === 'TEXTAREA') {
+      if (focusNode?.tagName === 'TEXTAREA') {
         return;
       }
       event.preventDefault();
@@ -330,23 +377,6 @@ export class TransactionsDock {
       return;
     }
 
-    if (event.key === 'Tab' && !event.shiftKey && this.isAmountInputTarget(target)) {
-      event.preventDefault();
-      this.focusTypeButton(0);
-      return;
-    }
-
-    if (event.key === 'Tab' && !event.shiftKey && this.isInsideTypeButtons(target)) {
-      event.preventDefault();
-      this.focusTitleInput();
-      return;
-    }
-
-    if (event.key === 'Tab' && event.shiftKey && this.isTitleInputTarget(target)) {
-      event.preventDefault();
-      this.focusTypeButton(1);
-      return;
-    }
   }
 
   private submitDraft(finalizeImmediately: boolean): boolean {
@@ -475,58 +505,65 @@ export class TransactionsDock {
     }
   }
 
-  private focusAmountInput(): void {
-    queueMicrotask(() => {
+  private focusAmountInput(immediate = false): void {
+    const focus = () => {
       const amountInput = this.hostElement.nativeElement.querySelector(
-        'input[id="amount-input"], input[id^="amount-input"]'
+        '.amount-field input'
       ) as HTMLInputElement | null;
       amountInput?.focus();
       amountInput?.select();
-    });
+    };
+
+    if (immediate) {
+      focus();
+      return;
+    }
+
+    queueMicrotask(focus);
   }
 
-  private focusTitleInput(): void {
-    queueMicrotask(() => {
+  private focusTitleInput(immediate = false): void {
+    const focus = () => {
       const titleInput = this.hostElement.nativeElement.querySelector(
-        'input#title-input'
+        '.title-field input'
       ) as HTMLInputElement | null;
       titleInput?.focus();
       titleInput?.select();
-    });
+    };
+
+    if (immediate) {
+      focus();
+      return;
+    }
+
+    queueMicrotask(focus);
   }
 
-  private focusTypeButton(index: number): void {
-    queueMicrotask(() => {
-      const buttons = this.hostElement.nativeElement.querySelectorAll(
-        '.type-field button'
-      ) as NodeListOf<HTMLButtonElement>;
-      const targetButton = buttons[index] ?? buttons[0];
-      targetButton?.focus();
-    });
-  }
+  private focusTypeButton(index: number, immediate = false): void {
+    const focus = () => {
+      const buttons = Array.from(this.hostElement.nativeElement.querySelectorAll(
+        '.type-field p-togglebutton[role="button"]'
+      )) as HTMLElement[];
 
-  private isAmountInputTarget(target: HTMLElement | null): boolean {
-    return !!target?.closest('input[id="amount-input"], input[id^="amount-input"]');
-  }
-
-  private isTitleInputTarget(target: HTMLElement | null): boolean {
-    return !!target?.closest('input#title-input');
-  }
-
-  private isInsideTypeButtons(target: HTMLElement | null): boolean {
-    return !!target?.closest('.type-field');
-  }
-
-  private syncTypeButtonsTabIndex(): void {
-    queueMicrotask(() => {
-      const tabIndex = this.tabIndex(3);
-      const buttons = this.hostElement.nativeElement.querySelectorAll(
-        '.type-field button'
-      ) as NodeListOf<HTMLButtonElement>;
-
-      for (const button of Array.from(buttons)) {
-        button.tabIndex = tabIndex;
+      if (buttons.length === 0) {
+        return;
       }
-    });
+
+      for (const button of buttons) {
+        button.tabIndex = -1;
+      }
+
+      const targetButton = buttons[index] ?? buttons[0];
+      targetButton.tabIndex = 11;
+      targetButton?.focus();
+    };
+
+    if (immediate) {
+      focus();
+      return;
+    }
+
+    queueMicrotask(focus);
   }
+
 }

@@ -48,7 +48,6 @@
               <p-autoComplete
                 inputId="parent-input"
                 formControlName="parent"
-                [tabindex]="tabIndex(1)"
                 [suggestions]="parentSuggestions()"
                 [dropdown]="true"
                 [forceSelection]="true"
@@ -65,12 +64,12 @@
             }
           }
 
-          <div class="field">
+          <div class="field amount-field">
             <label for="amount-input">Betrag *</label>
             <p-inputNumber
               inputId="amount-input"
               formControlName="amount"
-              [tabindex]="tabIndex(2)"
+              tabindex="10"
               mode="currency"
               currency="EUR"
               locale="de-DE"
@@ -86,7 +85,7 @@
             <p-selectButton
               inputId="type-select"
               formControlName="type"
-              [tabindex]="tabIndex(3)"
+              tabindex="11"
               [options]="typeOptions"
               optionLabel="label"
               optionValue="value"
@@ -94,9 +93,9 @@
             />
           </div>
 
-          <div class="field">
+          <div class="field title-field">
             <label for="title-input">Titel *</label>
-            <input id="title-input" pInputText formControlName="title" maxlength="80" [attr.tabindex]="tabIndex(4)" />
+            <input id="title-input" pInputText formControlName="title" maxlength="80" tabindex="12" />
           </div>
 
           <div class="field">
@@ -104,7 +103,6 @@
             <p-select
               inputId="category-select"
               formControlName="categoryId"
-              [tabindex]="tabIndex(5)"
               [options]="categoryOptions()"
               optionLabel="label"
               optionValue="value"
@@ -118,7 +116,6 @@
             <p-select
               inputId="source-select"
               formControlName="isFromSharedAccount"
-              [tabindex]="tabIndex(6)"
               [options]="sourceOptions"
               optionLabel="label"
               optionValue="value"
@@ -135,7 +132,6 @@
               [suggestions]="memberSuggestions()"
               [dropdown]="true"
               [forceSelection]="true"
-              [tabindex]="tabIndex(7)"
               (completeMethod)="searchMembers($event)"
               optionLabel="label"
               optionValue="value"
@@ -147,7 +143,7 @@
 
           <div class="field">
             <label for="date-input">Datum *</label>
-            <p-datepicker inputId="date-input" formControlName="bookDate" [tabindex]="tabIndex(8)" dateFormat="dd.mm.yy" appendTo="body" />
+            <p-datepicker inputId="date-input" formControlName="bookDate" dateFormat="dd.mm.yy" appendTo="body" />
           </div>
 
           <div class="actions full-width">
@@ -155,13 +151,11 @@
               label="In Queue"
               icon="pi pi-plus"
               severity="secondary"
-              [tabindex]="tabIndex(9)"
               (onClick)="addToQueue()"
             />
             <p-button
               label="Direkt speichern"
               icon="pi pi-check"
-              [tabindex]="tabIndex(10)"
               (onClick)="saveDirectly()"
             />
           </div>
