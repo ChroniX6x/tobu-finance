@@ -41,7 +41,7 @@ export class TransactionsPage {
     });
   }
 
-  protected navigateTab(value: string | number): void {
+  protected navigateTab(value: string | number | undefined): void {
     if (value === 'overview') {
       const accId = this.accountId();
       this.router.navigate(['/accounts', accId]);

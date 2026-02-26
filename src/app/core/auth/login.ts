@@ -20,10 +20,10 @@ import {AuthService} from './services/auth.service';
     imports: [CommonModule, ButtonModule, CheckboxModule, InputTextModule, PasswordModule, FormsModule, RouterModule, RippleModule, InputIcon, IconField, Fluid, AppConfigurator],
     template: `
         <div [class]="'flex min-h-screen  ' + (layoutService.isDarkTheme() ? 'layout-dark' : 'layout-light')">
-            <div *ngIf="layoutService.isDarkTheme()" class="w-6/12 h-screen hidden md:block flex-shrink-0" style="max-width: 490px; background-image: url('/images/pages/login-ondark.png'); background-repeat: no-repeat; background-size: cover"></div>
-            <div *ngIf="!layoutService.isDarkTheme()" class="w-6/12 h-screen hidden md:block flex-shrink-0" style="max-width: 490px; background-image: url('/images/pages/login-onlight.png'); background-repeat: no-repeat; background-size: cover"></div>
+            <div *ngIf="layoutService.isDarkTheme()" class="w-6/12 h-screen hidden md:block shrink-0" style="max-width: 490px; background-image: url('/images/pages/login-ondark.png'); background-repeat: no-repeat; background-size: cover"></div>
+            <div *ngIf="!layoutService.isDarkTheme()" class="w-6/12 h-screen hidden md:block shrink-0" style="max-width: 490px; background-image: url('/images/pages/login-onlight.png'); background-repeat: no-repeat; background-size: cover"></div>
             <div class="w-full" style="background: var(--surface-ground)">
-                <p-fluid class="min-h-screen text-center w-full flex items-center md:items-start justify-center flex-col bg-auto md:bg-contain !bg-no-repeat" style="padding: 20% 10% 20% 10%; background: var(--exception-pages-image); background-size: contain;">
+                <p-fluid class="min-h-screen text-center w-full flex items-center md:items-start justify-center flex-col bg-auto md:bg-contain bg-no-repeat!" style="padding: 20% 10% 20% 10%; background: var(--exception-pages-image); background-size: contain;">
                     <div class="flex flex-col">
                         <div class="flex items-center mb-12">
                             <img src="/images/logo-{{ layoutService.isDarkTheme() ? 'light' : 'dark' }}.png" style="width: 45px" alt="logo" />
@@ -59,7 +59,7 @@ import {AuthService} from './services/auth.service';
                             <img src="/images/logo-gray.png" style="width: 22px" />
                             <img src="/images/appname-gray.png" class="ml-2" style="width: 45px" />
                         </div>
-                        <span class="text-sm text-surface-500 dark:text-surface-400 mr-4">Copyright 2025</span>
+                        <span class="text-sm text-surface-500 dark:text-surface-400 mr-4">Copyright 2026</span>
                     </div>
                 </p-fluid>
             </div>

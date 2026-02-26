@@ -68,7 +68,8 @@ export class AccountOverview {
     });
   }
 
-  protected navigateTab(value: string | number): void {
+  protected navigateTab(value: string | number | undefined): void {
+    if (value == null) return;
     const accId = this.accountId();
     const target = value === 'transactions'
       ? ['/accounts', accId, 'transactions']

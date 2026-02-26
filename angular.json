@@ -31,7 +31,8 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/assets/styles.scss",
+              "src/assets/tailwind.css"
             ]
           },
           "configurations": {
@@ -39,8 +40,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1.5MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -79,13 +80,11 @@
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
+                "src/favicon.ico",
+                "src/assets"
             ],
             "styles": [
-              "src/styles.scss"
+              "src/assets/styles.scss"
             ]
           }
         }

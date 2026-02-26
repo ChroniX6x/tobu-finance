@@ -1,18 +1,18 @@
-import {Component, computed, ElementRef, inject, ViewChild} from '@angular/core';
-import {MenuItem} from 'primeng/api';
-import {Router, RouterModule} from '@angular/router';
-import {CommonModule} from '@angular/common';
-import {StyleClassModule} from 'primeng/styleclass';
-import {LayoutService} from '@/shell/service/layout.service';
-import {AuthService} from '@/core/auth/services/auth.service';
-import {Ripple} from 'primeng/ripple';
-import {InputText} from 'primeng/inputtext';
-import {ButtonModule} from 'primeng/button';
-import {IconField} from 'primeng/iconfield';
-import {InputIcon} from 'primeng/inputicon';
-import {FormsModule} from '@angular/forms';
-import {AppSidebar} from '@/shell/components/app.sidebar';
-import {AppBreadcrumb} from '@/shell/components/app.breadcrumb';
+import { Component, computed, ElementRef, inject, ViewChild } from '@angular/core';
+import { MenuItem } from 'primeng/api';
+import { Router, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { StyleClassModule } from 'primeng/styleclass';
+import { LayoutService } from '@/shell/service/layout.service';
+import { AuthService } from '@/core/auth/services/auth.service';
+import { Ripple } from 'primeng/ripple';
+import { InputText } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
+import { FormsModule } from '@angular/forms';
+import { AppSidebar } from '@/shell/components/app.sidebar';
+import { AppBreadcrumb } from '@/shell/components/app.breadcrumb';
 
 @Component({
     selector: '[app-topbar]',
@@ -33,33 +33,33 @@ import {AppBreadcrumb} from '@/shell/components/app.breadcrumb';
         </div>
         <div class="topbar-end">
             <ul class="topbar-menu">
-                <li class="!hidden lg:!block">
+                <li class="hidden! lg:block!">
                     <div
                         class="topbar-search"
                         [ngClass]="{
                             'topbar-search-active': searchBarActive()
                         }"
                     >
-                        <button pButton pRipple icon="pi pi-search" class="topbar-searchbutton text-surface-500 dark:text-surface-400 flex-shrink-0" severity="secondary" text rounded type="button" (click)="activateSearch()"></button>
+                        <button pButton pRipple icon="pi pi-search" class="topbar-searchbutton text-surface-500 dark:text-surface-400 shrink-0" severity="secondary" text rounded type="button" (click)="activateSearch()"></button>
                         <div class="search-input-wrapper">
                             <p-icon-field>
                                 <p-inputicon class="pi pi-search" />
-                                <input pInputText #searchinput autofocus type="text" placeholder="Search" (blur)="deactivateSearch()" (keydown.escape)="deactivateSearch()" />
+                                <input pInputText #searchinput autofocus type="text" placeholder="Search" (blur)="deactivateSearch()" (keydown.escape)="deactivateSearch()" class="w-full"/>
                             </p-icon-field>
                         </div>
                     </div>
                 </li>
 
                 <li class="profile-item topbar-item">
-                    <button pButton pRipple type="button" icon="pi pi-bell" class="text-surface-500 dark:text-surface-400 flex-shrink-0" severity="secondary" text rounded></button>
+                    <button pButton pRipple type="button" icon="pi pi-bell" class="text-surface-500 dark:text-surface-400 shrink-0" severity="secondary" text rounded></button>
                 </li>
 
                 <li class="profile-item topbar-item">
-                    <button pButton pRipple type="button" icon="pi pi-comment" class="relative text-surface-500 dark:text-surface-400 flex-shrink-0" severity="secondary" text rounded></button>
+                    <button pButton pRipple type="button" icon="pi pi-comment" class="relative text-surface-500 dark:text-surface-400 shrink-0" severity="secondary" text rounded></button>
                 </li>
 
                 <li class="ml-4">
-                    <button pButton pRipple type="button" icon="pi pi-palette" class="flex-shrink-0 config-button" text rounded (click)="onConfigButtonClick()"></button>
+                    <button pButton pRipple type="button" icon="pi pi-palette" class="shrink-0 config-button" text rounded (click)="onConfigButtonClick()"></button>
                 </li>
 
                 <li class="profile-item topbar-item">
@@ -67,8 +67,8 @@ import {AppBreadcrumb} from '@/shell/components/app.breadcrumb';
                         <img class="rounded-full" src="/images/avatar-m-1.jpg" />
                     </a>
 
-                    <ul class="topbar-menu active-topbar-menu !p-6 w-60 z-50 !hidden rounded">
-                        <li role="menuitem" class="!m-0 !mb-4">
+                    <ul class="topbar-menu active-topbar-menu p-6! w-60 z-50 !hidden rounded shadow-xl">
+                        <li role="menuitem" class="m-0! mb-4!">
                             <a
                                 href="#"
                                 class="flex items-center hover:text-primary-500 duration-200"
@@ -84,7 +84,7 @@ import {AppBreadcrumb} from '@/shell/components/app.breadcrumb';
                             </a>
                         </li>
 
-                        <li role="menuitem" class="!m-0 !mb-4">
+                        <li role="menuitem" class="m-0! mb-4!">
                             <a
                                 href="#"
                                 class="flex items-center hover:text-primary-500 duration-200"
@@ -99,7 +99,7 @@ import {AppBreadcrumb} from '@/shell/components/app.breadcrumb';
                                 <span>Settings</span>
                             </a>
                         </li>
-                        <li role="menuitem" class="!m-0">
+                        <li role="menuitem" class="m-0!">
                             <a
                                 (click)="onLogout($event)"
                                 class="flex items-center hover:text-primary-500 duration-200 cursor-pointer"
@@ -117,9 +117,9 @@ import {AppBreadcrumb} from '@/shell/components/app.breadcrumb';
                     </ul>
                 </li>
 
-                <li class="right-panel-button relative !hidden lg:!block">
-                    <button pButton pRipple type="button" label="Today" style="width: 5.7rem" icon="pi pi-bookmark" class="layout-rightmenu-button !hidden md:!inline-flex font-normal" (click)="onProfileMenuButtonClick()"></button>
-                    <button pButton pRipple type="button" icon="pi pi-bookmark" class="layout-rightmenu-button !block md:!hidden font-normal" (click)="onSidebarButtonClick()"></button>
+                <li class="right-panel-button relative hidden! lg:block!">
+                    <button pButton pRipple type="button" label="Today" style="width: 5.7rem" icon="pi pi-bookmark" class="layout-rightmenu-button hidden! md:inline-flex! font-normal" (click)="onProfileMenuButtonClick()"></button>
+                    <button pButton pRipple type="button" icon="pi pi-bookmark" class="layout-rightmenu-button block! md:hidden! font-normal" (click)="onSidebarButtonClick()"></button>
                 </li>
             </ul>
         </div>
@@ -164,7 +164,6 @@ export class AppTopbar {
             ...val,
             searchBarActive: false
         }));
-
     }
 
     onConfigButtonClick() {
@@ -174,11 +173,11 @@ export class AppTopbar {
     onSidebarButtonClick() {
         this.layoutService.layoutState.update((val) => ({
             ...val,
-            rightMenuVisible: true
+            rightMenuActive: true
         }));
     }
 
-    onProfileMenuButtonClick(){
+    onProfileMenuButtonClick() {
         this.layoutService.layoutState.update((val) => ({
             ...val,
             rightMenuActive: true
@@ -189,12 +188,9 @@ export class AppTopbar {
         event.preventDefault();
         this.authService.logout().subscribe({
             next: () => {
-                console.log('[Topbar] Logout successful');
                 this.router.navigate(['/auth/login']);
             },
-            error: (err) => {
-                console.error('[Topbar] Logout error:', err);
-                // Navigate to login anyway since session is cleared
+            error: () => {
                 this.router.navigate(['/auth/login']);
             }
         });
