@@ -8,8 +8,7 @@ import { withNgxsLoggerPlugin } from '@ngxs/logger-plugin';
 import { withNgxsReduxDevtoolsPlugin } from '@ngxs/devtools-plugin';
 import { withNgxsRouterPlugin } from '@ngxs/router-plugin';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import Aura from '@primeng/themes/aura';
+import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 import { AccountState } from './shared/state/account.state';
 import { CategoriesState } from './shared/state/categories.state';
@@ -43,7 +42,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
-    provideAnimationsAsync(),
     provideStore([AccountState, CategoriesState, TransactionPageState, TransactionCaptureState], {developmentMode: true}, withNgxsLoggerPlugin(), withNgxsReduxDevtoolsPlugin(), withNgxsRouterPlugin()),
     providePrimeNG({
       theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } }

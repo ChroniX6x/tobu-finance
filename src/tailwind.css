@@ -1,6 +1,0 @@
-/* @tailwind base;
-@tailwind components;
-@tailwind utilities; */
-@import "tailwindcss";
-@plugin "tailwindcss-primeui";
-@custom-variant dark (&:where(.app-dark, .app-dark *));

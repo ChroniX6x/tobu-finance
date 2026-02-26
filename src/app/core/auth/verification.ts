@@ -18,7 +18,7 @@ import {CommonModule} from "@angular/common";
         <div *ngIf="!layoutService.isDarkTheme()" class="w-6/12 h-screen hidden md:block flex-shrink-0" style="max-width: 490px; background-image: url('/images/pages/verification-onlight.png'); background-repeat: no-repeat; background-size: cover"></div>
         <div class="w-full" style="background: var(--surface-ground)">
 
-            <p-fluid class="min-h-screen text-center w-full flex items-center md:items-start justify-center flex-col bg-auto md:bg-contain !bg-no-repeat" style="padding: 20% 10% 20% 10%; background: var(--exception-pages-image); background-size: contain;">
+            <p-fluid class="min-h-screen text-center w-full flex items-center md:items-start justify-center flex-col bg-auto md:bg-contain bg-no-repeat!" style="padding: 20% 10% 20% 10%; background: var(--exception-pages-image); background-size: contain;">
                 <div class="flex flex-col">
                     <div class="flex items-center mb-12">
                         <img src="/images/logo-{{ layoutService.isDarkTheme() ? 'light' : 'dark' }}.png" style="width: 45px" alt="logo" />
@@ -50,7 +50,7 @@ import {CommonModule} from "@angular/common";
                         <img src="/images/logo-gray.png" style="width: 22px" alt="logo" />
                         <img src="/images/appname-gray.png" class="ml-2" style="width: 45px" alt="logo" />
                     </div>
-                    <span class="text-sm text-surface-500 dark:text-surface-400 mr-4">Copyright 2025</span>
+                    <span class="text-sm text-surface-500 dark:text-surface-400 mr-4">Copyright 2026</span>
                 </div>
             </p-fluid>
         </div>

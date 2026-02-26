@@ -1,0 +1,96 @@
+@import 'tailwindcss';
+
+@plugin 'tailwindcss-primeui';
+
+@custom-variant dark (&:where([class*="app-dark"], [class*="app-dark"] *));
+
+@theme {
+  --breakpoint-*: initial;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1920px;
+
+  --color-border: var(--border);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary-active: var(--p-primary-active);
+  --color-primary-active-contrast: var(--p-primary-active-contrast);
+
+  --shadow-stroke: var(--shadow-stroke);
+}
+
+@utility landing-button-primary {
+  @apply leading-6 bg-primary-active hover:bg-primary-500 text-surface-0 px-4 py-2 rounded-full font-medium transition-all;
+}
+
+@utility landing-button-secondary {
+  @apply leading-6 bg-surface-0 dark:bg-surface-950 hover:bg-surface-50 dark:hover:bg-surface-900 shadow-stroke text-surface-950 dark:text-surface-0 px-4 py-2 rounded-full font-medium transition-all;
+}
+
+@utility card {
+  @apply p-4 rounded-2xl bg-transparent dark:bg-transparent shadow-stroke;
+}
+
+@layer base {
+    :root {
+        --shadow-stroke: 0px 1px 2px 0px rgba(164, 172, 185, 0.24), 0px 0px 0px 1px rgba(18, 55, 105, 0.08);
+        --border: var(--p-surface-200);
+        --background: var(--p-surface-0);
+        --foreground: var(--p-surface-950);
+        --p-primary-active: var(--p-primary-600);
+        --p-primary-active-contrast: #ffffff;
+
+        --primary-color: var(--p-primary-color);
+        --primary-contrast-color: var(--p-primary-contrast-color);
+        --text-color: var(--p-text-color);
+        --text-muted-color: var(--p-text-muted-color);
+        --surface-ground: #ffffff;
+        --surface-border: var(--p-content-border-color);
+        --surface-card: var(--p-surface-50);
+        --surface-hover: var(--p-content-hover-background);
+        --surface-overlay: var(--p-overlay-popover-background);
+        --transition-duration: var(--p-transition-duration);
+        --focus-ring-shadow: var(--p-focus-ring-shadow);
+
+        --border-radius: var(--p-content-border-radius);
+    }
+
+    .app-dark {
+        --shadow-stroke: 0px 1px 2px 0px rgba(164, 172, 185, 0.12), 0px 0px 0px 1px #27272a;
+        --border: var(--p-surface-800);
+        --background: var(--p-surface-900);
+        --foreground: var(--p-surface-0);
+        --p-primary-active: var(--p-primary-600);
+        --p-primary-active-contrast: #ffffff;
+
+        --surface-ground: var(--p-surface-950);
+        --surface-card: var(--p-surface-900);
+    }
+
+    .p-noir {
+        --p-primary-active: var(--p-surface-950);
+        --p-primary-active-contrast: #ffffff;
+    }
+
+    .p-noir.app-dark {
+        --p-primary-active: #ffffff;
+        --p-primary-active-contrast: var(--p-surface-950);
+    }
+
+    html {
+        height: 100%;
+        line-height: 1.2;
+    }
+    * {
+        border-color: var(--border);
+    }
+    body {
+        @apply bg-background text-foreground overflow-x-clip p-0 m-0 min-h-full;
+        font-family: 'Archivo', Helvetica, Arial, sans-serif;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}

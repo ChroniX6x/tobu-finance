@@ -1,9 +1,9 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, computed, inject, Input, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { $t, updatePreset, updateSurfacePalette } from '@primeng/themes';
-import Aura from '@primeng/themes/aura';
-import Lara from '@primeng/themes/lara';
+import { $t, updatePreset, updateSurfacePalette } from '@primeuix/themes';
+import Aura from '@primeuix/themes/aura';
+import Lara from '@primeuix/themes/lara';
 import { PrimeNG } from 'primeng/config';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { LayoutService, MenuMode } from '@/shell/service/layout.service';
@@ -59,9 +59,9 @@ declare type SurfacesType = {
                                 [title]="primaryColor.name"
                                 (click)="updateColors($event, 'primary', primaryColor)"
                                 [ngClass]="{
-                                    'outline-primary': primaryColor.name === selectedPrimaryColor()
+                                    'outline outline-primary': primaryColor.name === selectedPrimaryColor()
                                 }"
-                                class="cursor-pointer w-6 h-6 rounded-full flex flex-shrink-0 items-center justify-center p-0 outline-none outline-offset-1"
+                                class="cursor-pointer w-6 h-6 rounded-full flex shrink-0 items-center justify-center outline-offset-1 shadow"
                                 [style]="{
                                     'background-color': primaryColor?.name === 'noir' ? 'var(--text-color)' : primaryColor?.palette?.['500']
                                 }"
@@ -78,9 +78,9 @@ declare type SurfacesType = {
                                 type="button"
                                 [title]="surface.name"
                                 (click)="updateColors($event, 'surface', surface)"
-                                class="cursor-pointer w-6 h-6 rounded-full flex flex-shrink-0 items-center justify-center p-0 outline-none outline-offset-1"
+                                class="cursor-pointer w-6 h-6 rounded-full flex shrink-0 items-center justify-center p-0 outline-offset-1"
                                 [ngClass]="{
-                                    'outline-primary': selectedSurface() ? selectedSurface() === surface.name : darkTheme() ? surface.name === 'zinc' : surface.name === 'slate'
+                                    'outline outline-primary': selectedSurface() ? selectedSurface() === surface.name : darkTheme() ? surface.name === 'zinc' : surface.name === 'slate'
                                 }"
                                 [style]="{
                                     'background-color': surface?.palette?.['500']

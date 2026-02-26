@@ -1,8 +1,7 @@
-import {computed, effect, Injectable, signal, Signal, WritableSignal} from '@angular/core';
-import {Subject} from 'rxjs';
-import {MenuItem} from 'primeng/api';
+﻿import { Injectable, effect, signal, computed, inject } from '@angular/core';
+import { Router } from '@angular/router';
 
-export type MenuMode = 'static' | 'overlay' | 'horizontal' | 'slim' | 'slim-plus' | 'reveal' | 'drawer';
+export type MenuMode = 'static' | 'overlay' | 'slim-plus' | 'slim' | 'horizontal' | 'reveal' | 'drawer';
 
 export interface LayoutConfig {
     preset: string;
@@ -12,111 +11,93 @@ export interface LayoutConfig {
     menuMode: MenuMode;
 }
 
-export interface LayoutState {
+interface LayoutState {
     staticMenuDesktopInactive: boolean;
     overlayMenuActive: boolean;
+    profileSidebarVisible: boolean;
     configSidebarVisible: boolean;
-    staticMenuMobileActive: boolean;
-    menuHoverActive: boolean;
-    rightMenuActive: boolean;
-    sidebarActive: boolean;
-    activeMenuItem: any;
-    overlaySubmenuActive: boolean;
-    anchored: boolean;
-    rightMenuVisible: boolean;
     searchBarActive: boolean;
-}
-
-export interface MenuChangeEvent {
-    key: string;
-    routeEvent?: boolean;
-}
-
-export interface TabCloseEvent {
-    tab: MenuItem;
-    index: number;
+    sidebarExpanded: boolean;
+    menuHoverActive: boolean;
+    activePath: any;
+    anchored: boolean;
+    rightMenuActive: boolean;
+    topbarMenuActive: boolean;
+    menuProfileActive: boolean;
+    mobileMenuActive: boolean;
 }
 
 @Injectable({
     providedIn: 'root'
 })
 export class LayoutService {
-    _config: LayoutConfig = {
+    layoutConfig = signal<LayoutConfig>({
         preset: 'Aura',
         primary: 'emerald',
         surface: null,
         darkTheme: true,
         menuMode: 'static'
-    };
+    });
 
-    _state: LayoutState = {
+    layoutState = signal<LayoutState>({
         staticMenuDesktopInactive: false,
         overlayMenuActive: false,
-        rightMenuActive: false,
         configSidebarVisible: false,
-        staticMenuMobileActive: false,
+        mobileMenuActive: false,
+        searchBarActive: false,
+        sidebarExpanded: false,
         menuHoverActive: false,
-        sidebarActive: false,
+        activePath: null,
         anchored: false,
-        activeMenuItem: null,
-        overlaySubmenuActive: false,
-        rightMenuVisible: false,
-        searchBarActive: false
-    };
+        profileSidebarVisible: false,
+        rightMenuActive: false,
+        topbarMenuActive: false,
+        menuProfileActive: false
+    });
 
-    layoutConfig = signal<LayoutConfig>(this._config);
+    router = inject(Router);
 
-    layoutState = signal<LayoutState>(this._state);
+    isDarkTheme = computed(() => this.layoutConfig().darkTheme);
 
-    private configUpdate = new Subject<LayoutConfig>();
+    isSlim = computed(() => this.layoutConfig().menuMode === 'slim');
 
-    private overlayOpen = new Subject<any>();
+    isSlimPlus = computed(() => this.layoutConfig().menuMode === 'slim-plus');
 
-    private menuSource = new Subject<MenuChangeEvent>();
+    isHorizontal = computed(() => this.layoutConfig().menuMode === 'horizontal');
 
-    private resetSource = new Subject();
+    isOverlay = computed(() => this.layoutConfig().menuMode === 'overlay');
 
-    menuSource$ = this.menuSource.asObservable();
+    hasOverlaySubmenu = computed(() => this.isSlim() || this.isSlimPlus() || this.isHorizontal());
 
-    resetSource$ = this.resetSource.asObservable();
+    hasOpenOverlay = computed(() => this.layoutState().overlayMenuActive || this.hasOpenOverlaySubmenu());
 
-    configUpdate$ = this.configUpdate.asObservable();
-
-    overlayOpen$ = this.overlayOpen.asObservable();
-
-    isSidebarActive: Signal<boolean> = computed(() => this.layoutState().overlayMenuActive || this.layoutState().staticMenuMobileActive || this.layoutState().overlaySubmenuActive);
+    hasOpenOverlaySubmenu = computed(() => {
+        return this.hasOverlaySubmenu() && !!this.layoutState().activePath;
+    });
 
     isSidebarStateChanged = computed(() => {
         const layoutConfig = this.layoutConfig();
         return layoutConfig.menuMode === 'horizontal' || layoutConfig.menuMode === 'slim' || layoutConfig.menuMode === 'slim-plus';
     });
 
-    isDarkTheme: Signal<boolean> = computed(() => this.layoutConfig().darkTheme);
-
-    isOverlay: Signal<boolean> = computed(() => this.layoutConfig().menuMode === 'overlay');
-
-    isSlim: Signal<boolean> = computed(() => this.layoutConfig().menuMode === 'slim');
-
-    isSlimPlus: Signal<boolean> = computed(() => this.layoutConfig().menuMode === 'slim-plus');
-
-    isHorizontal: Signal<boolean> = computed(() => this.layoutConfig().menuMode === 'horizontal');
-
-    transitionComplete: WritableSignal<boolean> = signal<boolean>(false);
+    isSidebarActive = computed(() => this.layoutState().overlayMenuActive || this.layoutState().mobileMenuActive);
 
     logo = computed(() => (this.layoutConfig().darkTheme ? 'light' : 'dark'));
 
-    rightMenuVisible = computed(() => this.layoutState().rightMenuActive);
+    changeMenuMode(mode: MenuMode) {
+        this.layoutConfig.update((prev) => ({ ...prev, menuMode: mode }));
+        this.layoutState.update((prev) => ({ ...prev, staticMenuDesktopInactive: false, overlayMenuActive: false, mobileMenuActive: false, sidebarExpanded: false, menuHoverActive: false, anchored: false }));
+
+        if (this.isDesktop()) {
+            this.layoutState.update((prev) => ({ ...prev, activePath: this.hasOverlaySubmenu() ? null : this.router.url }));
+        }
+    }
 
     private initialized = false;
 
-    constructor() {
-        effect(() => {
-            const config = this.layoutConfig();
-            if (config) {
-                this.onConfigUpdate();
-            }
-        });
+    private previousMenuMode: MenuMode | undefined = undefined;
 
+    constructor() {
         effect(() => {
             const config = this.layoutConfig();
 
@@ -129,29 +110,51 @@ export class LayoutService {
         });
 
         effect(() => {
-            this.isSidebarStateChanged() && this.reset();
+            this.updateMenuState();
         });
     }
 
+    private updateMenuState() {
+        const menuMode = this.layoutConfig().menuMode;
+        if (this.previousMenuMode === undefined) {
+            this.previousMenuMode = menuMode;
+            return;
+        }
+
+        if (this.previousMenuMode === menuMode) {
+            return;
+        }
+
+        this.previousMenuMode = menuMode;
+
+        const isOverlaySubmenu = menuMode === 'slim' || menuMode === 'slim-plus' || menuMode === 'horizontal';
+
+        this.layoutState.update((prev) => ({
+            ...prev,
+            staticMenuDesktopInactive: false,
+            overlayMenuActive: false,
+            mobileMenuActive: false,
+            sidebarExpanded: false,
+            menuHoverActive: false,
+            anchored: false,
+            activePath: this.isDesktop() ? (isOverlaySubmenu ? null : this.router.url) : prev.activePath
+        }));
+    }
+
     private handleDarkModeTransition(config: LayoutConfig): void {
-        if ((document as any).startViewTransition) {
+        const supportsViewTransition = 'startViewTransition' in document;
+
+        if (supportsViewTransition) {
             this.startViewTransition(config);
         } else {
             this.toggleDarkMode(config);
-            this.onTransitionEnd();
         }
     }
 
     private startViewTransition(config: LayoutConfig): void {
-        const transition = (document as any).startViewTransition(() => {
+        document.startViewTransition(() => {
             this.toggleDarkMode(config);
         });
-
-        transition.ready
-            .then(() => {
-                this.onTransitionEnd();
-            })
-            .catch(() => {});
     }
 
     toggleDarkMode(config?: LayoutConfig): void {
@@ -163,72 +166,33 @@ export class LayoutService {
         }
     }
 
-    private onTransitionEnd() {
-        this.transitionComplete.set(true);
-        setTimeout(() => {
-            this.transitionComplete.set(false);
-        });
-    }
-
     onMenuToggle() {
         if (this.isOverlay()) {
-            this.layoutState.update((prev) => ({
-                ...prev,
-                overlayMenuActive: !this.layoutState().overlayMenuActive
-            }));
-
-            if (this.layoutState().overlayMenuActive) {
-                this.overlayOpen.next(null);
-            }
+            this.layoutState.update((prev) => ({ ...prev, overlayMenuActive: !this.layoutState().overlayMenuActive }));
         }
 
         if (this.isDesktop()) {
-            this.layoutState.update((prev) => ({
-                ...prev,
-                staticMenuDesktopInactive: !this.layoutState().staticMenuDesktopInactive
-            }));
+            this.layoutState.update((prev) => ({ ...prev, staticMenuDesktopInactive: !this.layoutState().staticMenuDesktopInactive }));
         } else {
-            this.layoutState.update((prev) => ({
-                ...prev,
-                staticMenuMobileActive: !this.layoutState().staticMenuMobileActive
-            }));
-
-            if (this.layoutState().staticMenuMobileActive) {
-                this.overlayOpen.next(null);
-            }
+            this.layoutState.update((prev) => ({ ...prev, mobileMenuActive: !this.layoutState().mobileMenuActive }));
         }
     }
 
-    isDesktop() {
-        return window.innerWidth > 991;
+    onMenuProfileToggle() {
+        this.layoutState.update((prev) => ({ ...prev, menuProfileActive: !prev.menuProfileActive }));
     }
 
-    isMobile() {
-        return !this.isDesktop();
-    }
-
-    onConfigUpdate() {
-        this._config = { ...this.layoutConfig() };
-        this.configUpdate.next(this.layoutConfig());
-        this.toggleDarkMode();
-    }
-
-    onMenuStateChange(event: MenuChangeEvent) {
-        this.menuSource.next(event);
-    }
-
-    reset() {
-        this.resetSource.next(true);
-    }
-
-    onOverlaySubmenuOpen() {
-        this.overlayOpen.next(null);
-    }
-
-    showProfileSidebar() {
+    toggleProfileSidebar() {
         this.layoutState.update((prev) => ({
             ...prev,
-            profileSidebarVisible: true
+            profileSidebarVisible: !prev.profileSidebarVisible
+        }));
+    }
+
+    toggleConfigSidebar() {
+        this.layoutState.update((prev) => ({
+            ...prev,
+            configSidebarVisible: !prev.configSidebarVisible
         }));
     }
 
@@ -240,9 +204,17 @@ export class LayoutService {
     }
 
     hideConfigSidebar() {
+        this.layoutState.update((prev) => ({ ...prev, configSidebarVisible: false }));
+    }
+
+    showProfileSidebar() {
         this.layoutState.update((prev) => ({
             ...prev,
-            configSidebarVisible: false
+            profileSidebarVisible: true
         }));
+    }
+
+    isDesktop() {
+        return window.innerWidth > 991;
     }
 }

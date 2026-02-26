@@ -23,13 +23,13 @@ interface MenuItem {
 }
 
 @Component({
-    selector: '[app-menu]',
+    selector: 'app-menu',
     standalone: true,
     imports: [CommonModule, AppMenuitem, RouterModule],
     template: `<ul class="layout-menu" #menuContainer>
-        @for (item of model; track $index; let i = $index) {
+        @for (item of model; track item.label) {
           @if(!item.separator) {
-            <li app-menuitem [item]="item" [index]="i" [root]="true"></li>
+            <li app-menuitem [item]="item" [root]="true"></li>
           }
           @if(item.separator) {
             <li class="menu-separator"></li>

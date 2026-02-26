@@ -11,7 +11,7 @@ import {AppConfigurator} from "@/shell/components/app.configurator";
     imports: [ButtonModule, RouterModule, RippleModule, AppConfigurator],
     template: ` <div [class]="'exception-body min-h-screen ' + (layoutService.isDarkTheme() ? 'layout-dark' : 'layout-light')" style="background: var(--surface-ground)">
         <div
-            class="exception-container min-h-screen flex items-center justify-center flex-col bg-auto md:bg-contain !bg-no-repeat"
+            class="exception-container min-h-screen flex items-center justify-center flex-col bg-auto md:bg-contain bg-no-repeat!"
             [style]="{
                 background: 'var(--exception-pages-image)',
                 backgroundRepeat: 'no-repeat',

@@ -1,5 +1,3 @@
-@use './_sass_variables' as *;
-
 .layout-sidebar {
     position: fixed;
     height: 100%;
@@ -22,7 +20,7 @@
             .app-logo-normal {
                 display: inline;
                 img {
-                    height: 1.714rem;
+                    height: 2rem;
                     border: 0 none;
                 }
             }
@@ -41,6 +39,7 @@
             display: none;
         }
     }
+
     .layout-menu-container {
         overflow: auto;
         flex: 1;
@@ -54,12 +53,15 @@
 
         > li {
             margin-bottom: 2.25rem;
+
             &:first-child {
                 margin-top: 2rem;
             }
         }
+
         li {
             border-radius: 8px;
+
             a {
                 border-left: 8px solid transparent;
             }
@@ -68,6 +70,7 @@
         .layout-root-menuitem {
             > div {
                 padding-left: 1.5rem;
+                padding-top: 0.5rem;
                 margin-bottom: 0.5rem;
                 font-size: 12px;
 
@@ -77,8 +80,15 @@
                     text-transform: uppercase;
                 }
             }
+            
             > a {
                 display: none;
+            }
+
+            > ul {
+                > li.active-menuitem {
+                    background-color: var(--root-menu-item-hover-bg);
+                }
             }
         }
 
@@ -93,13 +103,18 @@
         }
 
         li.active-menuitem {
-            background-color: var(--root-menu-item-hover-bg);
             > a {
                 border-left-color: var(--primary-color);
                 background-color: var(--root-menu-item-hover-bg);
+
                 .layout-submenu-toggler {
                     transform: rotate(-180deg);
                 }
+            }
+
+            > ul {
+                max-height: 1000px;
+                transition: max-height 1s ease-in-out;
             }
         }
 
@@ -117,7 +132,8 @@
                 cursor: pointer;
                 padding: 0.5rem 1rem;
                 border-radius: 8px;
-                transition: background-color var(--layout-section-transition-duration), box-shadow var(--layout-section-transition-duration);
+                transition:
+                    box-shadow var(--transition-duration);
 
                 .layout-menuitem-icon {
                     margin-right: 0.5rem;
@@ -126,7 +142,7 @@
                 .layout-submenu-toggler {
                     font-size: 75%;
                     margin-left: auto;
-                    transition: transform var(--layout-section-transition-duration);
+                    transition: transform var(--transition-duration);
                 }
 
                 &.active-route {
@@ -142,6 +158,8 @@
             ul {
                 overflow: hidden;
                 border-radius: var(--border-radius);
+                max-height: 0;
+                transition: max-height 0.45s cubic-bezier(0.86, 0, 0.07, 1);
 
                 li {
                     a {

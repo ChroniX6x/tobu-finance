@@ -36,7 +36,7 @@ interface Breadcrumb {
         <ul class="breadcrumb-menu flex items-center justify-end lg:hidden absolute right-0 top-0 z-40 h-12 w-screen">
             <li class="w-full m-0 ml-4">
                 <div class="breadcrumb-search flex justify-end" [ngClass]="{ 'breadcrumb-search-active': searchActive() }">
-                    <button pButton pRipple icon="pi pi-search" class="breadcrumb-searchbutton text-surface-500 dark:text-surface-400 flex-shrink-0" type="button" severity="secondary" text rounded (click)="activateSearch()"></button>
+                    <button pButton pRipple icon="pi pi-search" class="breadcrumb-searchbutton text-surface-500 dark:text-surface-400 shrink-0" type="button" severity="secondary" text rounded (click)="activateSearch()"></button>
                     <div class="search-input-wrapper">
                         <p-icon-field>
                             <p-inputicon class="pi pi-search" />
@@ -46,8 +46,8 @@ interface Breadcrumb {
                 </div>
             </li>
             <li class="right-panel-button relative">
-                <button pButton pRipple type="button" label="Today" style="width: 6.7rem" icon="pi pi-bookmark" class="layout-rightmenu-button !hidden md:!inline-flex font-normal" (click)="onProfileMenuButtonClick()"></button>
-                <Button pButton pRipple style="width: 3.286rem" icon="pi pi-bookmark" class="layout-rightmenu-button !block md:!hidden font-normal" (click)="onProfileMenuButtonClick()"></Button>
+                <button pButton pRipple type="button" label="Today" style="width: 6.7rem" icon="pi pi-bookmark" class="layout-rightmenu-button hidden! md:inline-flex! font-normal" (click)="onProfileMenuButtonClick()"></button>
+                <button pButton pRipple style="width: 3.286rem" class="layout-rightmenu-button block! md:hidden! font-normal" (click)="onProfileMenuButtonClick()"><i class="pi pi-bookmark"></i></button>
             </li>
         </ul>`,
     host: {
@@ -99,7 +99,6 @@ export class AppBreadcrumb {
         }));
         setTimeout(() => {
             this.searchInput.nativeElement?.focus();
-            console.log(this.searchInput);
         }, 250);
     }
 
