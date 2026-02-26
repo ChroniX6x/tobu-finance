@@ -2,8 +2,8 @@ import {Component, inject} from '@angular/core';
 import {RouterModule} from '@angular/router';
 import {ButtonModule} from 'primeng/button';
 import {RippleModule} from 'primeng/ripple';
-import {LayoutService} from '@/core/layout/service/layout.service';
-import {AppConfigurator} from "@/core/layout/components/app.configurator";
+import {LayoutService} from '@/shell/service/layout.service';
+import {AppConfigurator} from "@/shell/components/app.configurator";
 
 @Component({
     selector: 'app-access',

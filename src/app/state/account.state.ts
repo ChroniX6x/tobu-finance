@@ -1,9 +1,9 @@
 import { State, Selector, Action, StateContext } from '@ngxs/store';
 import { Injectable } from '@angular/core';
 import { map, switchMap, tap } from 'rxjs/operators';
-import { AccountModel } from '@/domain/account.model';
-import { MembersDataService } from '@/domain/member-data.service';
-import { AccountDataService } from '@/domain/account-data.service';
+import { AccountModel } from '@/shared/models/account.model';
+import { MembersDataService } from '@/accounts/domain/member-data.service';
+import { AccountDataService } from '@/accounts/domain/account-data.service';
 
 export class LoadAccounts {
   static readonly type = '[Accounts] Load';

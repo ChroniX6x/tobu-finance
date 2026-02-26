@@ -11,9 +11,10 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import Aura from '@primeng/themes/aura';
 import { providePrimeNG } from 'primeng/config';
-import { AccountState } from './state/account.state';
-import { CategoriesState } from './state/categories.state';
-import { TransactionsState } from './state/transactions.state';
+import { AccountState } from './shared/state/account.state';
+import { CategoriesState } from './shared/state/categories.state';
+import { TransactionPageState } from './transactions/state/transaction-page.state';
+import { TransactionCaptureState } from './transactions/state/transaction-capture.state';
 import { API_BASE_URL } from './core/api-base-url.token';
 import { authInterceptor } from './core/auth/interceptors/auth.interceptor';
 import { AuthService } from './core/auth/services/auth.service';
@@ -43,7 +44,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideAnimationsAsync(),
-    provideStore([AccountState,CategoriesState,TransactionsState], {developmentMode: true}, withNgxsLoggerPlugin(), withNgxsReduxDevtoolsPlugin(), withNgxsRouterPlugin()),
+    provideStore([AccountState, CategoriesState, TransactionPageState, TransactionCaptureState], {developmentMode: true}, withNgxsLoggerPlugin(), withNgxsReduxDevtoolsPlugin(), withNgxsRouterPlugin()),
     providePrimeNG({
       theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } }
     }),

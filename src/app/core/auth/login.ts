@@ -8,9 +8,9 @@ import {PasswordModule} from 'primeng/password';
 import {RippleModule} from 'primeng/ripple';
 import {InputIcon} from 'primeng/inputicon';
 import {IconField} from 'primeng/iconfield';
-import {LayoutService} from '@/core/layout/service/layout.service';
+import {LayoutService} from '@/shell/service/layout.service';
 import {Fluid} from 'primeng/fluid';
-import {AppConfigurator} from "@/core/layout/components/app.configurator";
+import {AppConfigurator} from "@/shell/components/app.configurator";
 import {CommonModule} from "@angular/common";
 import {AuthService} from './services/auth.service';
 

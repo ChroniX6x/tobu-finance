@@ -1,0 +1,86 @@
+<div class="transaction-toolbar">
+  <div class="toolbar-main flex flex-wrap items-center gap-2 p-3">
+    <!-- Search -->
+    <p-iconfield class="flex-1 min-w-48">
+      <p-inputicon class="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Suchen..."
+        class="w-full"
+        [(ngModel)]="searchValue"
+      />
+    </p-iconfield>
+
+    <!-- Zeitraum -->
+    <p-datepicker
+      selectionMode="range"
+      [(ngModel)]="dateRange"
+      [showIcon]="true"
+      view="month"
+      dateFormat="mm/yy"
+      placeholder="Zeitraum"
+      class="w-44"
+    />
+
+    <!-- Kategorie -->
+    <p-multiselect
+      [options]="categoryOptions()"
+      [ngModel]="selectedCategoryIds()"
+      (ngModelChange)="onCategoryChange($event)"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Kategorie"
+      class="w-44"
+      appendTo="body"
+      display="chip"
+    />
+
+    <!-- Quelle -->
+    <p-select
+      [options]="sourceOptions"
+      [(ngModel)]="selectedSource"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Quelle"
+      styleClass="w-40"
+      appendTo="body"
+    />
+
+    <!-- Bezahlt von -->
+    @if (membersOptions().length > 0) {
+      <p-select
+        [options]="membersOptions()"
+        [(ngModel)]="selectedPaidBy"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Bezahlt von"
+        styleClass="w-44"
+        appendTo="body"
+      />
+    }
+
+    <!-- CTA -->
+    <p-button
+      label="Neue Buchung"
+      icon="pi pi-plus"
+      (onClick)="newTransaction()"
+    />
+  </div>
+
+  <!-- Active filter chips -->
+  @if (activeFilters().length > 0) {
+    <div class="filter-chips flex flex-wrap items-center gap-1 px-3 py-2 border-b border-surface-200">
+      @for (chip of activeFilters(); track chip.key) {
+        <p-chip [label]="chip.label" [removable]="true" (onRemove)="removeFilter(chip.key)" />
+      }
+      <button
+        type="button"
+        class="text-xs text-primary-500 underline hover:text-primary-700 ml-1"
+        (click)="resetAll()"
+      >
+        Alle zurücksetzen
+      </button>
+    </div>
+  }
+</div>

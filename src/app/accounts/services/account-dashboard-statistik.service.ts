@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { AccountModel } from '@/domain/account.model';
-import { MemberModel } from '@/domain/member.model';
-import { CategoryModel } from '@/domain/category.model';
-import { TransactionModel } from '@/domain/transaction.model';
+import { AccountModel } from '@/shared/models/account.model';
+import { MemberModel } from '@/shared/models/member.model';
+import { CategoryModel } from '@/shared/models/category.model';
+import { TransactionModel } from '@/transactions/domain/transaction.model';
 
 // Chart types
 export interface ChartDataset {
@@ -137,7 +137,7 @@ export class AccountDashboardStatistikService {
         expenses
             .filter((t) => t.month === currentMonth && t.status === 'booked')
             .forEach((t) => {
-                const name = categories.find((c) => c.id === t.categoryId)?.name ?? 'Unbekannt';
+                const name = categories.find((c) => c._id === t.categoryId)?.name ?? 'Unbekannt';
                 categorySums[name] = (categorySums[name] || 0) + t.amountMinor;
             });
         const sortedCategories = Object.entries(categorySums)

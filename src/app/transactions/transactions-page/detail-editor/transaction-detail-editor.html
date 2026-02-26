@@ -1,0 +1,252 @@
+<p-toast position="top-right" />
+
+@if (selectedTx(); as tx) {
+  <form [formGroup]="form" (ngSubmit)="save()" class="detail-editor flex flex-col gap-4">
+
+    <!-- Child: "Teil von" info bar -->
+    @if (isChild()) {
+      <div class="child-info-bar flex items-center gap-2 p-2 rounded-lg bg-surface-50 border border-surface-200">
+        <i class="pi pi-info-circle text-blue-500"></i>
+        <span class="text-sm text-surface-600">Teil von:</span>
+        @if (parentTx(); as parent) {
+          <button type="button" class="text-sm text-primary-600 underline hover:text-primary-800 font-medium" (click)="goToParent()">
+            {{ parent.title }}
+          </button>
+        }
+        <span class="ml-auto text-xs text-surface-400">Felder geerbt vom Parent</span>
+      </div>
+    }
+
+    <!-- Type + Amount -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="label-sm" for="type">Typ *</label>
+        <p-select
+          inputId="type"
+          formControlName="type"
+          [options]="typeOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Auswählen"
+          [class.p-invalid]="isFieldInvalid('type')"
+          [disabled]="isChild()"
+          required
+        />
+        @if (isChild()) {
+          <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
+        }
+        @if (isFieldInvalid('type')) {
+          <small class="text-red-500">Pflichtfeld</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="label-sm" for="amount">Betrag * (€)</label>
+        <p-inputnumber
+          inputId="amount"
+          formControlName="amountMinor"
+          mode="decimal"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+          [min]="0"
+          placeholder="0,00"
+          [class.p-invalid]="isFieldInvalid('amountMinor')"
+          required
+        />
+        @if (isFieldInvalid('amountMinor')) {
+          <small class="text-red-500">Pflichtfeld (≥ 0)</small>
+        }
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div class="flex flex-col gap-1">
+      <label class="label-sm" for="title">Titel *</label>
+      <input
+        pInputText
+        id="title"
+        formControlName="title"
+        placeholder="Titel eingeben..."
+        [class.p-invalid]="isFieldInvalid('title')"
+        maxlength="80"
+        required
+      />
+      @if (isFieldInvalid('title')) {
+        <small class="text-red-500">Pflicht (2–80 Zeichen)</small>
+      }
+    </div>
+
+    <!-- Date + Status -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="label-sm" for="bookDate">Datum</label>
+        <p-datepicker
+          inputId="bookDate"
+          formControlName="bookDate"
+          dateFormat="dd.mm.yy"
+          [showIcon]="true"
+          placeholder="TT.MM.JJJJ"
+          appendTo="body"
+          [disabled]="isChild()"
+        />
+        @if (isChild()) {
+          <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="label-sm" for="status">Status *</label>
+        <p-select
+          inputId="status"
+          formControlName="status"
+          [options]="[{label:'Ausstehend', value:'pending'},{label:'Gebucht',value:'booked'}]"
+          optionLabel="label"
+          optionValue="value"
+          [class.p-invalid]="isFieldInvalid('status')"
+          required
+        />
+      </div>
+    </div>
+
+    <!-- Category -->
+    <div class="flex flex-col gap-1">
+      <label class="label-sm" for="category">Kategorie</label>
+      <p-select
+        inputId="category"
+        formControlName="categoryId"
+        [options]="categoryOptions()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Nicht kategorisiert"
+        [showClear]="true"
+        appendTo="body"
+      />
+    </div>
+
+    <!-- Source / Zahlungsquelle -->
+    <div class="flex flex-col gap-1">
+      <label class="label-sm">Zahlungsquelle *</label>
+      <p-select
+        formControlName="isFromSharedAccount"
+        [options]="[{label:'Gemeinschaftskonto', value:true},{label:'Privat', value:false}]"
+        optionLabel="label"
+        optionValue="value"
+        [class.p-invalid]="isFieldInvalid('isFromSharedAccount')"
+        [disabled]="isChild()"
+        required
+      />
+      @if (isChild()) {
+        <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
+      }
+    </div>
+
+    <!-- Bezahlt von (nur bei Privat) -->
+    @if (showPaidBy()) {
+      <div class="flex flex-col gap-1">
+        <label class="label-sm" for="paidBy">Bezahlt von *</label>
+        <p-select
+          inputId="paidBy"
+          formControlName="paidByMemberId"
+          [options]="memberOptions()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Member auswählen"
+          appendTo="body"
+          [class.p-invalid]="isFieldInvalid('paidByMemberId')"
+          [disabled]="isChild()"
+          [required]="!form.get('isFromSharedAccount')?.value"
+        />
+        @if (isChild()) {
+          <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
+        }
+        @if (isFieldInvalid('paidByMemberId')) {
+          <small class="text-red-500">Pflichtfeld bei Privat</small>
+        }
+      </div>
+    }
+
+    <!-- Notes -->
+    <div class="flex flex-col gap-1">
+      <label class="label-sm" for="notes">Notizen</label>
+      <textarea
+        pTextarea
+        id="notes"
+        formControlName="notes"
+        rows="3"
+        placeholder="Optionale Notizen..."
+        maxlength="1000"
+      ></textarea>
+    </div>
+
+    <!-- Split Panel (nur für Parent mit Splits) -->
+    @if (!isChild() && splitMeta(); as meta) {
+      <p-divider />
+      <div class="split-panel">
+        <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
+          <i class="pi pi-sitemap text-primary-500"></i>
+          Teiltransaktionen
+        </h4>
+
+        <div class="split-summary grid grid-cols-3 gap-2 mb-3">
+          <div class="stat-card">
+            <span class="label">Gesamt</span>
+            <span class="value">{{ formatAmount(tx.amountMinor) }} €</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">Zugewiesen</span>
+            <span class="value text-blue-600">{{ formatAmount(meta.assignedMinor) }} €</span>
+          </div>
+          <div class="stat-card" [class.rest-zero]="meta.restMinor === 0">
+            <span class="label">Rest</span>
+            <span class="value" [class]="meta.restMinor === 0 ? 'text-green-600' : 'text-orange-600'">
+              {{ formatAmount(meta.restMinor) }} €
+            </span>
+          </div>
+        </div>
+
+        <p-progressbar
+          [value]="meta.completionRatio * 100"
+          styleClass="mb-3"
+          [showValue]="false"
+        />
+
+        <!-- Children list -->
+        <div class="children-list flex flex-col gap-1 mb-3">
+          @for (child of children(); track child._id) {
+            <div
+              class="child-item flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-surface-50"
+              (click)="selectChild(child)"
+            >
+              <i class="pi pi-subdirectory-right text-surface-300 text-xs"></i>
+              <span class="flex-1 text-sm">{{ child.title }}</span>
+              <span class="text-sm font-medium" [class]="child.type === 'expense' ? 'text-red-500' : 'text-green-600'">
+                {{ child.type === 'expense' ? '−' : '+' }} {{ formatAmount(child.amountMinor) }} €
+              </span>
+            </div>
+          }
+        </div>
+
+        @if (meta.restMinor === 0) {
+          <div class="container-badge text-center text-xs py-1 px-2 rounded bg-purple-50 text-purple-700">
+            Container-only (Rest = 0, zählt nicht in Charts)
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Save button -->
+    <div class="flex justify-end gap-2 pt-2 border-t border-surface-100">
+      <p-button
+        type="submit"
+        label="Speichern"
+        icon="pi pi-check"
+        [loading]="saving()"
+        [disabled]="form.pristine"
+      />
+    </div>
+  </form>
+} @else {
+  <div class="flex items-center justify-center h-24 text-surface-400 text-sm">
+    Keine Buchung ausgewählt
+  </div>
+}

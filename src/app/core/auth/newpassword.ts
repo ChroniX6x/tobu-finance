@@ -5,10 +5,10 @@ import { ButtonModule } from 'primeng/button';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
-import { LayoutService } from '@/core/layout/service/layout.service';
+import { LayoutService } from '@/shell/service/layout.service';
 import { Fluid } from 'primeng/fluid';
 import { RippleModule } from 'primeng/ripple';
-import { AppConfigurator } from '@/core/layout/components/app.configurator';
+import { AppConfigurator } from '@/shell/components/app.configurator';
 import { CommonModule } from '@angular/common';
 
 @Component({

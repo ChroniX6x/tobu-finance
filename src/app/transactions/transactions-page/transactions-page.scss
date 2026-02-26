@@ -1,0 +1,20 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.transactions-page {
+  height: 100%;
+  min-height: 0;
+}
+
+::ng-deep .p-splitter {
+  border: none;
+  border-radius: 0;
+}
+
+::ng-deep .p-splitter-panel {
+  overflow: hidden;
+}

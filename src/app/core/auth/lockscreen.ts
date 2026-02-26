@@ -5,9 +5,9 @@ import {InputText} from 'primeng/inputtext';
 import {ButtonModule} from 'primeng/button';
 import {Ripple} from 'primeng/ripple';
 import {RouterModule} from '@angular/router';
-import {LayoutService} from '@/core/layout/service/layout.service';
+import {LayoutService} from '@/shell/service/layout.service';
 import {Fluid} from 'primeng/fluid';
-import {AppConfigurator} from "@/core/layout/components/app.configurator";
+import {AppConfigurator} from "@/shell/components/app.configurator";
 import {CommonModule} from "@angular/common";
 
 @Component({

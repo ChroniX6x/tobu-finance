@@ -1,0 +1,198 @@
+<p-toast position="bottom-right">
+  <ng-template #message let-msg>
+    <div class="flex items-center gap-3 w-full">
+      <span class="flex-1">{{ msg.detail }}</span>
+      @if (msg.data?.undoId) {
+        <p-button label="Rückgängig" severity="secondary" size="small" (onClick)="undoDelete()" />
+      }
+    </div>
+  </ng-template>
+</p-toast>
+
+<p-confirmDialog />
+
+@if (loading()) {
+  <div class="flex justify-center p-8">
+    <i class="pi pi-spin pi-spinner text-2xl text-primary-500"></i>
+  </div>
+} @else if (error()) {
+  <div class="p-4">
+    <p class="text-red-500 text-sm">{{ error() }}</p>
+  </div>
+} @else if (parents().length === 0) {
+  <div class="empty-state flex flex-col items-center justify-center py-16 text-surface-400 gap-3">
+    <i class="pi pi-inbox text-5xl"></i>
+    <p class="text-base font-medium">Keine Buchungen</p>
+    <p class="text-sm">Erstelle eine neue Buchung oder passe die Filter an.</p>
+  </div>
+} @else {
+  <p-table
+    [value]="parents()"
+    [lazy]="true"
+    [totalRecords]="total()"
+    [rows]="filters().pageSize"
+    [paginator]="total() > filters().pageSize"
+    [rowsPerPageOptions]="[25, 50, 100]"
+    (onPage)="onPageChange($event)"
+    dataKey="_id"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template #header>
+      <tr>
+        <th style="width: 2.5rem"></th>
+        <th>Titel</th>
+        <th>Datum</th>
+        <th>Kategorie</th>
+        <th>Quelle</th>
+        <th class="text-right">Betrag</th>
+        <th style="width: 6rem"></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-tx let-expanded="expanded">
+      <tr
+        class="parent-row cursor-pointer"
+        [class.row-selected]="selectedId() === tx._id"
+        [class.row-container]="isContainerOnly(tx._id)"
+        (click)="selectRow(tx)"
+      >
+        <!-- Expand toggle -->
+        <td class="text-center">
+          @if (getSplitMeta(tx._id)) {
+            <button
+              type="button"
+              pButton
+              [pRowToggler]="tx"
+              class="p-button-text p-button-rounded p-button-plain"
+              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              (click)="$event.stopPropagation()"
+            ></button>
+          }
+        </td>
+
+        <!-- Title + badges -->
+        <td>
+          <div class="flex flex-col gap-1">
+            <span class="font-medium text-sm">{{ tx.title }}</span>
+            @if (getSplitMeta(tx._id); as meta) {
+              <div class="flex flex-wrap gap-1 mt-1">
+                <span class="split-badge">{{ meta.splitCount }} Teil{{ meta.splitCount > 1 ? 'e' : '' }}</span>
+                <span class="amount-badge assigned">{{ formatAmount(meta.assignedMinor) }} €</span>
+                @if (meta.restMinor > 0) {
+                  <span class="amount-badge rest">Rest {{ formatAmount(meta.restMinor) }} €</span>
+                }
+                @if (isContainerOnly(tx._id)) {
+                  <span class="amount-badge container">Container</span>
+                }
+              </div>
+              @if (meta.splitCount > 0) {
+                <p-progressbar
+                  [value]="meta.completionRatio * 100"
+                  styleClass="h-1 mt-1"
+                  [showValue]="false"
+                />
+              }
+            }
+          </div>
+        </td>
+
+        <!-- Date -->
+        <td class="text-sm" [class.text-surface-400]="!tx.bookDate" [class.dark:text-surface-500]="!tx.bookDate" [class.text-surface-700]="tx.bookDate" [class.dark:text-surface-200]="tx.bookDate">
+          {{ tx.bookDate ?? '—' }}
+        </td>
+
+        <!-- Category -->
+        <td class="text-sm" [class.text-surface-400]="!tx.categoryId" [class.dark:text-surface-500]="!tx.categoryId" [class.text-surface-700]="tx.categoryId" [class.dark:text-surface-200]="tx.categoryId">
+          {{ getCategoryName(tx.categoryId) }}
+        </td>
+
+        <!-- Source -->
+        <td>
+          @if (tx.isFromSharedAccount) {
+            <p-tag value="Gemeinsam" severity="info" styleClass="text-xs" />
+          } @else {
+            <p-tag value="Privat" severity="secondary" styleClass="text-xs" />
+          }
+        </td>
+
+        <!-- Amount -->
+        <td class="text-right font-semibold text-sm">
+          @if (isContainerOnly(tx._id)) {
+            <span class="text-surface-400 text-xs">(Container)</span>
+          } @else {
+            <span [class]="tx.type === 'expense' ? 'text-red-500' : 'text-green-600'">
+              {{ tx.type === 'expense' ? '−' : '+' }} {{ formatAmount(tx.amountMinor) }} €
+            </span>
+          }
+        </td>
+
+        <!-- Actions -->
+        <td class="text-center">
+          <div class="flex items-center gap-1 justify-end" (click)="$event.stopPropagation()">
+            <p-button
+              icon="pi pi-sitemap"
+              size="small"
+              [text]="true"
+              severity="secondary"
+              pTooltip="Aufteilen"
+              tooltipPosition="top"
+              (onClick)="addSplit(tx, $event)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              size="small"
+              [text]="true"
+              severity="danger"
+              pTooltip="Löschen"
+              tooltipPosition="top"
+              (onClick)="deleteTransaction(tx, $event)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- Row expansion: children -->
+    <ng-template #expandedrow let-parent>
+      @for (child of getChildren(parent._id); track child._id) {
+        <tr
+          class="child-row cursor-pointer"
+          [class.row-selected]="selectedId() === child._id"
+          (click)="selectRow(child)"
+        >
+          <td></td>
+          <td class="pl-8">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-subdirectory-right text-surface-400 text-xs"></i>
+              <span class="text-sm">{{ child.title }}</span>
+            </div>
+          </td>
+          <td class="text-xs" [class.text-surface-300]="!child.bookDate" [class.dark:text-surface-600]="!child.bookDate" [class.text-surface-600]="child.bookDate" [class.dark:text-surface-300]="child.bookDate">
+            {{ child.bookDate ?? '—' }}
+          </td>
+          <td class="text-xs" [class.text-surface-300]="!child.categoryId" [class.dark:text-surface-600]="!child.categoryId" [class.text-surface-600]="child.categoryId" [class.dark:text-surface-300]="child.categoryId">
+            {{ getCategoryName(child.categoryId) }}
+          </td>
+          <td></td>
+          <td class="text-right text-sm font-medium">
+            <span [class]="child.type === 'expense' ? 'text-red-400' : 'text-green-500'">
+              {{ child.type === 'expense' ? '−' : '+' }} {{ formatAmount(child.amountMinor) }} €
+            </span>
+          </td>
+          <td class="text-center">
+            <div class="flex justify-end gap-1" (click)="$event.stopPropagation()">
+              <p-button
+                icon="pi pi-trash"
+                size="small"
+                [text]="true"
+                severity="danger"
+                pTooltip="Löschen"
+                (onClick)="deleteTransaction(child, $event)"
+              />
+            </div>
+          </td>
+        </tr>
+      }
+    </ng-template>
+  </p-table>
+}
