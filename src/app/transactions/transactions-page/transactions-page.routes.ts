@@ -14,7 +14,7 @@ export default [
       import('./transactions-page').then((m) => m.TransactionsPage),
     providers: [provideStates([TransactionPageState, TransactionCaptureState])],
     resolve: {
-    //   accounts: createStateRouteInitializer((route) => new LoadAccounts(route.params['accountId'])),
+      accounts: createStateRouteInitializer((route) => new LoadAccounts(route.params['accountId'])),
       categories: createStateRouteInitializer((route) => new LoadCategories(route.params['accountId'])),
       transactions: createStateRouteInitializer((route) =>
         new LoadTransactions({ accountId: route.params['accountId'], page: 1 })

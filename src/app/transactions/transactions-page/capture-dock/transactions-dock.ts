@@ -149,6 +149,12 @@ export class TransactionsDock {
     effect(() => {
       this.applyMode(this.captureMode());
     });
+
+    effect(() => {
+      this.dockOpen();
+      this.captureMode();
+      this.syncTypeButtonsTabIndex();
+    });
   }
 
   protected setMode(mode: CaptureMode): void {
@@ -492,7 +498,7 @@ export class TransactionsDock {
   private focusTypeButton(index: number): void {
     queueMicrotask(() => {
       const buttons = this.hostElement.nativeElement.querySelectorAll(
-        '.type-select-button button'
+        '.type-field button'
       ) as NodeListOf<HTMLButtonElement>;
       const targetButton = buttons[index] ?? buttons[0];
       targetButton?.focus();
@@ -508,6 +514,19 @@ export class TransactionsDock {
   }
 
   private isInsideTypeButtons(target: HTMLElement | null): boolean {
-    return !!target?.closest('.type-select-button');
+    return !!target?.closest('.type-field');
+  }
+
+  private syncTypeButtonsTabIndex(): void {
+    queueMicrotask(() => {
+      const tabIndex = this.tabIndex(3);
+      const buttons = this.hostElement.nativeElement.querySelectorAll(
+        '.type-field button'
+      ) as NodeListOf<HTMLButtonElement>;
+
+      for (const button of Array.from(buttons)) {
+        button.tabIndex = tabIndex;
+      }
+    });
   }
 }

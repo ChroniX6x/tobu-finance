@@ -10,8 +10,8 @@ export class MembersDataService {
   private baseUrl = inject(API_BASE_URL);
   private readonly url = this.baseUrl + '/api/members';
 
-  getMembersWithIds(memberIds: string[]): Observable<MemberModel[]> {
-    if (!memberIds.length) return of([]);
+  getMembersWithIds(memberIds?: string[] | null): Observable<MemberModel[]> {
+    if (!Array.isArray(memberIds) || memberIds.length === 0) return of([]);
     const params = memberIds.map(id => `id=${id}`).join('&');
     return this.http.get<MemberModel[]>(`${this.url}?${params}`);
   }
