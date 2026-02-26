@@ -25,6 +25,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class AccountOverview {
 
+  protected timelinePt = {
+    eventOpposite: { class: '!p-0 !flex-none' },
+    eventSeparator: { class: 'items-center' },
+    eventMarker: { class: '!m-0' },
+    eventConnector: { class: 'h-[2px] mx-1.5 bg-surface-border' },
+    eventContent: { class: 'pt-3.5' }
+  };
+
   private store = inject(Store);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -108,7 +116,26 @@ export class AccountOverview {
   doughnutOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom' } }
+    layout: {
+      padding: {
+        top: 4,
+        right: 8,
+        bottom: 4,
+        left: 8
+      }
+    },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+          boxHeight: 8,
+          padding: 12
+        }
+      }
+    },
+    cutout: '58%'
   };
 
   // Pie-Chart (Top Kategorien)
