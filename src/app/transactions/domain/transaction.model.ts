@@ -40,6 +40,8 @@ export interface TransactionsFilters {
   monthFrom: string | null;
   monthTo: string | null;
   categoryIds?: string[] | null;
+  q?: string | null;
+  parentTransactionId?: string | null;
   status: TransactionStatus | null;
   page: number;
   pageSize: number;

@@ -22,6 +22,10 @@ export class TransactionsApiService {
     if (filters.accountId) params = params.set('accountId', filters.accountId);
     if (filters.monthFrom) params = params.set('monthFrom', filters.monthFrom);
     if (filters.monthTo) params = params.set('monthTo', filters.monthTo);
+    if (filters.q) params = params.set('q', filters.q);
+    if (filters.parentTransactionId !== undefined && filters.parentTransactionId !== null) {
+      params = params.set('parentTransactionId', filters.parentTransactionId);
+    }
     if (filters.categoryIds && filters.categoryIds.length > 0) {
       // Use array notation: categoryIds[]=val1&categoryIds[]=val2
       filters.categoryIds.forEach(id => {

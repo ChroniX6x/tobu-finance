@@ -1,0 +1,251 @@
+@if (!dockOpen()) {
+  <div class="capture-dock-tab">
+    <p-button
+      styleClass="dock-toggle-btn"
+      [label]="'Capture' + (draftCount() > 0 ? ' (' + draftCount() + ')' : '')"
+      icon="pi pi-chevron-up"
+      severity="secondary"
+      (onClick)="toggleDock()"
+    />
+  </div>
+} @else {
+  <section class="capture-dock-panel">
+    <header class="dock-header">
+      <div class="dock-title">
+        <span class="font-semibold">Capture</span>
+        @if (draftCount() > 0) {
+          <p-badge [value]="draftCount().toString()" severity="info" />
+        }
+      </div>
+      <div class="dock-header-actions">
+        <p-selectButton
+          [options]="modeOptions"
+          optionLabel="label"
+          optionValue="value"
+          [allowEmpty]="false"
+          [ngModel]="captureMode()"
+          (ngModelChange)="setMode($event)"
+        />
+        <p-button
+          icon="pi pi-chevron-down"
+          severity="secondary"
+          size="small"
+          [text]="true"
+          (onClick)="toggleDock()"
+          ariaLabel="Capture einklappen"
+        />
+      </div>
+    </header>
+
+    <div class="dock-body">
+      <section class="quick-add">
+        <h3 class="section-title">Quick Add</h3>
+
+        <form [formGroup]="form" class="quick-add-form" (submit)="$event.preventDefault()">
+          @if (captureMode() === 'split') {
+            <div class="field full-width">
+              <label for="parent-input">Teil von *</label>
+              <p-autoComplete
+                inputId="parent-input"
+                formControlName="parent"
+                [tabindex]="tabIndex(1)"
+                [suggestions]="parentSuggestions()"
+                [dropdown]="true"
+                [forceSelection]="true"
+                optionLabel="title"
+                (completeMethod)="searchParents($event)"
+                placeholder="Parent suchen"
+                appendTo="body"
+              />
+            </div>
+            @if (selectedParent(); as parent) {
+              <div class="split-context full-width">
+                <span>Rest verfügbar: {{ toMajor(parent.restMinor) }} EUR</span>
+              </div>
+            }
+          }
+
+          <div class="field">
+            <label for="amount-input">Betrag *</label>
+            <p-inputNumber
+              inputId="amount-input"
+              formControlName="amount"
+              [tabindex]="tabIndex(2)"
+              mode="currency"
+              currency="EUR"
+              locale="de-DE"
+              [min]="0"
+            />
+            @if (form.controls.amount.touched && form.controls.amount.hasError('restExceeded')) {
+              <small class="field-error">Betrag darf den Rest nicht überschreiten.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="type-select">Typ *</label>
+            <p-selectButton
+              inputId="type-select"
+              formControlName="type"
+              styleClass="type-select-button"
+              [tabindex]="tabIndex(3)"
+              [options]="typeOptions"
+              optionLabel="label"
+              optionValue="value"
+              [allowEmpty]="false"
+            />
+          </div>
+
+          <div class="field">
+            <label for="title-input">Titel *</label>
+            <input id="title-input" pInputText formControlName="title" maxlength="80" [attr.tabindex]="tabIndex(4)" />
+          </div>
+
+          <div class="field">
+            <label for="category-select">Kategorie</label>
+            <p-select
+              inputId="category-select"
+              formControlName="categoryId"
+              [tabindex]="tabIndex(5)"
+              [options]="categoryOptions()"
+              optionLabel="label"
+              optionValue="value"
+              appendTo="body"
+              placeholder="Kategorie"
+            />
+          </div>
+
+          <div class="field">
+            <label for="source-select">Quelle *</label>
+            <p-select
+              inputId="source-select"
+              formControlName="isFromSharedAccount"
+              [tabindex]="tabIndex(6)"
+              [options]="sourceOptions"
+              optionLabel="label"
+              optionValue="value"
+              appendTo="body"
+              placeholder="Quelle"
+            />
+          </div>
+
+          <div class="field">
+            <label for="paid-by-select">Bezahlt von</label>
+            <p-autoComplete
+              inputId="paid-by-select"
+              formControlName="paidByMemberId"
+              [suggestions]="memberSuggestions()"
+              [dropdown]="true"
+              [forceSelection]="true"
+              [tabindex]="tabIndex(7)"
+              (completeMethod)="searchMembers($event)"
+              optionLabel="label"
+              optionValue="value"
+              [showClear]="true"
+              appendTo="body"
+              placeholder="Mitglied"
+            />
+          </div>
+
+          <div class="field">
+            <label for="date-input">Datum *</label>
+            <p-datepicker inputId="date-input" formControlName="bookDate" [tabindex]="tabIndex(8)" dateFormat="dd.mm.yy" appendTo="body" />
+          </div>
+
+          <div class="actions full-width">
+            <p-button
+              label="In Queue"
+              icon="pi pi-plus"
+              severity="secondary"
+              [tabindex]="tabIndex(9)"
+              (onClick)="addToQueue()"
+            />
+            <p-button
+              label="Direkt speichern"
+              icon="pi pi-check"
+              [tabindex]="tabIndex(10)"
+              (onClick)="saveDirectly()"
+            />
+          </div>
+        </form>
+      </section>
+
+      <section class="queue">
+        <div class="queue-header">
+          <h3 class="section-title">Queue / Drafts</h3>
+          <div class="queue-header-actions">
+            <p-button
+              label="Alle speichern"
+              icon="pi pi-save"
+              size="small"
+              [disabled]="!canSaveAll()"
+              (onClick)="saveAllReady()"
+            />
+            <p-button
+              label="Fehler erneut"
+              icon="pi pi-refresh"
+              size="small"
+              severity="secondary"
+              [disabled]="!hasFailedDrafts()"
+              (onClick)="retryFailed()"
+            />
+            <p-button
+              label="Entfernen rückgängig"
+              icon="pi pi-undo"
+              size="small"
+              severity="secondary"
+              [outlined]="true"
+              [disabled]="!canUndoRemove()"
+              (onClick)="undoRemove()"
+            />
+          </div>
+        </div>
+
+        <div class="queue-list">
+          @if (drafts().length === 0) {
+            <div class="queue-empty">Noch keine Drafts in der Queue.</div>
+          } @else {
+            @for (draft of drafts(); track draft.id) {
+              <article
+                class="queue-item"
+                [class.queue-item-selected]="selectedDraftId() === draft.id"
+                (click)="selectDraft(draft.id)"
+              >
+                <div class="queue-item-main">
+                  <div class="queue-item-title">{{ draft.title || 'Unbenannt' }}</div>
+                  <div class="queue-item-meta">
+                    <span>{{ toMajor(draft.amountMinor) }} EUR</span>
+                    @if (draft.parentTransactionId) {
+                      <span>Teilbuchung</span>
+                    }
+                  </div>
+                </div>
+                <div class="queue-item-actions">
+                  <p-tag [value]="draftStatusLabel(draft.draftStatus)" [severity]="draftSeverity(draft.draftStatus)" />
+                  @if (draft.draftStatus === 'ready') {
+                    <p-button
+                      icon="pi pi-check"
+                      size="small"
+                      [text]="true"
+                      pTooltip="Jetzt speichern"
+                      tooltipPosition="top"
+                      (onClick)="finalizeOne(draft.id, $event)"
+                    />
+                  }
+                  <p-button
+                    icon="pi pi-times"
+                    size="small"
+                    [text]="true"
+                    severity="danger"
+                    pTooltip="Draft entfernen"
+                    tooltipPosition="top"
+                    (onClick)="removeDraft(draft.id, $event)"
+                  />
+                </div>
+              </article>
+            }
+          }
+        </div>
+      </section>
+    </div>
+  </section>
+}

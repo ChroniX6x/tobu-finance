@@ -87,6 +87,7 @@ export class TransactionCaptureState {
   @Selector() static dockOpen(s: TransactionCaptureStateModel) { return s.dockOpen; }
   @Selector() static captureMode(s: TransactionCaptureStateModel) { return s.captureMode; }
   @Selector() static selectedDraftId(s: TransactionCaptureStateModel) { return s.selectedDraftId; }
+  @Selector() static canUndoRemove(s: TransactionCaptureStateModel) { return s.undoBuffer !== null; }
 
   @Selector()
   static selectedDraft(s: TransactionCaptureStateModel): TransactionDraft | null {
