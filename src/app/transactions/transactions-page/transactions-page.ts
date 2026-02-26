@@ -43,7 +43,8 @@ export class TransactionsPage {
 
   protected navigateTab(value: string | number): void {
     if (value === 'overview') {
-      this.router.navigate(['/accounts', this.accountId]);
+      const accId = this.accountId();
+      this.router.navigate(['/accounts', accId]);
     }
   }
 

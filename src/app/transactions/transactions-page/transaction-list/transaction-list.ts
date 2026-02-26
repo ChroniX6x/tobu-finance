@@ -1,11 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
   input,
   output,
-  signal,
 } from '@angular/core';
 import { Store, select } from '@ngxs/store';
 import * as _ from 'lodash';
@@ -20,11 +18,11 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TransactionPageState } from '../../state/transaction-page.state';
 import { TransactionCaptureState } from '../../state/transaction-capture.state';
+import { CategoriesState } from '@/shared/state/categories.state';
 import {
   DeleteTransactionConfirmed,
   DeleteTransactionOptimistic,
   SetPage,
-  ToggleParentExpanded,
   UndoDeleteTransaction,
 } from '../../state/transaction-page.actions';
 import {
@@ -68,17 +66,11 @@ export class TransactionList {
   protected entities = select(TransactionPageState.entities);
   protected loading = select(TransactionPageState.loading);
   protected error = select(TransactionPageState.error);
-  protected expandedParents = select(TransactionPageState.expandedParents);
   protected splitMetaMap = select(TransactionPageState.splitMetaMap);
   protected childrenByParentId = select(TransactionPageState.childrenByParentId);
   protected total = select(TransactionPageState.total);
   protected filters = select(TransactionPageState.filters);
-
-  protected expandedRows = signal<Record<string, boolean>>({});
-
-  protected isExpanded(parentId: string): boolean {
-    return this.expandedParents().includes(parentId);
-  }
+  protected categories = select(CategoriesState.categories);
 
   protected getSplitMeta(parentId: string): SplitMeta | null {
     return this.splitMetaMap()[parentId] ?? null;
@@ -97,13 +89,12 @@ export class TransactionList {
     return (minor / 100).toFixed(2);
   }
 
-  protected toggleExpand(parentId: string): void {
-    this.store.dispatch(new ToggleParentExpanded(parentId));
-    // Sync to p-table
-    this.expandedRows.update((rows) => ({
-      ...rows,
-      [parentId]: !rows[parentId],
-    }));
+  protected getCategoryName(categoryId: string | null | undefined): string {
+    if (!categoryId) return 'Nicht kategorisiert';
+    const cats = this.categories();
+    if (!cats || cats.length === 0) return 'Nicht kategorisiert';
+    const category = cats.find((c) => c._id === categoryId);
+    return category?.name ?? 'Nicht kategorisiert';
   }
 
   protected selectRow(tx: TransactionModel): void {

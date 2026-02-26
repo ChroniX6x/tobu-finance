@@ -26,7 +26,8 @@
     <!-- Kategorie -->
     <p-multiselect
       [options]="categoryOptions()"
-      [(ngModel)]="selectedCategoryIds"
+      [ngModel]="selectedCategoryIds()"
+      (ngModelChange)="onCategoryChange($event)"
       optionLabel="label"
       optionValue="value"
       placeholder="Kategorie"

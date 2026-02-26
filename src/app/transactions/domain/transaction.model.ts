@@ -39,6 +39,7 @@ export interface TransactionsFilters {
   accountId: string | null;
   monthFrom: string | null;
   monthTo: string | null;
+  categoryIds?: string[] | null;
   status: TransactionStatus | null;
   page: number;
   pageSize: number;

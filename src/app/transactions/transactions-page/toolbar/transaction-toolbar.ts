@@ -84,9 +84,10 @@ export class TransactionToolbar {
     ];
   });
 
-  protected categoryOptions = computed(() =>
-    this.categories().map((c) => ({ label: c.name, value: c.id }))
-  );
+  protected categoryOptions = computed(() => [
+    { label: 'Nicht kategorisiert', value: '__UNCATEGORIZED__' },
+    ...this.categories().map((c) => ({ label: c.name, value: c._id }))
+  ]);
 
   protected activeFilters = computed<ActiveFilter[]>(() => {
     const chips: ActiveFilter[] = [];
@@ -95,7 +96,10 @@ export class TransactionToolbar {
     }
     if (this.selectedCategoryIds().length) {
       const names = this.selectedCategoryIds()
-        .map((id) => this.categories().find((c) => c.id === id)?.name ?? id)
+        .map((id) => {
+          if (id === '__UNCATEGORIZED__') return 'Nicht kategorisiert';
+          return this.categories().find((c) => c._id === id)?.name ?? id;
+        })
         .join(', ');
       chips.push({ key: 'categories', label: `Kategorie: ${names}` });
     }
@@ -126,11 +130,13 @@ export class TransactionToolbar {
         this.dispatchLoad({ q: q || undefined });
       });
 
+    // Search effect
     effect(() => {
       const q = this.searchValue();
       this.searchSubject.next(q);
     });
 
+    // All other filters effect
     effect(() => {
       this.selectedCategoryIds();
       this.selectedSource();
@@ -138,6 +144,10 @@ export class TransactionToolbar {
       this.dateRange();
       this.dispatchLoad();
     });
+  }
+
+  protected onCategoryChange(categoryIds: string[]): void {
+    this.selectedCategoryIds.set(categoryIds);
   }
 
   protected removeFilter(key: string): void {
@@ -189,6 +199,10 @@ export class TransactionToolbar {
     const range = this.dateRange();
     const monthFrom = range.length >= 1 ? this.toMonthString(range[0]) : undefined;
     const monthTo = range.length === 2 && range[1] ? this.toMonthString(range[1]) : undefined;
+    const selectedCats = this.selectedCategoryIds();
+    
+    // Backend handles __UNCATEGORIZED__ marker and combinations automatically
+    const categoryIds = selectedCats.length > 0 ? selectedCats : null;
 
     this.store.dispatch(
       new LoadTransactions({
@@ -196,6 +210,7 @@ export class TransactionToolbar {
         page: 1,
         monthFrom: monthFrom ?? null,
         monthTo: monthTo ?? null,
+        categoryIds,
         ...extra,
       })
     );

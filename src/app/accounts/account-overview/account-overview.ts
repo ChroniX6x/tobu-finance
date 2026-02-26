@@ -1,7 +1,7 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { filter, startWith } from 'rxjs';
+import { filter, startWith, distinctUntilChanged, map } from 'rxjs';
 import { TabsModule } from 'primeng/tabs';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -23,14 +23,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   templateUrl: './account-overview.html',
   styleUrls: ['./account-overview.scss']
 })
-export class AccountOverview implements OnInit {
+export class AccountOverview {
 
   private store = inject(Store);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  protected accountId = signal('');
-
+  protected accountId = signal<string>('');
   protected activeTab = signal<string>('overview');
 
   currentMember   = computed<AccountMemberUi | undefined>(() => this.members().find((m: AccountMemberUi) => m.id === 'm1' || m.id === '4a7b')); // TODO aktueller User (über AuthService)
@@ -45,26 +44,35 @@ export class AccountOverview implements OnInit {
   loading         = select(AccountOverviewState.loading);
 
   constructor() {
-  this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
-    const accountId = params.get('accountId');
-    if (accountId) {
-      this.accountId.set(accountId);
-      this.store.dispatch(new LoadAccountOverview(accountId));
-    }
-  });
-  this.router.events.pipe(
-    filter(e => e instanceof NavigationEnd),
-    startWith(null),
-    takeUntilDestroyed()
-  ).subscribe(() => {
-    this.activeTab.set(this.router.url.includes('/transactions') ? 'transactions' : 'overview');
-  });
-}
+    // Watch route params and load account overview on any change
+    this.route.params
+      .pipe(
+        map(params => params['accountId']),
+        distinctUntilChanged(),
+        takeUntilDestroyed()
+      )
+      .subscribe((accountId: string) => {
+        if (accountId) {
+          this.accountId.set(accountId);
+          this.store.dispatch(new LoadAccountOverview(accountId));
+        }
+      });
+
+    // Watch router events to update active tab
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      startWith(null),
+      takeUntilDestroyed()
+    ).subscribe(() => {
+      this.activeTab.set(this.router.url.includes('/transactions') ? 'transactions' : 'overview');
+    });
+  }
 
   protected navigateTab(value: string | number): void {
+    const accId = this.accountId();
     const target = value === 'transactions'
-      ? ['/accounts', this.accountId(), 'transactions']
-      : ['/accounts', this.accountId()];
+      ? ['/accounts', accId, 'transactions']
+      : ['/accounts', accId];
     this.router.navigate(target);
   }
 

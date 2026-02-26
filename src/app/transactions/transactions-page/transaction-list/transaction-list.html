@@ -34,9 +34,8 @@
     [paginator]="total() > filters().pageSize"
     [rowsPerPageOptions]="[25, 50, 100]"
     (onPage)="onPageChange($event)"
-    dataKey="id"
+    dataKey="_id"
     styleClass="p-datatable-sm"
-    [expandedRowKeys]="expandedRows()"
   >
     <ng-template #header>
       <tr>
@@ -53,20 +52,21 @@
     <ng-template #body let-tx let-expanded="expanded">
       <tr
         class="parent-row cursor-pointer"
-        [class.row-selected]="selectedId() === tx.id"
-        [class.row-container]="isContainerOnly(tx.id)"
+        [class.row-selected]="selectedId() === tx._id"
+        [class.row-container]="isContainerOnly(tx._id)"
         (click)="selectRow(tx)"
       >
         <!-- Expand toggle -->
         <td class="text-center">
-          @if (getSplitMeta(tx.id)) {
-            <p-button
-              [icon]="isExpanded(tx.id) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-              size="small"
-              [text]="true"
-              severity="secondary"
-              (onClick)="toggleExpand(tx.id); $event.stopPropagation()"
-            />
+          @if (getSplitMeta(tx._id)) {
+            <button
+              type="button"
+              pButton
+              [pRowToggler]="tx"
+              class="p-button-text p-button-rounded p-button-plain"
+              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              (click)="$event.stopPropagation()"
+            ></button>
           }
         </td>
 
@@ -74,14 +74,14 @@
         <td>
           <div class="flex flex-col gap-1">
             <span class="font-medium text-sm">{{ tx.title }}</span>
-            @if (getSplitMeta(tx.id); as meta) {
+            @if (getSplitMeta(tx._id); as meta) {
               <div class="flex flex-wrap gap-1 mt-1">
                 <span class="split-badge">{{ meta.splitCount }} Teil{{ meta.splitCount > 1 ? 'e' : '' }}</span>
                 <span class="amount-badge assigned">{{ formatAmount(meta.assignedMinor) }} €</span>
                 @if (meta.restMinor > 0) {
                   <span class="amount-badge rest">Rest {{ formatAmount(meta.restMinor) }} €</span>
                 }
-                @if (isContainerOnly(tx.id)) {
+                @if (isContainerOnly(tx._id)) {
                   <span class="amount-badge container">Container</span>
                 }
               </div>
@@ -97,13 +97,13 @@
         </td>
 
         <!-- Date -->
-        <td class="text-sm text-surface-500">
+        <td class="text-sm" [class.text-surface-400]="!tx.bookDate" [class.dark:text-surface-500]="!tx.bookDate" [class.text-surface-700]="tx.bookDate" [class.dark:text-surface-200]="tx.bookDate">
           {{ tx.bookDate ?? '—' }}
         </td>
 
-        <!-- Category — resolved via entities lookup handled in parent -->
-        <td class="text-sm text-surface-500">
-          {{ tx.categoryId ?? '—' }}
+        <!-- Category -->
+        <td class="text-sm" [class.text-surface-400]="!tx.categoryId" [class.dark:text-surface-500]="!tx.categoryId" [class.text-surface-700]="tx.categoryId" [class.dark:text-surface-200]="tx.categoryId">
+          {{ getCategoryName(tx.categoryId) }}
         </td>
 
         <!-- Source -->
@@ -117,7 +117,7 @@
 
         <!-- Amount -->
         <td class="text-right font-semibold text-sm">
-          @if (isContainerOnly(tx.id)) {
+          @if (isContainerOnly(tx._id)) {
             <span class="text-surface-400 text-xs">(Container)</span>
           } @else {
             <span [class]="tx.type === 'expense' ? 'text-red-500' : 'text-green-600'">
@@ -153,7 +153,7 @@
     </ng-template>
 
     <!-- Row expansion: children -->
-    <ng-template #rowexpansion let-parent>
+    <ng-template #expandedrow let-parent>
       @for (child of getChildren(parent._id); track child._id) {
         <tr
           class="child-row cursor-pointer"
@@ -167,8 +167,12 @@
               <span class="text-sm">{{ child.title }}</span>
             </div>
           </td>
-          <td class="text-xs text-surface-400">{{ child.bookDate ?? '—' }}</td>
-          <td class="text-xs text-surface-400">{{ child.categoryId ?? '—' }}</td>
+          <td class="text-xs" [class.text-surface-300]="!child.bookDate" [class.dark:text-surface-600]="!child.bookDate" [class.text-surface-600]="child.bookDate" [class.dark:text-surface-300]="child.bookDate">
+            {{ child.bookDate ?? '—' }}
+          </td>
+          <td class="text-xs" [class.text-surface-300]="!child.categoryId" [class.dark:text-surface-600]="!child.categoryId" [class.text-surface-600]="child.categoryId" [class.dark:text-surface-300]="child.categoryId">
+            {{ getCategoryName(child.categoryId) }}
+          </td>
           <td></td>
           <td class="text-right text-sm font-medium">
             <span [class]="child.type === 'expense' ? 'text-red-400' : 'text-green-500'">

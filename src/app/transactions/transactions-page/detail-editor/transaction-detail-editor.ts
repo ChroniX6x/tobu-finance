@@ -72,6 +72,7 @@ export class TransactionDetailEditor {
 
   protected saving = signal(false);
   protected form!: FormGroup;
+  private currentTxId = signal<string | null>(null);
 
   protected typeOptions: TypeOption[] = [
     { label: 'Ausgabe', value: 'expense' },
@@ -79,7 +80,7 @@ export class TransactionDetailEditor {
   ];
 
   protected categoryOptions = computed(() =>
-    this.categories().map((c) => ({ label: c.name, value: c.id }))
+    this.categories().map((c) => ({ label: c.name, value: c._id }))
   );
 
   protected memberOptions = computed(() => {
@@ -143,8 +144,14 @@ export class TransactionDetailEditor {
     // Whenever selected transaction changes, repopulate form
     effect(() => {
       const tx = this.selectedTx();
-      if (tx && this.form) {
-        this.populateForm(tx);
+      const txId = tx?._id ?? null;
+      
+      // Only repopulate if transaction ID actually changed
+      if (txId !== this.currentTxId()) {
+        this.currentTxId.set(txId);
+        if (tx && this.form) {
+          this.populateForm(tx);
+        }
       }
     });
   }
@@ -173,6 +180,9 @@ export class TransactionDetailEditor {
       this.form.get('isFromSharedAccount')?.enable();
       this.form.get('bookDate')?.enable();
     }
+    
+    // Mark form as pristine after population to enable change detection
+    this.form.markAsPristine();
   }
 
   protected save(): void {

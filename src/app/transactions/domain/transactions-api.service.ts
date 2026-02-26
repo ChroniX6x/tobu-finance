@@ -22,6 +22,12 @@ export class TransactionsApiService {
     if (filters.accountId) params = params.set('accountId', filters.accountId);
     if (filters.monthFrom) params = params.set('monthFrom', filters.monthFrom);
     if (filters.monthTo) params = params.set('monthTo', filters.monthTo);
+    if (filters.categoryIds && filters.categoryIds.length > 0) {
+      // Use array notation: categoryIds[]=val1&categoryIds[]=val2
+      filters.categoryIds.forEach(id => {
+        params = params.append('categoryIds[]', id);
+      });
+    }
     if (filters.status) params = params.set('status', filters.status);
     if (filters.page != null) params = params.set('page', String(filters.page));
     if (filters.pageSize != null) params = params.set('pageSize', String(filters.pageSize));

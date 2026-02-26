@@ -137,7 +137,7 @@ export class AccountDashboardStatistikService {
         expenses
             .filter((t) => t.month === currentMonth && t.status === 'booked')
             .forEach((t) => {
-                const name = categories.find((c) => c.id === t.categoryId)?.name ?? 'Unbekannt';
+                const name = categories.find((c) => c._id === t.categoryId)?.name ?? 'Unbekannt';
                 categorySums[name] = (categorySums[name] || 0) + t.amountMinor;
             });
         const sortedCategories = Object.entries(categorySums)
