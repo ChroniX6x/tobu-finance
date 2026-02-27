@@ -1,16 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import {
-  AbstractControl,
-  AbstractControlOptions,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { DataViewModule } from 'primeng/dataview';
@@ -18,104 +6,58 @@ import { InputTextModule } from 'primeng/inputtext';
 import { RippleModule } from 'primeng/ripple';
 import { NextStepAction, SetMembers } from '../state/wizard.actions';
 import { WizardMemberModel } from '../domain/wizard-member.model';
-
-export function wizardValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const membersArray = control.get('members') as FormArray;
-
-    return membersArray.length < 1 ? { toFewMembers: true } : null;
-  };
-}
+import { email, form, FormField, FormRoot, required } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-member-information',
   templateUrl: './member-information.html',
   styleUrls: ['./member-information.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DataViewModule,
     InputTextModule,
     ButtonModule,
     RippleModule,
-    ReactiveFormsModule,
+    FormField,
+    FormRoot,
   ],
 })
-export class MemberInformation implements OnInit {
-  private store = inject(Store);
-  private fb = inject(FormBuilder);
+export class MemberInformation {
+  private readonly store = inject(Store);
 
-  public memberGroups = signal<FormGroup[]>([]);
+  protected readonly members = signal<WizardMemberModel[]>([]);
 
-  wizardForm = this.fb.group({
-    members: this.fb.array<WizardMemberModel>([]),
-  },
-  {
-    validators: wizardValidator(),
-    updateOn: 'change'
-  } as AbstractControlOptions
-);
+  protected readonly memberInput = signal({ name: '', email: '' });
 
-  memberForm = this.fb.group({
-    name: ['', [Validators.required]],
-    email: ['', [Validators.email]],
-  });
+  protected readonly memberForm = form(
+    this.memberInput,
+    (p) => {
+      required(p.name, { message: 'Name ist erforderlich' });
+      email(p.email, {message: 'Keine gültige E-Mail'});
+    },
+    {
+      submission: {
+        action: async () => this.addMember(),
+      },
+    },
+  );
 
-  private memberArray = this.wizardForm.get('members') as FormArray;
-
-  constructor() {}
-
-  ngOnInit() {}
-
-  // public addMember() {
-  //   let value = this.memberForm.value;
-  //   this.members.update(x => {
-  //     x.push({
-  //       tempId: this.members().length + '',
-  //       name: value.name!,
-  //       email: value.email!
-  //     })
-  //     return [...x];
-  //   })
-  //   this.memberForm.reset();
-  // }
-
-  // public removeMember(member: WizardMemberModel) {
-  //   this.members.update(x => {
-
-  //     let index = x.findIndex(value => value == member);
-  //     x.splice(index);
-
-  //     return x;
-  //   })
-  // }
-
-  addMember() {
-    if (this.memberForm.invalid) return;
-
-    const memberData = this.memberForm.value;
-
-    // Optional: Generiere tempId hier oder im Backend
-    const memberGroup = this.fb.group({
-      name: [memberData.name],
-      email: [memberData.email],
-    });
-
-    this.memberArray.push(memberGroup);
-
-    this.memberGroups.set(this.memberArray.controls as FormGroup[]);
-    this.memberForm.reset();
+  protected addMember(): void {
+    const { name, email } = this.memberInput();
+    this.members.update(list => [
+      ...list,
+      { tempId: String(list.length), name, email: email || undefined },
+    ]);
+    this.memberInput.set({ name: '', email: '' });
   }
 
-  removeMember(index: number) {
-    this.memberArray.removeAt(index);
-    this.memberGroups.set(this.memberArray.controls as FormGroup[]);
+  protected removeMember(index: number): void {
+    this.members.update(list => list.filter((_, i) => i !== index));
   }
 
-
-  nextStep() {
-    if (this.memberGroups().length < 2) return;
-
-    const membersData = this.wizardForm.value.members! as WizardMemberModel[];
-    this.store.dispatch(new SetMembers(membersData));
+  protected nextStep(): void {
+    if (this.members().length < 2) return;
+    this.store.dispatch(new SetMembers(this.members()));
     this.store.dispatch(new NextStepAction());
   }
 }
