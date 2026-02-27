@@ -9,7 +9,7 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { WizardState } from '../state/wizard.state';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
-import { applyEach, form, FormField, FormRoot, required } from '@angular/forms/signals';
+import { applyEach, form, FormField, FormRoot, min, required } from '@angular/forms/signals';
 
 interface MemberInitialEntry {
   member: string;
@@ -63,9 +63,10 @@ export class InitialValues {
     effect(() => {
       const members = this.stateMembers();
       const categories = this.stateCategories();
-      this.initialsModel.update(m => ({
-        ...m,
+      this.initialsModel.set({
+        accountBalance: 0,
         memberInitials: members.map(mb => ({
+          
           member: mb.name,
           memberId: mb.tempId,
           initialIncome: 0,
@@ -75,7 +76,7 @@ export class InitialValues {
           categoryId: cat.tempId,
           initialExpenseEst: 0,
         })),
-      }));
+      });
     });
   }
 
@@ -84,10 +85,10 @@ export class InitialValues {
     (p) => {
       required(p.accountBalance, { message: 'Kontostand ist erforderlich' });
       applyEach(p.memberInitials, (item) => {
-        required(item.initialIncome, { message: 'Einkommen ist erforderlich' });
+        min(item.initialIncome, 0, { message: 'Income must be 0 or more' });
       });
       applyEach(p.categoryInitials, (item) => {
-        required(item.initialExpenseEst, { message: 'Schätzung ist erforderlich' });
+        min(item.initialExpenseEst, 0, { message: 'Expense must be 0 or more' });
       });
     },
     {

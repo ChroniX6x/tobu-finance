@@ -2,7 +2,7 @@
   <div class="">
     <label for="account-balance" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> Initial Account Balance </label>
     <p-inputgroup>
-      <p-inputnumber inputId="account-balance" [formField]="initialsForm.accountBalance" fluid />
+      <p-inputnumber inputId="account-balance" [formField]="$any(initialsForm.accountBalance)" fluid />
       <p-inputgroup-addon>€</p-inputgroup-addon>
     </p-inputgroup>
     @if (initialsForm.accountBalance().touched() && initialsForm.accountBalance().invalid()) {

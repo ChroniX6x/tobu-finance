@@ -18,13 +18,13 @@ export class WizardDataService {
       const memberMap = new Map<string, string>();
       for (const member of wizardData.members) {
         const response = await firstValueFrom(
-          this.http.post<{ id: string }>(`${this.baseUrl}/api/members`, {
+          this.http.post<{ _id: string }>(`${this.baseUrl}/api/members`, {
             name: member.name,
             email: member.email,
             userId: member.userId  // Korrigiert: userId statt userID
           })
         );
-        memberMap.set(member.tempId, response.id);
+        memberMap.set(member.tempId, response._id);
       }
 
       // 2) Account anlegen mit echten Member-IDs → POST /api/accounts
@@ -45,9 +45,9 @@ export class WizardDataService {
       };
 
       const accountResponse = await firstValueFrom(
-        this.http.post<{ id: string }>(`${this.baseUrl}/api/accounts`, accountBody)
+        this.http.post<{ _id: string }>(`${this.baseUrl}/api/accounts`, accountBody)
       );
-      const accountId = accountResponse.id;
+      const accountId = accountResponse._id;
 
       // 3) Kategorien anlegen → POST /api/categories mit accountId
       const catMap = new Map<string, string>();
@@ -65,9 +65,9 @@ export class WizardDataService {
         }
 
         const categoryResponse = await firstValueFrom(
-          this.http.post<{ id: string }>(`${this.baseUrl}/api/categories`, categoryBody)
+          this.http.post<{ _id: string }>(`${this.baseUrl}/api/categories`, categoryBody)
         );
-        catMap.set(category.tempId, categoryResponse.id);
+        catMap.set(category.tempId, categoryResponse._id);
       }
 
       // 4) Monthly Planned Contributions aktualisieren → PATCH /api/accounts/{id}
