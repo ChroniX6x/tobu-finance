@@ -149,13 +149,6 @@ export class TransactionsDock {
     effect(() => {
       this.applyMode(this.captureMode());
     });
-
-    effect(() => {
-      this.dockOpen();
-      this.captureMode();
-      this.ensureTypeButtonsTabbable();
-    });
-
   }
 
   protected setMode(mode: CaptureMode): void {
@@ -260,29 +253,6 @@ export class TransactionsDock {
     }
   }
 
-  private ensureTypeButtonsTabbable(): void {
-    queueMicrotask(() => {
-      requestAnimationFrame(() => {
-        const buttons = Array.from(
-          this.hostElement.nativeElement.querySelectorAll(
-            '.type-field p-togglebutton[role="button"]'
-          )
-        ) as HTMLElement[];
-
-        if (buttons.length === 0) {
-          return;
-        }
-
-        for (const button of buttons) {
-          button.tabIndex = -1;
-        }
-
-        const selected = buttons.find((button) => button.getAttribute('aria-pressed') === 'true');
-        (selected ?? buttons[0]).tabIndex = 11;
-      });
-    });
-  }
-
   protected draftStatusLabel(status: TransactionDraft['draftStatus']): string {
     switch (status) {
       case 'needsReview':
@@ -338,31 +308,6 @@ export class TransactionsDock {
       event.preventDefault();
       this.resetForm();
       return;
-    }
-
-    if (event.key === 'Tab') {
-      const activeField = focusNode?.closest('.amount-field, .type-field, .title-field');
-      if (activeField?.classList.contains('amount-field') && !event.shiftKey) {
-        event.preventDefault();
-        this.focusTypeButton(0, true);
-        return;
-      }
-
-      if (activeField?.classList.contains('type-field')) {
-        event.preventDefault();
-        if (event.shiftKey) {
-          this.focusAmountInput(true);
-        } else {
-          this.focusTitleInput(true);
-        }
-        return;
-      }
-
-      if (activeField?.classList.contains('title-field') && event.shiftKey) {
-        event.preventDefault();
-        this.focusTypeButton(1, true);
-        return;
-      }
     }
 
     if (event.key === 'Enter') {
@@ -505,65 +450,14 @@ export class TransactionsDock {
     }
   }
 
-  private focusAmountInput(immediate = false): void {
-    const focus = () => {
+  private focusAmountInput(): void {
+    queueMicrotask(() => {
       const amountInput = this.hostElement.nativeElement.querySelector(
         '.amount-field input'
       ) as HTMLInputElement | null;
       amountInput?.focus();
       amountInput?.select();
-    };
-
-    if (immediate) {
-      focus();
-      return;
-    }
-
-    queueMicrotask(focus);
-  }
-
-  private focusTitleInput(immediate = false): void {
-    const focus = () => {
-      const titleInput = this.hostElement.nativeElement.querySelector(
-        '.title-field input'
-      ) as HTMLInputElement | null;
-      titleInput?.focus();
-      titleInput?.select();
-    };
-
-    if (immediate) {
-      focus();
-      return;
-    }
-
-    queueMicrotask(focus);
-  }
-
-  private focusTypeButton(index: number, immediate = false): void {
-    const focus = () => {
-      const buttons = Array.from(this.hostElement.nativeElement.querySelectorAll(
-        '.type-field p-togglebutton[role="button"]'
-      )) as HTMLElement[];
-
-      if (buttons.length === 0) {
-        return;
-      }
-
-      for (const button of buttons) {
-        button.tabIndex = -1;
-      }
-
-      const targetButton = buttons[index] ?? buttons[0];
-      targetButton.tabIndex = 11;
-      targetButton?.focus();
-    };
-
-    if (immediate) {
-      focus();
-      return;
-    }
-
-    queueMicrotask(focus);
+    });
   }
 
 }

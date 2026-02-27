@@ -169,30 +169,38 @@ test('supports keyboard flow for transaction capture', async ({ page }) => {
   await expect(page.locator('.queue-list .queue-item-title', { hasText: 'Milch' })).toHaveCount(0);
 });
 
-test('supports deterministic tabbing between amount, type and title', async ({ page }) => {
-  const amount = page.locator('.amount-field input').first();
+test('tabs naturally through amount → type options → title in DOM order', async ({ page }) => {
+  const amount = page.locator('input[id^="amount-input"]');
   const title = page.locator('#title-input');
+  // PrimeNG SelectButton renders each option as a p-togglebutton[role="button"].
+  // Both are independently tabbable (tabindex=0 by default from ToggleButton source).
+  const ausgabe = page.getByRole('button', { name: 'Ausgabe' });
+  const einnahme = page.getByRole('button', { name: 'Einnahme' });
 
   await amount.click();
   await expect(amount).toBeFocused();
 
+  // Tab from amount → first SelectButton option (Ausgabe)
   await page.keyboard.press('Tab');
-  const onTypeAfterForwardTab = await page.evaluate(() => {
-    const active = document.activeElement as HTMLElement | null;
-    return !!active?.closest('.type-field');
-  });
-  expect(onTypeAfterForwardTab).toBe(true);
+  await expect(ausgabe).toBeFocused();
 
+  // Tab within SelectButton → second option (Einnahme)
+  await page.keyboard.press('Tab');
+  await expect(einnahme).toBeFocused();
+
+  // Tab from last SelectButton option → title input
   await page.keyboard.press('Tab');
   await expect(title).toBeFocused();
 
+  // Shift+Tab: title → back into SelectButton (Einnahme)
   await page.keyboard.press('Shift+Tab');
-  const onTypeAfterBackwardTab = await page.evaluate(() => {
-    const active = document.activeElement as HTMLElement | null;
-    return !!active?.closest('.type-field');
-  });
-  expect(onTypeAfterBackwardTab).toBe(true);
+  await expect(einnahme).toBeFocused();
 
+  // Shift+Tab: Einnahme → Ausgabe
+  await page.keyboard.press('Shift+Tab');
+  await expect(ausgabe).toBeFocused();
+
+  // Shift+Tab: Ausgabe → amount
   await page.keyboard.press('Shift+Tab');
   await expect(amount).toBeFocused();
 });

@@ -69,7 +69,6 @@
             <p-inputNumber
               inputId="amount-input"
               formControlName="amount"
-              tabindex="10"
               mode="currency"
               currency="EUR"
               locale="de-DE"
@@ -85,7 +84,6 @@
             <p-selectButton
               inputId="type-select"
               formControlName="type"
-              tabindex="11"
               [options]="typeOptions"
               optionLabel="label"
               optionValue="value"
@@ -95,7 +93,7 @@
 
           <div class="field title-field">
             <label for="title-input">Titel *</label>
-            <input id="title-input" pInputText formControlName="title" maxlength="80" tabindex="12" />
+            <input id="title-input" pInputText formControlName="title" maxlength="80" />
           </div>
 
           <div class="field">
