@@ -25,7 +25,7 @@
               }
             </div>
 
-            <p class="text-sm text-surface-600 mb-3">{{ acc.participantCount }} Teilnehmer</p>
+            <p class="text-sm text-surface-600 dark:text-surface-300 mb-3">{{ acc.participantCount }} Teilnehmer</p>
 
             <!-- Key metrics row -->
             <div class="flex items-end justify-between mb-4">
@@ -33,7 +33,7 @@
                 <p class="text-lg font-semibold text-primary mb-0">
                   {{ acc.currentBalance | currency:'EUR' }}
                 </p>
-                <p class="text-xs text-surface-600">Kontostand</p>
+                <p class="text-xs text-surface-600 dark:text-surface-300">Kontostand</p>
               </div>
 
               @if (acc.pctChange !== null) {
@@ -41,20 +41,22 @@
                   <p
                     class="text-sm font-medium mb-0"
                     [class.text-green-500]="acc.pctChange >= 0"
+                    [class.dark:text-green-400]="acc.pctChange >= 0"
                     [class.text-red-500]="acc.pctChange < 0"
+                    [class.dark:text-red-400]="acc.pctChange < 0"
                   >
                     {{ acc.pctChange >= 0 ? '+' : '' }}{{ acc.pctChange | number:'1.1-1' }} %
                   </p>
-                  <p class="text-xs text-surface-600">Veränderung</p>
+                  <p class="text-xs text-surface-600 dark:text-surface-300">Veränderung</p>
                 </div>
               }
 
               @if (acc.forecastValue !== null) {
                 <div class="text-center">
-                  <p class="text-sm font-semibold mb-0 text-surface-700">
+                  <p class="text-sm font-semibold mb-0 text-surface-700 dark:text-surface-200">
                     {{ acc.forecastValue | currency:'EUR' }}
                   </p>
-                  <p class="text-xs text-surface-600">Prognose</p>
+                  <p class="text-xs text-surface-600 dark:text-surface-300">Prognose</p>
                 </div>
               }
             </div>

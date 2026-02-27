@@ -38,7 +38,7 @@
       </div>
 
       <div class="text-base mt-1 flex items-center gap-3">
-        <span [ngClass]="balanceChangePct() >= 0 ? 'text-green-600' : 'text-red-500'">
+        <span [ngClass]="balanceChangePct() >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'">
           <i class="pi" [ngClass]="balanceChangePct() >= 0 ? 'pi-arrow-up' : 'pi-arrow-down'"></i>
           {{ balanceChangePct() >= 0 ? '+' : '' }}{{ balanceChangePct() }}%
         </span>
@@ -63,7 +63,7 @@
     @for (member of members(); track member.id) {
       <div
         class="flex items-center gap-2 px-3 py-1 rounded-full"
-        [ngClass]="member.paid ? 'bg-success-50 text-success-700' : 'bg-yellow-50 text-yellow-700'"
+        [ngClass]="member.paid ? 'bg-success-50 dark:bg-success-950/40 text-success-700 dark:text-success-400' : 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'"
         pTooltip="{{ member.paid ? 'Beitrag gezahlt' : 'Beitrag offen' }}"
         tooltipPosition="top">
         <p-avatar shape="circle" [label]="member.avatar || (member.name | slice:0:1)"></p-avatar>
@@ -86,9 +86,9 @@
           }}
         </span>
         @if (currentMember()?.paid === true) {
-          <span class="ml-2 text-green-500 font-medium flex items-center"><i class="pi pi-check-circle mr-1"></i>(bezahlt)</span>
+          <span class="ml-2 text-green-500 dark:text-green-400 font-medium flex items-center"><i class="pi pi-check-circle mr-1"></i>(bezahlt)</span>
         } @else if (currentMember()?.paid === false) {
-          <span class="ml-2 text-yellow-600 font-medium flex items-center"><i class="pi pi-clock mr-1"></i>(offen)</span>
+          <span class="ml-2 text-yellow-600 dark:text-yellow-400 font-medium flex items-center"><i class="pi pi-clock mr-1"></i>(offen)</span>
         }
       </div>
       <div>
@@ -114,22 +114,22 @@
   <!-- Quick Stats -->
   <div class="grid md:grid-cols-4 gap-4 my-4">
     @if (quickStats()) {
-      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card bg-yellow-100 text-yellow-700">
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
         <i class="pi pi-exclamation-circle text-xl"></i>
         <span class="font-medium">{{ quickStats()!.openDuesCount }}</span>
         <span class="text-sm">Offene Beiträge</span>
       </div>
-      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card bg-blue-100 text-blue-700">
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
         <i class="pi pi-refresh text-xl"></i>
         <span class="font-medium">{{ quickStats()!.pendingRecurringCount }}</span>
         <span class="text-sm">Wiederkehrend (offen)</span>
       </div>
-      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card bg-green-100 text-green-700">
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
         <i class="pi pi-coins text-xl"></i>
         <span class="font-medium">{{ quickStats()!.extraContributionsCount }}</span>
         <span class="text-sm">Zusatzbeiträge</span>
       </div>
-      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-surface-card bg-red-100 text-red-700">
+      <div class="flex items-center gap-3 p-4 rounded-lg shadow justify-center bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
         <i class="pi pi-bell text-xl"></i>
         <span class="font-medium">{{ quickStats()!.warningsCount }}</span>
         <span class="text-sm">Warnungen</span>
