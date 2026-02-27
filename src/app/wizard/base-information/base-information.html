@@ -1,9 +1,14 @@
-<form class="flex flex-col p-5" [formGroup]="baseInformationForm" (ngSubmit)="nextStep()">
+<form class="flex flex-col p-5" [formRoot]="baseForm">
   <div class="">
     <label for="account-name" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> Account Name </label>
-    <input id="account-name" type="text" formControlName="name" pInputText fluid />
+    <input id="account-name" type="text" [formField]="baseForm.name" pInputText fluid />
+    @if (baseForm.name().touched() && baseForm.name().invalid()) {
+      @for (e of baseForm.name().errors(); track e) {
+        <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+      }
+    }
   </div>
   <div class="flex flex-row justify-end">
-    <button pButton pRipple label="Next" type="submit" class="w-auto mt-3" [disabled]="!baseInformationForm.valid"></button>
+    <button pButton pRipple label="Next" type="submit" class="w-auto mt-3" [disabled]="!baseForm().valid()"></button>
   </div>
 </form>

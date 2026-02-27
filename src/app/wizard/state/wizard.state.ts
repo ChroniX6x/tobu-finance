@@ -18,7 +18,7 @@ export class WizardStateModel {
 @State<WizardStateModel>({
   name: 'wizardState',
   defaults: {
-    currentStep: 4,
+    currentStep: 1,
     data: {
       name: "Account",
       members: [

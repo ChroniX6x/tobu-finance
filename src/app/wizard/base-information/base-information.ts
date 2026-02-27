@@ -1,40 +1,38 @@
-import { Component, inject, OnInit, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { FluidModule } from 'primeng/fluid';
 import { InputTextModule } from 'primeng/inputtext';
 import { RippleModule } from 'primeng/ripple';
 import { NextStepAction, SetBaseInformation } from '../state/wizard.actions';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField, FormRoot, required } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-base-information',
   templateUrl: './base-information.html',
   styleUrls: ['./base-information.scss'],
-  imports: [ InputTextModule, FluidModule, ButtonModule, RippleModule, ReactiveFormsModule ]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [InputTextModule, FluidModule, ButtonModule, RippleModule, FormField, FormRoot],
 })
-export class BaseInformation implements OnInit {
+export class BaseInformation {
 
-  private store = inject(Store);
-  private fb = inject(FormBuilder);
+  private readonly store = inject(Store);
 
-  public baseInformationForm = this.fb.group({
-    name: ['', Validators.required]
+  public readonly next = output();
+
+  protected readonly baseModel = signal({ name: '' });
+
+  protected readonly baseForm = form(this.baseModel, (p) => {
+    required(p.name, { message: 'Name ist erforderlich' });
+  },
+    {
+    submission: {
+      action: async () => this.nextStep(),   // <- wichtig
+    },
   });
 
-  public next = output();
-
-  constructor() { }
-
-  ngOnInit() {
+  protected nextStep(): void {
+    this.store.dispatch(new SetBaseInformation({ name: this.baseModel().name }));
+    this.store.dispatch(new NextStepAction());
   }
-
-  nextStep() {
-    let value = this.baseInformationForm.value;
-
-    this.store.dispatch(new SetBaseInformation({name: value.name!}))
-
-    this.store.dispatch(new NextStepAction())
-  }
-
 }
