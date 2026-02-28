@@ -1,7 +1,7 @@
 ﻿<p-toast position="top-right" />
 
 @if (selectedTx(); as tx) {
-  <form [formGroup]="form" (ngSubmit)="save()" class="detail-editor flex flex-col gap-4">
+  <form [formRoot]="txForm" class="detail-editor flex flex-col gap-4">
 
     <!-- Child: "Teil von" info bar -->
     @if (isChild()) {
@@ -23,20 +23,22 @@
         <label class="label-sm" for="type">Typ *</label>
         <p-select
           inputId="type"
-          formControlName="type"
+          [formField]="$any(txForm.type)"
           [options]="typeOptions"
           optionLabel="label"
           optionValue="value"
           placeholder="Auswählen"
-          [class.p-invalid]="isFieldInvalid('type')"
-          [disabled]="isChild()"
+          [class.p-invalid]="txForm.type().touched() && txForm.type().invalid()"
+          [disabled]="txForm.type().disabled()"
           required
         />
         @if (isChild()) {
           <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
         }
-        @if (isFieldInvalid('type')) {
-          <small class="text-red-500 dark:text-red-400">Pflichtfeld</small>
+        @if (txForm.type().touched() && txForm.type().invalid()) {
+          @for (e of txForm.type().errors(); track e) {
+            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+          }
         }
       </div>
 
@@ -44,17 +46,19 @@
         <label class="label-sm" for="amount">Betrag * (€)</label>
         <p-inputnumber
           inputId="amount"
-          formControlName="amountMinor"
+          [formField]="$any(txForm.amountMinor)"
           mode="decimal"
           [minFractionDigits]="2"
           [maxFractionDigits]="2"
           [min]="0"
           placeholder="0,00"
-          [class.p-invalid]="isFieldInvalid('amountMinor')"
+          [class.p-invalid]="txForm.amountMinor().touched() && txForm.amountMinor().invalid()"
           required
         />
-        @if (isFieldInvalid('amountMinor')) {
-          <small class="text-red-500 dark:text-red-400">Pflichtfeld (≥ 0)</small>
+        @if (txForm.amountMinor().touched() && txForm.amountMinor().invalid()) {
+          @for (e of txForm.amountMinor().errors(); track e) {
+            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+          }
         }
       </div>
     </div>
@@ -65,14 +69,14 @@
       <input
         pInputText
         id="title"
-        formControlName="title"
+        [formField]="txForm.title"
         placeholder="Titel eingeben..."
-        [class.p-invalid]="isFieldInvalid('title')"
-        maxlength="80"
-        required
+        [class.p-invalid]="txForm.title().touched() && txForm.title().invalid()"
       />
-      @if (isFieldInvalid('title')) {
-        <small class="text-red-500 dark:text-red-400">Pflicht (2–80 Zeichen)</small>
+      @if (txForm.title().touched() && txForm.title().invalid()) {
+        @for (e of txForm.title().errors(); track e) {
+          <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+        }
       }
     </div>
 
@@ -82,12 +86,12 @@
         <label class="label-sm" for="bookDate">Datum</label>
         <p-datepicker
           inputId="bookDate"
-          formControlName="bookDate"
+          [formField]="$any(txForm.bookDate)"
           dateFormat="dd.mm.yy"
           [showIcon]="true"
           placeholder="TT.MM.JJJJ"
           appendTo="body"
-          [disabled]="isChild()"
+          [disabled]="txForm.bookDate().disabled()"
         />
         @if (isChild()) {
           <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
@@ -98,13 +102,18 @@
         <label class="label-sm" for="status">Status *</label>
         <p-select
           inputId="status"
-          formControlName="status"
+          [formField]="$any(txForm.status)"
           [options]="[{label:'Ausstehend', value:'pending'},{label:'Gebucht',value:'booked'}]"
           optionLabel="label"
           optionValue="value"
-          [class.p-invalid]="isFieldInvalid('status')"
+          [class.p-invalid]="txForm.status().touched() && txForm.status().invalid()"
           required
         />
+        @if (txForm.status().touched() && txForm.status().invalid()) {
+          @for (e of txForm.status().errors(); track e) {
+            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+          }
+        }
       </div>
     </div>
 
@@ -113,7 +122,7 @@
       <label class="label-sm" for="category">Kategorie</label>
       <p-select
         inputId="category"
-        formControlName="categoryId"
+        [formField]="$any(txForm.categoryId)"
         [options]="categoryOptions()"
         optionLabel="label"
         optionValue="value"
@@ -127,12 +136,12 @@
     <div class="flex flex-col gap-1">
       <label class="label-sm">Zahlungsquelle *</label>
       <p-select
-        formControlName="isFromSharedAccount"
+        [formField]="$any(txForm.isFromSharedAccount)"
         [options]="[{label:'Gemeinschaftskonto', value:true},{label:'Privat', value:false}]"
         optionLabel="label"
         optionValue="value"
-        [class.p-invalid]="isFieldInvalid('isFromSharedAccount')"
-        [disabled]="isChild()"
+        [class.p-invalid]="txForm.isFromSharedAccount().touched() && txForm.isFromSharedAccount().invalid()"
+        [disabled]="txForm.isFromSharedAccount().disabled()"
         required
       />
       @if (isChild()) {
@@ -146,21 +155,23 @@
         <label class="label-sm" for="paidBy">Bezahlt von *</label>
         <p-select
           inputId="paidBy"
-          formControlName="paidByMemberId"
+          [formField]="$any(txForm.paidByMemberId)"
           [options]="memberOptions()"
           optionLabel="label"
           optionValue="value"
           placeholder="Member auswählen"
           appendTo="body"
-          [class.p-invalid]="isFieldInvalid('paidByMemberId')"
-          [disabled]="isChild()"
-          [required]="!form.get('isFromSharedAccount')?.value"
+          [class.p-invalid]="txForm.paidByMemberId().touched() && txForm.paidByMemberId().invalid()"
+          [disabled]="txForm.paidByMemberId().disabled()"
+          [required]="!txForm.isFromSharedAccount().value()"
         />
         @if (isChild()) {
           <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
         }
-        @if (isFieldInvalid('paidByMemberId')) {
-          <small class="text-red-500 dark:text-red-400">Pflichtfeld bei Privat</small>
+        @if (txForm.paidByMemberId().touched() && txForm.paidByMemberId().invalid()) {
+          @for (e of txForm.paidByMemberId().errors(); track e) {
+            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+          }
         }
       </div>
     }
@@ -171,10 +182,9 @@
       <textarea
         pTextarea
         id="notes"
-        formControlName="notes"
+        [formField]="$any(txForm.notes)"
         rows="3"
         placeholder="Optionale Notizen..."
-        maxlength="1000"
       ></textarea>
     </div>
 
@@ -241,7 +251,7 @@
         label="Speichern"
         icon="pi pi-check"
         [loading]="saving()"
-        [disabled]="form.pristine"
+        [disabled]="!hasChanges() || saving()"
       />
     </div>
   </form>
