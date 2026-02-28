@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, linkedSignal } from '@angular/core';
 import { select, Store } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { FluidModule } from 'primeng/fluid';
 import { RippleModule } from 'primeng/ripple';
-import { NextStepAction, SaveWizardData, SetInitials } from '../state/wizard.actions';
+import { SaveWizardData, SetInitials } from '../state/wizard.actions';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { FieldsetModule } from 'primeng/fieldset';
 import { WizardState } from '../state/wizard.state';
@@ -52,33 +52,32 @@ export class InitialValues {
   private readonly stateMembers = select(WizardState.members);
   private readonly stateCategories = select(WizardState.categories);
 
-  protected readonly initialsModel = signal<InitialsFormModel>({
-    accountBalance: 0,
-    memberInitials: [],
-    categoryInitials: [],
+  // linkedSignal reacts to state changes (members/categories added or removed).
+  // The computation preserves user-entered values via `previous` when the source changes.
+  protected readonly initialsModel = linkedSignal<
+    { members: ReturnType<typeof WizardState.members>; categories: ReturnType<typeof WizardState.categories> },
+    InitialsFormModel
+  >({
+    source: () => ({
+      members: this.stateMembers(),
+      categories: this.stateCategories(),
+    }),
+    computation: ({ members, categories }, previous) => ({
+      accountBalance: previous?.value?.accountBalance ?? 0,
+      memberInitials: members.map(mb => ({
+        member: mb.name,
+        memberId: mb.tempId,
+        initialIncome:
+          previous?.value?.memberInitials?.find(m => m.memberId === mb.tempId)?.initialIncome ?? 0,
+      })),
+      categoryInitials: categories.map(cat => ({
+        category: cat.name,
+        categoryId: cat.tempId,
+        initialExpenseEst:
+          previous?.value?.categoryInitials?.find(c => c.categoryId === cat.tempId)?.initialExpenseEst ?? 0,
+      })),
+    }),
   });
-
-  constructor() {
-    // Sync arrays from wizard state into the form model whenever state changes
-    effect(() => {
-      const members = this.stateMembers();
-      const categories = this.stateCategories();
-      this.initialsModel.set({
-        accountBalance: 0,
-        memberInitials: members.map(mb => ({
-          
-          member: mb.name,
-          memberId: mb.tempId,
-          initialIncome: 0,
-        })),
-        categoryInitials: categories.map(cat => ({
-          category: cat.name,
-          categoryId: cat.tempId,
-          initialExpenseEst: 0,
-        })),
-      });
-    });
-  }
 
   protected readonly initialsForm = form(
     this.initialsModel,
