@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './helpers/test-fixture';
 import {
   ACCOUNT_ID,
   mockAccountsListRoutes,
@@ -6,8 +6,8 @@ import {
 } from './helpers/mocks';
 
 test.describe('Accounts list page', () => {
-  test.beforeEach(async ({ page }) => {
-    await mockAccountsListRoutes(page);
+  test.beforeEach(async ({ page, useMocks }) => {
+    await mockAccountsListRoutes(page, useMocks);
     await page.goto('/accounts');
   });
 
@@ -27,6 +27,8 @@ test.describe('Accounts list page', () => {
   });
 
   test('shows participant count for each account', async ({ page }) => {
+    // Wait for account cards to be fully rendered before checking participant count
+    await expect(page.getByRole('heading', { name: 'E2E Konto', level: 3 })).toBeVisible();
     await expect(page.getByText(/2 Teilnehmer/i)).toBeVisible();
   });
 

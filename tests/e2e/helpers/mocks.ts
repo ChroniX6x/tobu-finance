@@ -97,7 +97,8 @@ export const mockTransaction = {
 // ─── Route mock helpers ──────────────────────────────────────────────────────
 
 /** Mock the auth/refresh endpoint so the app initializer sets a token and the auth guard passes. */
-export async function mockAuth(page: Page): Promise<void> {
+export async function mockAuth(page: Page, useMocks = true): Promise<void> {
+  if (!useMocks) return; // real-api mode: rely on the storageState refresh cookie
   await page.route('**/api/auth/refresh', (route) =>
     route.fulfill({
       status: 200,
@@ -108,8 +109,9 @@ export async function mockAuth(page: Page): Promise<void> {
 }
 
 /** Mock all endpoints needed by the accounts list page. */
-export async function mockAccountsListRoutes(page: Page): Promise<void> {
-  await mockAuth(page);
+export async function mockAccountsListRoutes(page: Page, useMocks = true): Promise<void> {
+  await mockAuth(page, useMocks);
+  if (!useMocks) return;
   await page.route('**/api/accounts/summary**', (route) =>
     route.fulfill({
       status: 200,
@@ -120,8 +122,9 @@ export async function mockAccountsListRoutes(page: Page): Promise<void> {
 }
 
 /** Mock all endpoints needed by the account overview page. */
-export async function mockAccountOverviewRoutes(page: Page): Promise<void> {
-  await mockAuth(page);
+export async function mockAccountOverviewRoutes(page: Page, useMocks = true): Promise<void> {
+  await mockAuth(page, useMocks);
+  if (!useMocks) return;
   await page.route(`**/api/accounts/${ACCOUNT_ID}/overview`, (route) =>
     route.fulfill({
       status: 200,
@@ -151,8 +154,9 @@ export async function mockAccountOverviewRoutes(page: Page): Promise<void> {
 }
 
 /** Mock all endpoints needed by the transactions page. */
-export async function mockTransactionsPageRoutes(page: Page): Promise<void> {
-  await mockAuth(page);
+export async function mockTransactionsPageRoutes(page: Page, useMocks = true): Promise<void> {
+  await mockAuth(page, useMocks);
+  if (!useMocks) return;
   await page.route(`**/api/accounts/${ACCOUNT_ID}`, (route) => {
     if (route.request().url().includes('/overview')) return route.fallback();
     return route.fulfill({
@@ -194,8 +198,9 @@ export async function mockTransactionsPageRoutes(page: Page): Promise<void> {
 }
 
 /** Mock all endpoints needed by the wizard flow. */
-export async function mockWizardRoutes(page: Page): Promise<void> {
-  await mockAuth(page);
+export async function mockWizardRoutes(page: Page, useMocks = true): Promise<void> {
+  await mockAuth(page, useMocks);
+  if (!useMocks) return;
   let memberCounter = 0;
   await page.route('**/api/members', (route) => {
     if (route.request().method() !== 'POST') return route.fallback();

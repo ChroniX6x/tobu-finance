@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './helpers/test-fixture';
 import {
   ACCOUNT_ID,
   CAT_1_ID,
@@ -10,8 +10,8 @@ import {
 const url = `/accounts/${ACCOUNT_ID}/transactions`;
 
 test.describe('Transactions page', () => {
-  test.beforeEach(async ({ page }) => {
-    await mockTransactionsPageRoutes(page);
+  test.beforeEach(async ({ page, useMocks }) => {
+    await mockTransactionsPageRoutes(page, useMocks);
     await page.goto(url);
   });
 
