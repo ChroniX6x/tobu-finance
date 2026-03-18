@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { select, Store } from '@ngxs/store';
 import { map } from 'rxjs';
+import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
 import { ButtonModule } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
@@ -34,6 +33,7 @@ import { CategoriesState } from '@/shared/state/categories.state';
 import { AccountState } from '@/shared/state/account.state';
 import { TransactionModel, TransactionType } from '../../domain/transaction.model';
 import { TransactionsApiService } from '../../domain/transactions-api.service';
+import { disabled, form, FormField, min, minLength, maxLength, required, validate } from '@angular/forms/signals';
 
 type ParentSuggestion = Pick<
   TransactionModel,
@@ -41,6 +41,32 @@ type ParentSuggestion = Pick<
 > & { restMinor: number };
 
 type DraftStatusSeverity = 'secondary' | 'warn' | 'success' | 'info' | 'danger';
+
+interface CaptureFormModel {
+  amount: number | null;
+  title: string;
+  categoryId: string | null;
+  notes: string | null;
+  type: TransactionType | null;
+  isFromSharedAccount: boolean;
+  paidByMemberId: string | null;
+  bookDate: Date | null;
+  parent: ParentSuggestion | null;
+}
+
+function freshCaptureModel(): CaptureFormModel {
+  return {
+    amount: null,
+    title: '',
+    categoryId: null,
+    notes: null,
+    type: 'expense',
+    isFromSharedAccount: true,
+    paidByMemberId: null,
+    bookDate: new Date(),
+    parent: null,
+  };
+}
 
 @Component({
   selector: 'tbf-transactions-dock',
@@ -52,7 +78,7 @@ type DraftStatusSeverity = 'secondary' | 'warn' | 'success' | 'info' | 'danger';
   styleUrl: './transactions-dock.scss',
   imports: [
     FormsModule,
-    ReactiveFormsModule,
+    FormField,
     ButtonModule,
     BadgeModule,
     InputTextModule,
@@ -69,7 +95,6 @@ export class TransactionsDock {
   readonly accountId = input.required<string>();
 
   private store = inject(Store);
-  private fb = inject(FormBuilder);
   private api = inject(TransactionsApiService);
   private hostElement = inject(ElementRef<HTMLElement>);
 
@@ -108,55 +133,87 @@ export class TransactionsDock {
   );
 
   protected parentSuggestions = signal<ParentSuggestion[]>([]);
-  protected memberSuggestions = signal<Array<{ label: string; value: string }>>([]);
-  protected selectedParent = signal<ParentSuggestion | null>(null);
 
-  protected form = this.fb.group({
-    amount: this.fb.control<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
-    title: this.fb.control('', { validators: [Validators.required, Validators.minLength(2), Validators.maxLength(80)] }),
-    categoryId: this.fb.control<string | null>(null),
-    notes: this.fb.control<string | null>(null),
-    type: this.fb.control<TransactionType | null>('expense', { validators: [Validators.required] }),
-    isFromSharedAccount: this.fb.control(true, { validators: [Validators.required] }),
-    paidByMemberId: this.fb.control<string | null>(null),
-    bookDate: this.fb.control<Date | null>(new Date(), { validators: [Validators.required] }),
-    parent: this.fb.control<ParentSuggestion | null>(null),
-  });
+  // Derives from captureInput so it stays in sync without a separate signal
+  protected readonly selectedParent = computed(() => this.captureInput().parent);
 
-  constructor() {
-    this.form.controls.isFromSharedAccount.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((isShared) => {
-        this.applyPaidByValidation(isShared ?? true);
-      });
+  // Shows validation errors after a submit attempt even if fields are untouched
+  protected readonly submitted = signal(false);
 
-    this.form.controls.parent.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((parent) => {
-        this.selectedParent.set(parent);
-        if (!parent || this.captureMode() !== 'split') {
-          return;
-        }
+  protected readonly captureInput = signal<CaptureFormModel>(freshCaptureModel());
 
-        this.form.patchValue({
-          type: parent.type,
-          isFromSharedAccount: parent.isFromSharedAccount,
-          paidByMemberId: parent.paidByMemberId,
-          bookDate: parent.bookDate ? new Date(parent.bookDate) : new Date(),
-        });
-      });
-
-    effect(() => {
-      this.applyMode(this.captureMode());
+  protected readonly captureForm = form(this.captureInput, (p) => {
+    required(p.amount, { message: 'Pflichtfeld' });
+    min(p.amount, 0, { message: 'Muss \u2265 0 sein' });
+    required(p.title, { message: 'Pflichtfeld' });
+    minLength(p.title, 2, { message: 'Mind. 2 Zeichen' });
+    maxLength(p.title, 80, { message: 'Max. 80 Zeichen' });
+    required(p.bookDate, { message: 'Pflichtfeld' });
+    validate(p.paidByMemberId, ({ value, valueOf }) => {
+      if (valueOf(p.isFromSharedAccount) === false && !value()) {
+        return { kind: 'required', message: 'Pflicht bei Privat' };
+      }
+      return null;
     });
-  }
+    validate(p.parent, ({ value }) => {
+      if (this.captureMode() === 'split' && !value()) {
+        return { kind: 'required', message: 'Parent erforderlich' };
+      }
+      return null;
+    });
+    validate(p.amount, ({ value, valueOf }) => {
+      const parent = valueOf(p.parent) as ParentSuggestion | null;
+      if (parent && this.captureMode() === 'split') {
+        const minor = Math.round((value() ?? 0) * 100);
+        if (minor > parent.restMinor) {
+          return { kind: 'restExceeded', message: 'Betrag \u00fcberschreitet verf\u00fcgbaren Rest' };
+        }
+      }
+      return null;
+    });
+    disabled(p.type, () => this.captureMode() === 'split');
+    disabled(p.isFromSharedAccount, () => this.captureMode() === 'split');
+    disabled(p.paidByMemberId, () => this.captureMode() === 'split');
+    disabled(p.bookDate, () => this.captureMode() === 'split');
+    disabled(p.parent, () => this.captureMode() !== 'split');
+  });
 
   protected setMode(mode: CaptureMode): void {
     this.store.dispatch(new SetCaptureMode(mode));
+    if (mode !== 'split') {
+      this.parentSuggestions.set([]);
+    }
+    this.resetForm(mode);
   }
 
   protected toggleDock(): void {
     this.store.dispatch(new ToggleDock());
+  }
+
+  /** Called when the user picks a parent suggestion from the autocomplete. */
+  protected onParentSelect(parent: ParentSuggestion): void {
+    if (this.captureMode() === 'split') {
+      this.captureInput.update(m => ({
+        ...m,
+        parent,
+        type: parent.type,
+        isFromSharedAccount: parent.isFromSharedAccount,
+        paidByMemberId: parent.paidByMemberId ?? null,
+        bookDate: parent.bookDate ? new Date(parent.bookDate) : new Date(),
+      }));
+    }
+  }
+
+  /** Called when the user clears the parent autocomplete. */
+  protected onParentClear(): void {
+    this.captureInput.update(m => ({
+      ...m,
+      parent: null,
+      type: 'expense',
+      isFromSharedAccount: true,
+      paidByMemberId: null,
+      bookDate: new Date(),
+    }));
   }
 
   protected searchParents(event: { query: string }): void {
@@ -192,16 +249,6 @@ export class TransactionsDock {
       .subscribe((suggestions) => {
         this.parentSuggestions.set(suggestions);
       });
-  }
-
-  protected searchMembers(event: { query: string }): void {
-    const query = (event.query ?? '').trim().toLowerCase();
-    const members = this.memberOptions();
-    this.memberSuggestions.set(
-      query
-        ? members.filter((member) => member.label.toLowerCase().includes(query))
-        : members
-    );
   }
 
   protected addToQueue(): void {
@@ -240,31 +287,21 @@ export class TransactionsDock {
 
   protected draftSeverity(status: TransactionDraft['draftStatus']): DraftStatusSeverity {
     switch (status) {
-      case 'ready':
-        return 'success';
-      case 'needsReview':
-        return 'warn';
-      case 'saving':
-        return 'info';
-      case 'error':
-        return 'danger';
-      default:
-        return 'secondary';
+      case 'ready': return 'success';
+      case 'needsReview': return 'warn';
+      case 'saving': return 'info';
+      case 'error': return 'danger';
+      default: return 'secondary';
     }
   }
 
   protected draftStatusLabel(status: TransactionDraft['draftStatus']): string {
     switch (status) {
-      case 'needsReview':
-        return 'Prüfen';
-      case 'ready':
-        return 'Bereit';
-      case 'saving':
-        return 'Speichert';
-      case 'error':
-        return 'Fehler';
-      default:
-        return 'Entwurf';
+      case 'needsReview': return 'Pr\u00fcfen';
+      case 'ready': return 'Bereit';
+      case 'saving': return 'Speichert';
+      case 'error': return 'Fehler';
+      default: return 'Entwurf';
     }
   }
 
@@ -282,17 +319,13 @@ export class TransactionsDock {
   }
 
   protected onDocumentKeydown(event: KeyboardEvent): void {
-    if (!this.dockOpen()) {
-      return;
-    }
+    if (!this.dockOpen()) return;
 
     const key = event.key.toLowerCase();
     const isSaveShortcut = (event.ctrlKey || event.metaKey) && key === 's';
     if (isSaveShortcut) {
       event.preventDefault();
-      if (this.canSaveAll()) {
-        this.saveAllReady();
-      }
+      if (this.canSaveAll()) this.saveAllReady();
       return;
     }
 
@@ -300,60 +333,53 @@ export class TransactionsDock {
     const activeElement = document.activeElement as HTMLElement | null;
     const focusNode = activeElement ?? eventTarget;
     const focusedInsideDock = !!focusNode && this.hostElement.nativeElement.contains(focusNode);
-    if (!focusedInsideDock) {
-      return;
-    }
+    if (!focusedInsideDock) return;
 
     if (event.key === 'Escape') {
       event.preventDefault();
-      this.resetForm();
+      this.resetForm(this.captureMode());
       return;
     }
 
     if (event.key === 'Enter') {
-      if (focusNode?.tagName === 'TEXTAREA') {
-        return;
-      }
+      if (focusNode?.tagName === 'TEXTAREA') return;
       event.preventDefault();
       const added = this.submitDraft(false);
-      if (added) {
-        this.focusAmountInput();
-      }
+      if (added) this.focusAmountInput();
       return;
     }
-
   }
 
   private submitDraft(finalizeImmediately: boolean): boolean {
-    this.form.markAllAsTouched();
-    if (this.form.invalid || !this.accountId()) {
-      return false;
-    }
+    this.submitted.set(true);
 
-    const parent = this.form.controls.parent.value;
-    if (this.captureMode() === 'split' && !parent) {
-      return false;
-    }
+    if (!this.captureForm().valid() || !this.accountId()) return false;
 
-    const amountMajor = this.form.controls.amount.value;
-    if (amountMajor == null) {
-      return false;
-    }
+    const m = this.captureInput();
+    const parent = m.parent;
+
+    if (this.captureMode() === 'split' && !parent) return false;
+
+    const amountMajor = m.amount;
+    if (amountMajor == null) return false;
 
     const amountMinor = Math.round(amountMajor * 100);
-    if (parent && amountMinor > parent.restMinor) {
-      this.form.controls.amount.setErrors({ restExceeded: true });
-      return false;
-    }
+    // Already validated by Signal Forms schema, but guard here too
+    if (parent && amountMinor > parent.restMinor) return false;
 
     const id = uuidv4();
     const isSplit = this.captureMode() === 'split' && !!parent;
-    const type = isSplit ? parent!.type : this.form.controls.type.value;
-    const isFromShared = isSplit ? parent!.isFromSharedAccount : this.form.controls.isFromSharedAccount.value;
-    const paidByMemberId = isSplit ? parent!.paidByMemberId : this.form.controls.paidByMemberId.value;
-    const bookDateDate = isSplit
+    const type = isSplit ? parent!.type : m.type;
+    const isFromShared = isSplit ? parent!.isFromSharedAccount : m.isFromSharedAccount;
+    const paidByMemberId = isSplit ? parent!.paidByMemberId : m.paidByMemberId;
+    const bookDateRaw = isSplit
       ? (parent!.bookDate ? new Date(parent!.bookDate) : new Date())
-      : this.form.controls.bookDate.value;
+      : m.bookDate;
+
+    // Bug fix: send YYYY-MM-DD format, not a full ISO timestamp
+    const bookDateIso = bookDateRaw instanceof Date
+      ? DateTime.fromJSDate(bookDateRaw).toISODate()
+      : bookDateRaw;
 
     const draftPayload: TransactionDraft = {
       id,
@@ -361,93 +387,45 @@ export class TransactionsDock {
       source: 'manual',
       accountId: this.accountId(),
       amountMinor,
-      title: this.form.controls.title.value?.trim() ?? '',
-      notes: this.form.controls.notes.value,
-      categoryId: this.form.controls.categoryId.value,
+      title: m.title.trim(),
+      notes: m.notes,
+      categoryId: m.categoryId,
       type: type ?? null,
       isFromSharedAccount: !!isFromShared,
       paidByMemberId: paidByMemberId ?? null,
-      bookDate: bookDateDate ? bookDateDate.toISOString() : null,
+      bookDate: bookDateIso,
       parentTransactionId: isSplit ? parent!._id : null,
       errorMessage: null,
     };
 
     draftPayload.draftStatus = computeDraftStatus(draftPayload, parent?.restMinor);
 
-    const addDraftPayload: Partial<TransactionDraft> & { accountId: string } = {
-      ...draftPayload,
-      accountId: this.accountId(),
-    };
-
-    this.store.dispatch(new AddDraft(addDraftPayload));
+    this.store.dispatch(new AddDraft({ ...draftPayload, accountId: this.accountId() }));
 
     if (finalizeImmediately && draftPayload.draftStatus === 'ready') {
       this.store.dispatch(new FinalizeDraft(id));
     }
 
-    this.resetForm();
+    this.resetForm(this.captureMode());
     return true;
   }
 
-  private applyMode(mode: CaptureMode): void {
-    const parentControl = this.form.controls.parent;
-    const typeControl = this.form.controls.type;
-    const sourceControl = this.form.controls.isFromSharedAccount;
-    const paidByControl = this.form.controls.paidByMemberId;
-    const dateControl = this.form.controls.bookDate;
-
-    if (mode === 'split') {
-      parentControl.setValidators([Validators.required]);
-      typeControl.disable({ emitEvent: false });
-      sourceControl.disable({ emitEvent: false });
-      paidByControl.disable({ emitEvent: false });
-      dateControl.disable({ emitEvent: false });
-    } else {
-      parentControl.clearValidators();
-      parentControl.setValue(null, { emitEvent: false });
-      this.selectedParent.set(null);
-      this.parentSuggestions.set([]);
-      typeControl.enable({ emitEvent: false });
-      sourceControl.enable({ emitEvent: false });
-      dateControl.enable({ emitEvent: false });
-      this.applyPaidByValidation(sourceControl.value ?? true);
-    }
-
-    parentControl.updateValueAndValidity({ emitEvent: false });
-  }
-
-  private applyPaidByValidation(isFromSharedAccount: boolean): void {
-    const paidByControl = this.form.controls.paidByMemberId;
-    if (!isFromSharedAccount) {
-      paidByControl.enable({ emitEvent: false });
-      paidByControl.setValidators([Validators.required]);
-    } else {
-      paidByControl.setValue(null, { emitEvent: false });
-      paidByControl.clearValidators();
-      if (this.captureMode() !== 'split') {
-        paidByControl.enable({ emitEvent: false });
-      }
-    }
-    paidByControl.updateValueAndValidity({ emitEvent: false });
-  }
-
-  private resetForm(): void {
-    const mode = this.captureMode();
-    this.form.reset({
+  private resetForm(mode: CaptureMode): void {
+    const parent = mode === 'split' ? this.captureInput().parent : null;
+    this.submitted.set(false);
+    this.captureInput.set({
       amount: null,
       title: '',
       categoryId: null,
       notes: null,
-      type: 'expense',
-      isFromSharedAccount: true,
-      paidByMemberId: null,
-      bookDate: new Date(),
-      parent: mode === 'split' ? this.selectedParent() : null,
+      type: mode === 'split' && parent ? parent.type : 'expense',
+      isFromSharedAccount: mode === 'split' && parent ? parent.isFromSharedAccount : true,
+      paidByMemberId: mode === 'split' && parent ? (parent.paidByMemberId ?? null) : null,
+      bookDate: mode === 'split' && parent
+        ? (parent.bookDate ? new Date(parent.bookDate) : new Date())
+        : new Date(),
+      parent,
     });
-
-    if (mode === 'split') {
-      this.form.controls.amount.setErrors(null);
-    }
   }
 
   private focusAmountInput(): void {
@@ -459,5 +437,5 @@ export class TransactionsDock {
       amountInput?.select();
     });
   }
-
 }
+

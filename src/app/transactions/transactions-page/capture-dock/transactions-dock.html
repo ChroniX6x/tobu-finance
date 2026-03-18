@@ -41,21 +41,28 @@
       <section class="quick-add">
         <h3 class="section-title">Quick Add</h3>
 
-        <form [formGroup]="form" class="quick-add-form" (submit)="$event.preventDefault()">
+        <form class="quick-add-form">
           @if (captureMode() === 'split') {
             <div class="field full-width">
               <label for="parent-input">Teil von *</label>
               <p-autoComplete
                 inputId="parent-input"
-                formControlName="parent"
+                [formField]="$any(captureForm.parent)"
                 [suggestions]="parentSuggestions()"
                 [dropdown]="true"
                 [forceSelection]="true"
                 optionLabel="title"
                 (completeMethod)="searchParents($event)"
+                (onSelect)="onParentSelect($event.value)"
+                (onClear)="onParentClear()"
                 placeholder="Parent suchen"
                 appendTo="body"
               />
+              @if ((captureForm.parent().touched() || submitted()) && captureForm.parent().invalid()) {
+                @for (e of captureForm.parent().errors(); track e) {
+                  <small class="field-error">{{ e.message }}</small>
+                }
+              }
             </div>
             @if (selectedParent(); as parent) {
               <div class="split-context full-width">
@@ -68,14 +75,16 @@
             <label for="amount-input">Betrag *</label>
             <p-inputNumber
               inputId="amount-input"
-              formControlName="amount"
+              [formField]="$any(captureForm.amount)"
               mode="currency"
               currency="EUR"
               locale="de-DE"
               [min]="0"
             />
-            @if (form.controls.amount.touched && form.controls.amount.hasError('restExceeded')) {
-              <small class="field-error">Betrag darf den Rest nicht überschreiten.</small>
+            @if ((captureForm.amount().touched() || submitted()) && captureForm.amount().invalid()) {
+              @for (e of captureForm.amount().errors(); track e) {
+                <small class="field-error">{{ e.message }}</small>
+              }
             }
           </div>
 
@@ -83,7 +92,7 @@
             <label for="type-select">Typ *</label>
             <p-selectButton
               inputId="type-select"
-              formControlName="type"
+              [formField]="$any(captureForm.type)"
               [options]="typeOptions"
               optionLabel="label"
               optionValue="value"
@@ -93,14 +102,19 @@
 
           <div class="field title-field">
             <label for="title-input">Titel *</label>
-            <input id="title-input" pInputText formControlName="title" maxlength="80" />
+            <input id="title-input" pInputText [formField]="captureForm.title" />
+            @if ((captureForm.title().touched() || submitted()) && captureForm.title().invalid()) {
+              @for (e of captureForm.title().errors(); track e) {
+                <small class="field-error">{{ e.message }}</small>
+              }
+            }
           </div>
 
           <div class="field">
             <label for="category-select">Kategorie</label>
             <p-select
               inputId="category-select"
-              formControlName="categoryId"
+              [formField]="$any(captureForm.categoryId)"
               [options]="categoryOptions()"
               optionLabel="label"
               optionValue="value"
@@ -113,7 +127,7 @@
             <label for="source-select">Quelle *</label>
             <p-select
               inputId="source-select"
-              formControlName="isFromSharedAccount"
+              [formField]="$any(captureForm.isFromSharedAccount)"
               [options]="sourceOptions"
               optionLabel="label"
               optionValue="value"
@@ -124,24 +138,26 @@
 
           <div class="field">
             <label for="paid-by-select">Bezahlt von</label>
-            <p-autoComplete
+            <p-select
               inputId="paid-by-select"
-              formControlName="paidByMemberId"
-              [suggestions]="memberSuggestions()"
-              [dropdown]="true"
-              [forceSelection]="true"
-              (completeMethod)="searchMembers($event)"
+              [formField]="$any(captureForm.paidByMemberId)"
+              [options]="memberOptions()"
               optionLabel="label"
               optionValue="value"
               [showClear]="true"
               appendTo="body"
               placeholder="Mitglied"
             />
+            @if ((captureForm.paidByMemberId().touched() || submitted()) && captureForm.paidByMemberId().invalid()) {
+              @for (e of captureForm.paidByMemberId().errors(); track e) {
+                <small class="field-error">{{ e.message }}</small>
+              }
+            }
           </div>
 
           <div class="field">
             <label for="date-input">Datum *</label>
-            <p-datepicker inputId="date-input" formControlName="bookDate" dateFormat="dd.mm.yy" appendTo="body" />
+            <p-datepicker inputId="date-input" [formField]="$any(captureForm.bookDate)" dateFormat="dd.mm.yy" appendTo="body" />
           </div>
 
           <div class="actions full-width">

@@ -23,8 +23,8 @@ import { MessageService } from 'primeng/api';
 import { AccountState } from '@/shared/state/account.state';
 import { CategoriesState } from '@/shared/state/categories.state';
 import { TransactionPageState } from '../../state/transaction-page.state';
-import { PatchTransactionOptimistic, SelectTransaction } from '../../state/transaction-page.actions';
-import { TransactionModel, TransactionType } from '../../domain/transaction.model';
+import { CreateTransactionOptimistic, PatchTransactionOptimistic, SelectTransaction } from '../../state/transaction-page.actions';
+import { CreateTransactionDto, PatchTransactionDto, TransactionModel, TransactionStatus, TransactionType } from '../../domain/transaction.model';
 import { disabled, form, FormField, FormRoot, min, minLength, maxLength, required, validate } from '@angular/forms/signals';
 
 interface TypeOption {
@@ -96,8 +96,8 @@ export class TransactionDetailEditor {
 
   private readonly store = inject(Store);
   private readonly messageService = inject(MessageService);
-
   protected readonly selectedTx = select(TransactionPageState.selectedTransaction);
+  private readonly selectedId = select(TransactionPageState.selectedId);
   private readonly entities = select(TransactionPageState.entities);
   private readonly splitMetaMap = select(TransactionPageState.splitMetaMap);
   private readonly childrenByParentId = select(TransactionPageState.childrenByParentId);
@@ -105,6 +105,7 @@ export class TransactionDetailEditor {
   private readonly account = select(AccountState.account);
 
   protected readonly saving = signal(false);
+  protected readonly isNew = computed(() => this.selectedId() === '__new__');
 
   protected readonly typeOptions: TypeOption[] = [
     { label: 'Ausgabe', value: 'expense' },
@@ -143,9 +144,20 @@ export class TransactionDetailEditor {
 
   // linkedSignal: recomputes whenever the selected transaction changes.
   // Manual edits (user typing) are written directly to txModel via [formField].
+  // When tx is null (new transaction mode or no selection), pre-fill sensible defaults.
   protected readonly txModel = linkedSignal<TransactionModel | null, TxFormModel>({
     source: this.selectedTx,
-    computation: (tx, _previous) => tx ? txToFormModel(tx) : EMPTY_TX_MODEL,
+    computation: (tx) => tx ? txToFormModel(tx) : {
+      type: 'expense' as TransactionType,
+      amountMinor: null,
+      title: '',
+      notes: null,
+      categoryId: null,
+      isFromSharedAccount: true,
+      paidByMemberId: null,
+      bookDate: new Date(),
+      status: 'booked',
+    },
   });
 
   protected readonly txForm = form(
@@ -178,8 +190,9 @@ export class TransactionDetailEditor {
     },
   );
 
-  protected readonly showPaidBy = computed(
-    () => this.txForm.isFromSharedAccount().value() === false
+  /** Save button is enabled when the form has changes (edit) or is valid (create). */
+  protected readonly canSave = computed(
+    () => this.isNew() ? this.txForm().valid() : (this.hasChanges() && this.txForm().valid()),
   );
 
   // Compares current form values against original tx for save-button enabled state
@@ -191,20 +204,25 @@ export class TransactionDetailEditor {
       'type', 'title', 'notes', 'categoryId',
       'isFromSharedAccount', 'paidByMemberId', 'status',
     ] as const;
-    if (fields.some((k) => m[k] !== (tx as unknown as Record<string, unknown>)[k])) return true;
+    if (fields.some((k) => m[k] !== (tx[k] ?? null))) return true;
     if (Math.round((m.amountMinor ?? 0) * 100) !== tx.amountMinor) return true;
     const newDate = m.bookDate instanceof Date
       ? DateTime.fromJSDate(m.bookDate).toISODate()
       : m.bookDate;
-    return newDate !== (tx.bookDate ?? null);
+    const txDate = tx.bookDate ? DateTime.fromISO(tx.bookDate).toISODate() : null;
+    return newDate !== txDate;
   });
 
   protected save(): void {
+    if (this.isNew()) {
+      this.createNew();
+      return;
+    }
     const tx = this.selectedTx();
     if (!tx) return;
 
     const m = this.txModel();
-    const patch: Record<string, unknown> = {};
+    const patch: PatchTransactionDto = {};
 
     const fields = [
       'type', 'title', 'notes', 'categoryId',
@@ -212,28 +230,58 @@ export class TransactionDetailEditor {
     ] as const;
     for (const key of fields) {
       const newVal = m[key];
-      const oldVal = (tx as unknown as Record<string, unknown>)[key];
-      if (newVal !== oldVal) patch[key] = newVal;
+      const oldVal = tx[key] ?? null;
+      if (newVal !== oldVal) (patch as Record<string, unknown>)[key] = newVal;
     }
 
     const amountMinorNew = Math.round((m.amountMinor ?? 0) * 100);
-    if (amountMinorNew !== tx.amountMinor) patch['amountMinor'] = amountMinorNew;
+    if (amountMinorNew !== tx.amountMinor) patch.amountMinor = amountMinorNew;
 
     const rawDate = m.bookDate;
-    const newBookDate = rawDate instanceof Date
+    const newBookDateStr = rawDate instanceof Date
       ? DateTime.fromJSDate(rawDate).toISODate()
       : rawDate;
-    if (newBookDate !== (tx.bookDate ?? null)) patch['bookDate'] = newBookDate;
+    const oldBookDateStr = tx.bookDate ? DateTime.fromISO(tx.bookDate).toISODate() : null;
+    if (newBookDateStr !== oldBookDateStr) {
+      patch.bookDate = newBookDateStr ? `${newBookDateStr}T00:00:00.000Z` : null;
+    }
 
     if (!Object.keys(patch).length) {
-      this.messageService.add({ severity: 'info', summary: 'Keine Änderungen', life: 2000 });
+      this.messageService.add({ severity: 'info', summary: 'Keine \u00c4nderungen', life: 2000 });
       return;
     }
 
     this.saving.set(true);
-    this.store.dispatch(new PatchTransactionOptimistic(tx._id, patch as any));
+    // The transaction ID is passed as the first argument and will be placed in the URL path
+    // (/api/transactions/:id). It is NOT sent in the patch body.
+    this.store.dispatch(new PatchTransactionOptimistic(tx._id, patch));
     this.saving.set(false);
     this.messageService.add({ severity: 'success', summary: 'Gespeichert', life: 2000 });
+  }
+
+  private createNew(): void {
+    // Guard: don't submit invalid forms (user sees nothing if invalid — expand with error display if needed)
+    if (!this.txForm().valid()) return;
+    const m = this.txModel();
+    const bookDateRaw = m.bookDate;
+    const isoDate = bookDateRaw instanceof Date ? DateTime.fromJSDate(bookDateRaw).toISODate() : bookDateRaw;
+    const bookDate = isoDate ? `${isoDate}T00:00:00.000Z` : null;
+
+    const dto: CreateTransactionDto = {
+      accountId: this.accountId(),
+      type: m.type ?? 'expense',
+      amountMinor: Math.round((m.amountMinor ?? 0) * 100),
+      title: m.title,
+      notes: m.notes,
+      categoryId: m.categoryId,
+      isFromSharedAccount: m.isFromSharedAccount,
+      paidByMemberId: m.paidByMemberId,
+      bookDate: bookDate,
+      status: (m.status ?? 'booked') as TransactionStatus,
+      parentTransactionId: null,
+    };
+    this.store.dispatch(new CreateTransactionOptimistic(dto));
+    this.messageService.add({ severity: 'success', summary: 'Buchung angelegt', life: 2000 });
   }
 
   protected goToParent(): void {

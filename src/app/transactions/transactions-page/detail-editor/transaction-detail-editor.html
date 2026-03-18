@@ -1,7 +1,15 @@
 ﻿<p-toast position="top-right" />
 
-@if (selectedTx(); as tx) {
+@if (selectedTx() || isNew()) {
   <form [formRoot]="txForm" class="detail-editor flex flex-col gap-4">
+
+    <!-- New transaction heading -->
+    @if (isNew()) {
+      <div class="flex items-center gap-2">
+        <i class="pi pi-plus-circle text-primary-500"></i>
+        <h3 class="font-semibold text-lg">Neue Buchung</h3>
+      </div>
+    }
 
     <!-- Child: "Teil von" info bar -->
     @if (isChild()) {
@@ -29,7 +37,6 @@
           optionValue="value"
           placeholder="Auswählen"
           [class.p-invalid]="txForm.type().touched() && txForm.type().invalid()"
-          [disabled]="txForm.type().disabled()"
           required
         />
         @if (isChild()) {
@@ -91,7 +98,6 @@
           [showIcon]="true"
           placeholder="TT.MM.JJJJ"
           appendTo="body"
-          [disabled]="txForm.bookDate().disabled()"
         />
         @if (isChild()) {
           <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
@@ -141,7 +147,6 @@
         optionLabel="label"
         optionValue="value"
         [class.p-invalid]="txForm.isFromSharedAccount().touched() && txForm.isFromSharedAccount().invalid()"
-        [disabled]="txForm.isFromSharedAccount().disabled()"
         required
       />
       @if (isChild()) {
@@ -149,9 +154,8 @@
       }
     </div>
 
-    <!-- Bezahlt von (nur bei Privat) -->
-    @if (showPaidBy()) {
-      <div class="flex flex-col gap-1">
+    <!-- Bezahlt von -->
+    <div class="flex flex-col gap-1">
         <label class="label-sm" for="paidBy">Bezahlt von *</label>
         <p-select
           inputId="paidBy"
@@ -162,7 +166,6 @@
           placeholder="Member auswählen"
           appendTo="body"
           [class.p-invalid]="txForm.paidByMemberId().touched() && txForm.paidByMemberId().invalid()"
-          [disabled]="txForm.paidByMemberId().disabled()"
           [required]="!txForm.isFromSharedAccount().value()"
         />
         @if (isChild()) {
@@ -174,15 +177,19 @@
           }
         }
       </div>
-    }
 
     <!-- Notes -->
+    <!-- NOTE: [formField] is intentionally NOT used here. PrimeNG's pTextarea
+         injects NgControl with {self:true} and calls valueChanges.subscribe()
+         in ngOnInit. Signal Forms' InteropNgControl does not implement
+         valueChanges, causing a TypeError on first render. We bind manually. -->
     <div class="flex flex-col gap-1">
       <label class="label-sm" for="notes">Notizen</label>
       <textarea
         pTextarea
         id="notes"
-        [formField]="$any(txForm.notes)"
+        [value]="txForm.notes().value() ?? ''"
+        (input)="txForm.notes().value.set($any($event.target).value || null)"
         rows="3"
         placeholder="Optionale Notizen..."
       ></textarea>
@@ -200,7 +207,7 @@
         <div class="split-summary grid grid-cols-3 gap-2 mb-3">
           <div class="stat-card">
             <span class="label">Gesamt</span>
-            <span class="value">{{ formatAmount(tx.amountMinor) }} €</span>
+            <span class="value">{{ formatAmount(selectedTx()?.amountMinor ?? 0) }} €</span>
           </div>
           <div class="stat-card">
             <span class="label">Zugewiesen</span>
@@ -246,13 +253,23 @@
 
     <!-- Save button -->
     <div class="flex justify-end gap-2 pt-2 border-t border-surface-100 dark:border-surface-700">
-      <p-button
-        type="submit"
-        label="Speichern"
-        icon="pi pi-check"
-        [loading]="saving()"
-        [disabled]="!hasChanges() || saving()"
-      />
+      @if (isNew()) {
+        <p-button
+          type="submit"
+          label="Anlegen"
+          icon="pi pi-check"
+          [loading]="saving()"
+          [disabled]="saving()"
+        />
+      } @else {
+        <p-button
+          type="submit"
+          label="Speichern"
+          icon="pi pi-check"
+          [loading]="saving()"
+          [disabled]="!canSave() || saving()"
+        />
+      }
     </div>
   </form>
 } @else {
