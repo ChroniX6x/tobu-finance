@@ -262,6 +262,8 @@ export class TransactionPageState {
         }));
         if (dto.parentTransactionId) {
           ctx.patchState({ selectedId: dto.parentTransactionId });
+        } else {
+          ctx.patchState({ selectedId: created._id });
         }
       }),
       catchError(err => {

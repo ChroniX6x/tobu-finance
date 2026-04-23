@@ -18,44 +18,11 @@ export class WizardStateModel {
 @State<WizardStateModel>({
   name: 'wizardState',
   defaults: {
-    currentStep: 4,
+    currentStep: 1,
     data: {
       name: "Account",
-      members: [
-        {
-            name: "Tony Hoffmann",
-            email: "sicphyer@gmx.de",
-            tempId: "db36bf0f-cc07-4061-8d3c-c9f5221380f3"
-        },
-        {
-            name: "Carolin Neumann",
-            email: "neumann__carolin@web.de",
-            tempId: "53031ab5-9ecc-4023-bc64-0354640f669c"
-        }
-    ],
-    categories: [
-        {
-            name: "Lebensmittel",
-            customSplit: [],
-            tempId: "62810509-3d05-475e-b250-0cf33c20cda5"
-        },
-        {
-            name: "Miete",
-            customSplit: [
-                {
-                    memberId: "db36bf0f-cc07-4061-8d3c-c9f5221380f3",
-                    name: "Tony Hoffmann",
-                    split: 40
-                },
-                {
-                    memberId: "53031ab5-9ecc-4023-bc64-0354640f669c",
-                    name: "Carolin Neumann",
-                    split: 60
-                }
-            ],
-            tempId: "41cfaa1b-ce0e-49c5-992a-d35f6a3b34a0"
-        }
-    ]
+      members: [],
+    categories: []
     }
   }
 })

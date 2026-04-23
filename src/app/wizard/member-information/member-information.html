@@ -1,31 +1,43 @@
-<form class="flex flex-col p-5" [formGroup]="wizardForm" (ngSubmit)="nextStep()">
-  <div class="grid grid-cols-12 gap-4" >
-    <div class="col-span-12 md:col-span-10" [formGroup]="memberForm">
-      <div class="col-span-12 mb-6">
-        <label for="name" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Name</label>
-        <input id="name" type="text" formControlName="name" pInputText fluid />
+<div class="flex flex-col p-5">
+  <div class="grid grid-cols-12 gap-4">
+    <form [formRoot]="memberForm" class="contents">
+      <div class="col-span-12 md:col-span-10">
+        <div class="mb-6">
+          <label for="name" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Name</label>
+          <input id="name" type="text" [formField]="memberForm.name" pInputText fluid />
+          @if (memberForm.name().touched() && memberForm.name().invalid()) {
+            @for (e of memberForm.name().errors(); track e) {
+              <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+            }
+          }
+        </div>
+        <div>
+          <label for="email" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Email</label>
+          <input id="email" type="text" [formField]="memberForm.email" pInputText fluid />
+          @if (memberForm.email().touched() && memberForm.email().invalid()) {
+            @for (e of memberForm.email().errors(); track e) {
+              <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+            }
+          }
+        </div>
       </div>
-      <div class="col-span-12">
-        <label for="email" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Email</label>
-        <input id="email" type="text" formControlName="email" pInputText fluid />
+      <div class="col-span-12 md:col-span-2 flex flex-row justify-end items-start">
+        <button pButton pRipple label="Add" class="w-auto md:mt-7 p-button-outlined" type="submit"></button>
       </div>
-    </div>
-    <div class="col-span-12 md:col-span-2 flex flex-row justify-end items-start">
-      <button pButton pRipple label="Add" class="w-auto md:mt-7 p-button-outlined" type="button" (click)="addMember()" [disabled]="memberForm.invalid"></button>
-    </div>
-    <p-dataview class="col-span-12" [value]="memberGroups()" [layout]="'list'">
+    </form>
+    <p-dataview class="col-span-12" [value]="members()" [layout]="'list'">
       <ng-template #list let-items>
         <div class="flex flex-col gap-4">
           @for (member of items; track $index; let i = $index) {
-          <div class="flex flex-row justify-between items-center bg-highlight rounded-2xl pl-5">
-            {{ member.value.name }} ({{ member.value.email || 'Keine E-Mail' }}) <p-button icon="pi pi-times" severity="danger" rounded (click)="removeMember(i)"/>
-          </div>
+            <div class="flex flex-row justify-between items-center bg-highlight rounded-2xl pl-5">
+              {{ member.name }} ({{ member.email || 'Keine E-Mail' }}) <p-button icon="pi pi-times" severity="danger" rounded (click)="removeMember(i)"/>
+            </div>
           }
         </div>
       </ng-template>
     </p-dataview>
   </div>
   <div class="flex flex-row justify-end">
-    <button pButton pRipple label="Next" class="w-auto mt-3" type="submit" [disabled]="wizardForm.invalid"></button>
+    <button pButton pRipple label="Next" class="w-auto mt-3" type="button" [disabled]="members().length < 2" (click)="nextStep()"></button>
   </div>
-</form>
+</div>

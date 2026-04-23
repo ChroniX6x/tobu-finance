@@ -1,44 +1,54 @@
-<form class="flex flex-col p-5" [formGroup]="initialsForm" (ngSubmit)="nextStep()">
+<form class="flex flex-col p-5" [formRoot]="initialsForm">
   <div class="">
     <label for="account-balance" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> Initial Account Balance </label>
-    <!-- <p-inputnumber mode="currency"inputId="account-balance"currency="EUR" locale="de-DE" fluid formControlName="accountBalance"/> -->
     <p-inputgroup>
-        <p-inputnumber inputId="account-balance" formControlName="accountBalance" fluid/>
-        <p-inputgroup-addon>€</p-inputgroup-addon>
+      <p-inputnumber inputId="account-balance" [formField]="$any(initialsForm.accountBalance)" fluid />
+      <p-inputgroup-addon>€</p-inputgroup-addon>
     </p-inputgroup>
+    @if (initialsForm.accountBalance().touched() && initialsForm.accountBalance().invalid()) {
+      @for (e of initialsForm.accountBalance().errors(); track e) {
+        <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+      }
+    }
   </div>
 
   <p-fieldset legend="Member Income">
-    <div formArrayName="memberInitials">
-      @for (memberCtrls of memberGroups(); track $index; let index = $index) {
-        <div class="" [formGroupName]="index">
-          <label [for]="'member-balance-' + index" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> {{ memberCtrls.value.name }} </label>
-          <!-- <p-inputnumber mode="currency" [inputId]="'member-balance-' + index" currency="EUR" locale="de-DE" fluid formControlName="initialIncome"/> -->
-          <p-inputgroup>
-            <p-inputnumber [inputId]="'member-balance-' + index" formControlName="initialIncome" fluid/>
-            <p-inputgroup-addon>€</p-inputgroup-addon>
-          </p-inputgroup>
-        </div>
-      }
-    </div>
+    @for (item of initialsModel().memberInitials; track $index; let i = $index) {
+      <div class="mb-3">
+        <label [for]="'member-balance-' + i" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">
+          {{ item.member }}
+        </label>
+        <p-inputgroup>
+          <p-inputnumber
+            [inputId]="'member-balance-' + i"
+            [formField]="$any(initialsForm.memberInitials)[i].initialIncome"
+            fluid
+          />
+          <p-inputgroup-addon>€</p-inputgroup-addon>
+        </p-inputgroup>
+      </div>
+    }
   </p-fieldset>
 
   <p-fieldset legend="Category Expense Estimation">
-    <div formArrayName="categoryInitials">
-      @for (categoryCtrls of categoryGroups(); track $index; let index = $index) {
-        <div class="" [formGroupName]="index">
-          <label [for]="'category-estimation-' + index" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block"> {{ categoryCtrls.value.name }} </label>
-          <!-- <p-inputnumber mode="currency" [inputId]="'category-estimation-' + index" currency="EUR" locale="de-DE" fluid formControlName="initialExpenseEst"/> -->
-          <p-inputgroup>
-            <p-inputnumber [inputId]="'category-estimation-' + index" formControlName="initialExpenseEst" fluid/>
-            <p-inputgroup-addon>€</p-inputgroup-addon>
-          </p-inputgroup>
-        </div>
-      }
-    </div>
+    @for (item of initialsModel().categoryInitials; track $index; let i = $index) {
+      <div class="mb-3">
+        <label [for]="'category-estimation-' + i" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">
+          {{ item.category }}
+        </label>
+        <p-inputgroup>
+          <p-inputnumber
+            [inputId]="'category-estimation-' + i"
+            [formField]="$any(initialsForm.categoryInitials)[i].initialExpenseEst"
+            fluid
+          />
+          <p-inputgroup-addon>€</p-inputgroup-addon>
+        </p-inputgroup>
+      </div>
+    }
   </p-fieldset>
 
   <div class="flex flex-row justify-end">
-    <button pButton pRipple label="Next" class="w-auto mt-3" type="submit" [disabled]="initialsForm.invalid"></button>
+    <button pButton pRipple label="Next" class="w-auto mt-3" type="submit" [disabled]="initialsForm().pending()"></button>
   </div>
 </form>

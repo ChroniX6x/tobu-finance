@@ -20,10 +20,6 @@ import {
   LoadTransactions,
   SelectTransaction,
 } from '../../state/transaction-page.actions';
-import {
-  AddDraft,
-  ToggleDock,
-} from '../../state/transaction-capture.actions';
 
 interface ActiveFilter {
   key: string;
@@ -185,11 +181,7 @@ export class TransactionToolbar {
   }
 
   protected newTransaction(): void {
-    this.store.dispatch(new SelectTransaction(null));
-    this.store.dispatch([
-      new AddDraft({ accountId: this.accountId() }),
-      new ToggleDock(true),
-    ]);
+    this.store.dispatch(new SelectTransaction('__new__'));
   }
 
   private dispatchLoad(extra?: { q?: string }): void {

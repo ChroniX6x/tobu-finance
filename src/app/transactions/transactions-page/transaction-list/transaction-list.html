@@ -20,7 +20,7 @@
     <p class="text-red-500 text-sm">{{ error() }}</p>
   </div>
 } @else if (parents().length === 0) {
-  <div class="empty-state flex flex-col items-center justify-center py-16 text-surface-400 gap-3">
+  <div class="empty-state flex flex-col items-center justify-center py-16 text-surface-400 dark:text-surface-500 gap-3">
     <i class="pi pi-inbox text-5xl"></i>
     <p class="text-base font-medium">Keine Buchungen</p>
     <p class="text-sm">Erstelle eine neue Buchung oder passe die Filter an.</p>
@@ -118,9 +118,9 @@
         <!-- Amount -->
         <td class="text-right font-semibold text-sm">
           @if (isContainerOnly(tx._id)) {
-            <span class="text-surface-400 text-xs">(Container)</span>
+            <span class="text-surface-400 dark:text-surface-500 text-xs">(Container)</span>
           } @else {
-            <span [class]="tx.type === 'expense' ? 'text-red-500' : 'text-green-600'">
+            <span [class]="tx.type === 'expense' ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
               {{ tx.type === 'expense' ? '−' : '+' }} {{ formatAmount(tx.amountMinor) }} €
             </span>
           }

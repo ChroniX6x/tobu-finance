@@ -1,59 +1,76 @@
-<form class="flex flex-col p-5" [formGroup]="wizardForm" (ngSubmit)="nextStep()">
+<form class="flex flex-col p-5" [formRoot]="categoryForm">
   <div class="grid grid-cols-12 gap-4">
-    <div class="grid grid-cols-subgrid col-span-12 md:col-span-10 gap-4" [formGroup]="categoriesForm">
+    <div class="grid grid-cols-subgrid col-span-12 md:col-span-10 gap-4">
       <div class="col-span-10">
         <label for="name" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Name</label>
-        <input id="name" type="text" formControlName="name" pInputText fluid />
+        <input id="name" type="text" [formField]="categoryForm.name" pInputText fluid />
+        @if (categoryForm.name().touched() && categoryForm.name().invalid()) {
+          @for (e of categoryForm.name().errors(); track e) {
+            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+          }
+        }
       </div>
       <div class="col-span-2">
         <label for="customSplit" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Custom Split</label>
-        <p-toggleswitch inputId="customSplit" formControlName="hasCustomSplit" fluid/>
+        <p-toggleswitch
+          inputId="customSplit"
+          [formField]="$any(categoryForm.hasCustomSplit)"
+          (onChange)="onToggle($event.checked)"
+          fluid
+        />
       </div>
-      @if (hasCustomSplit()) {
-        <div formArrayName="customSplit" [class]="'col-span-8 bg-emphasis rounded-md grid gap-y-4 grid-cols-subgrid grid-rows-' + customSplitGroups().length">
-          @for (member of customSplitGroups(); track $index; let index = $index) {
-            <div class="col-span-full grid grid-cols-subgrid items-center" [formGroupName]="index">
+      @if (categoryForm.hasCustomSplit().value()) {
+        <div [class]="'col-span-8 bg-emphasis rounded-md grid gap-y-4 grid-cols-subgrid grid-rows-' + categoryForm.customSplit().value().length">
+          @for (row of categoryForm.customSplit().value(); track $index; let index = $index) {
+            <div class="col-span-full grid grid-cols-subgrid items-center">
               <div class="col-span-3 pl-1">
-                <!-- <label [for]="'member-' + index" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">User</label> -->
-                <p [id]="'member-' + index" class="text-lg" fluid>{{ member.get('name')!.value }}</p>
+                <p [id]="'member-' + index" class="text-lg">{{ row.name }}</p>
               </div>
               <div class="col-span-5 pr-1 py-1">
-                <!-- <label [for]="'split-' + index" class="font-medium text-surface-900 dark:text-surface-0 mb-2 block">Split</label> -->
                 <p-inputgroup>
-                    <p-inputnumber placeholder="Percent" formControlName="split" fluid/>
-                    <p-inputgroup-addon>%</p-inputgroup-addon>
+                  <p-inputnumber
+                    placeholder="Percent"
+                    [formField]="$any(categoryForm.customSplit)[index].split"
+                    fluid
+                  />
+                  <p-inputgroup-addon>%</p-inputgroup-addon>
                 </p-inputgroup>
               </div>
             </div>
+          }
+          @if (categoryForm.customSplit().invalid()) {
+            @for (e of categoryForm.customSplit().errors(); track e) {
+              <small class="col-span-full text-red-500 dark:text-red-400 pl-1">{{ e.message }}</small>
+            }
           }
         </div>
       }
     </div>
     <div class="col-span-12 md:col-span-2 flex flex-row justify-end items-start">
-      <button pButton pRipple type="button" label="Add" class="w-auto md:mt-7 p-button-outlined" (click)="addCategory()" [disabled]="categoriesForm.invalid"></button>
+      <button pButton pRipple type="submit" label="Add" class="w-auto md:mt-7 p-button-outlined" [disabled]="categoryForm().invalid()"></button>
     </div>
-    <p-dataview class="col-span-12" [value]="categoryGroups()" [layout]="'list'" [emptyMessage]="'Keine Kategorien vorhanden.'">
-      <ng-template #list let-categories>
+    <p-dataview class="col-span-12" [value]="categories()" [layout]="'list'" [emptyMessage]="'Keine Kategorien vorhanden.'">
+      <ng-template #list let-items>
         <div class="flex flex-col gap-4">
-          @for (catGroup of categories; track $index; let i = $index) {
+          @for (cat of items; track $index; let i = $index) {
             <div
               class="flex flex-col md:flex-row justify-between items-start md:items-center bg-highlight
                     rounded-2xl pl-5 shadow-sm hover:shadow-md transition-shadow">
 
               <div class="flex flex-col sm:flex-row sm:items-center flex-1 gap-2">
-                <h3 class="text-lg font-semibold mr-4">{{ catGroup.value.name }}</h3>
+                <h3 class="text-lg font-semibold mr-4">{{ cat.name }}</h3>
 
-                @if (catGroup.value.customSplit?.length > 0) {
+                @if (cat.customSplit && cat.customSplit.length > 0) {
                   <div class="flex flex-wrap items-center gap-2">
                     <i class="pi pi-users"></i>
-                    @for (split of catGroup.value.customSplit; track $index; let j = $index) {
+                    @for (split of cat.customSplit; track $index; let j = $index) {
                       <span class="text-sm">
                         {{ split.name }}: {{ split.split }}%
-                      </span>@if(j < catGroup.value.customSplit.length - 1){<span>,</span>}
+                      </span>@if(j < cat.customSplit.length - 1){<span>,</span>}
                     }
                   </div>
                 } @else {
-                  <div class="flex items-center text-sm text-surface-600">
+                  <div class="flex items-center text-sm text-surface-600 dark:text-surface-300">
                     <i class="pi pi-chart-bar mr-1"></i>
                     Auto Split (einkommensbasiert)
                   </div>
@@ -70,6 +87,6 @@
     </p-dataview>
   </div>
   <div class="flex flex-row justify-end">
-    <button pButton pRipple label="Next" class="w-auto mt-3"  type="submit"  [disabled]="wizardForm.invalid"></button>
+    <button pButton pRipple label="Next" class="w-auto mt-3" type="button" (click)="nextStep()" [disabled]="categories().length < 2"></button>
   </div>
 </form>

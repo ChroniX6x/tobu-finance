@@ -41,3 +41,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Playwright real-server auth state (contains httpOnly cookies — never commit)
+.playwright-real-auth.json

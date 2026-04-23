@@ -1,19 +1,27 @@
-<p-toast position="top-right" />
+﻿<p-toast position="top-right" />
 
-@if (selectedTx(); as tx) {
-  <form [formGroup]="form" (ngSubmit)="save()" class="detail-editor flex flex-col gap-4">
+@if (selectedTx() || isNew()) {
+  <form [formRoot]="txForm" class="detail-editor flex flex-col gap-4">
+
+    <!-- New transaction heading -->
+    @if (isNew()) {
+      <div class="flex items-center gap-2">
+        <i class="pi pi-plus-circle text-primary-500"></i>
+        <h3 class="font-semibold text-lg">Neue Buchung</h3>
+      </div>
+    }
 
     <!-- Child: "Teil von" info bar -->
     @if (isChild()) {
-      <div class="child-info-bar flex items-center gap-2 p-2 rounded-lg bg-surface-50 border border-surface-200">
-        <i class="pi pi-info-circle text-blue-500"></i>
-        <span class="text-sm text-surface-600">Teil von:</span>
+      <div class="child-info-bar flex items-center gap-2 p-2 rounded-lg bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700">
+        <i class="pi pi-info-circle text-blue-500 dark:text-blue-400"></i>
+        <span class="text-sm text-surface-600 dark:text-surface-300">Teil von:</span>
         @if (parentTx(); as parent) {
           <button type="button" class="text-sm text-primary-600 underline hover:text-primary-800 font-medium" (click)="goToParent()">
             {{ parent.title }}
           </button>
         }
-        <span class="ml-auto text-xs text-surface-400">Felder geerbt vom Parent</span>
+        <span class="ml-auto text-xs text-surface-400 dark:text-surface-500">Felder geerbt vom Parent</span>
       </div>
     }
 
@@ -23,20 +31,21 @@
         <label class="label-sm" for="type">Typ *</label>
         <p-select
           inputId="type"
-          formControlName="type"
+          [formField]="$any(txForm.type)"
           [options]="typeOptions"
           optionLabel="label"
           optionValue="value"
           placeholder="Auswählen"
-          [class.p-invalid]="isFieldInvalid('type')"
-          [disabled]="isChild()"
+          [class.p-invalid]="txForm.type().touched() && txForm.type().invalid()"
           required
         />
         @if (isChild()) {
-          <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
+          <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
         }
-        @if (isFieldInvalid('type')) {
-          <small class="text-red-500">Pflichtfeld</small>
+        @if (txForm.type().touched() && txForm.type().invalid()) {
+          @for (e of txForm.type().errors(); track e) {
+            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+          }
         }
       </div>
 
@@ -44,17 +53,19 @@
         <label class="label-sm" for="amount">Betrag * (€)</label>
         <p-inputnumber
           inputId="amount"
-          formControlName="amountMinor"
+          [formField]="$any(txForm.amountMinor)"
           mode="decimal"
           [minFractionDigits]="2"
           [maxFractionDigits]="2"
           [min]="0"
           placeholder="0,00"
-          [class.p-invalid]="isFieldInvalid('amountMinor')"
+          [class.p-invalid]="txForm.amountMinor().touched() && txForm.amountMinor().invalid()"
           required
         />
-        @if (isFieldInvalid('amountMinor')) {
-          <small class="text-red-500">Pflichtfeld (≥ 0)</small>
+        @if (txForm.amountMinor().touched() && txForm.amountMinor().invalid()) {
+          @for (e of txForm.amountMinor().errors(); track e) {
+            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+          }
         }
       </div>
     </div>
@@ -65,14 +76,14 @@
       <input
         pInputText
         id="title"
-        formControlName="title"
+        [formField]="txForm.title"
         placeholder="Titel eingeben..."
-        [class.p-invalid]="isFieldInvalid('title')"
-        maxlength="80"
-        required
+        [class.p-invalid]="txForm.title().touched() && txForm.title().invalid()"
       />
-      @if (isFieldInvalid('title')) {
-        <small class="text-red-500">Pflicht (2–80 Zeichen)</small>
+      @if (txForm.title().touched() && txForm.title().invalid()) {
+        @for (e of txForm.title().errors(); track e) {
+          <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+        }
       }
     </div>
 
@@ -82,15 +93,14 @@
         <label class="label-sm" for="bookDate">Datum</label>
         <p-datepicker
           inputId="bookDate"
-          formControlName="bookDate"
+          [formField]="$any(txForm.bookDate)"
           dateFormat="dd.mm.yy"
           [showIcon]="true"
           placeholder="TT.MM.JJJJ"
           appendTo="body"
-          [disabled]="isChild()"
         />
         @if (isChild()) {
-          <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
+          <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
         }
       </div>
 
@@ -98,13 +108,18 @@
         <label class="label-sm" for="status">Status *</label>
         <p-select
           inputId="status"
-          formControlName="status"
+          [formField]="$any(txForm.status)"
           [options]="[{label:'Ausstehend', value:'pending'},{label:'Gebucht',value:'booked'}]"
           optionLabel="label"
           optionValue="value"
-          [class.p-invalid]="isFieldInvalid('status')"
+          [class.p-invalid]="txForm.status().touched() && txForm.status().invalid()"
           required
         />
+        @if (txForm.status().touched() && txForm.status().invalid()) {
+          @for (e of txForm.status().errors(); track e) {
+            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+          }
+        }
       </div>
     </div>
 
@@ -113,7 +128,7 @@
       <label class="label-sm" for="category">Kategorie</label>
       <p-select
         inputId="category"
-        formControlName="categoryId"
+        [formField]="$any(txForm.categoryId)"
         [options]="categoryOptions()"
         optionLabel="label"
         optionValue="value"
@@ -127,54 +142,56 @@
     <div class="flex flex-col gap-1">
       <label class="label-sm">Zahlungsquelle *</label>
       <p-select
-        formControlName="isFromSharedAccount"
+        [formField]="$any(txForm.isFromSharedAccount)"
         [options]="[{label:'Gemeinschaftskonto', value:true},{label:'Privat', value:false}]"
         optionLabel="label"
         optionValue="value"
-        [class.p-invalid]="isFieldInvalid('isFromSharedAccount')"
-        [disabled]="isChild()"
+        [class.p-invalid]="txForm.isFromSharedAccount().touched() && txForm.isFromSharedAccount().invalid()"
         required
       />
       @if (isChild()) {
-        <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
+        <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
       }
     </div>
 
-    <!-- Bezahlt von (nur bei Privat) -->
-    @if (showPaidBy()) {
-      <div class="flex flex-col gap-1">
+    <!-- Bezahlt von -->
+    <div class="flex flex-col gap-1">
         <label class="label-sm" for="paidBy">Bezahlt von *</label>
         <p-select
           inputId="paidBy"
-          formControlName="paidByMemberId"
+          [formField]="$any(txForm.paidByMemberId)"
           [options]="memberOptions()"
           optionLabel="label"
           optionValue="value"
           placeholder="Member auswählen"
           appendTo="body"
-          [class.p-invalid]="isFieldInvalid('paidByMemberId')"
-          [disabled]="isChild()"
-          [required]="!form.get('isFromSharedAccount')?.value"
+          [class.p-invalid]="txForm.paidByMemberId().touched() && txForm.paidByMemberId().invalid()"
+          [required]="!txForm.isFromSharedAccount().value()"
         />
         @if (isChild()) {
-          <span class="text-xs text-surface-400">Geerbt (nicht änderbar)</span>
+          <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
         }
-        @if (isFieldInvalid('paidByMemberId')) {
-          <small class="text-red-500">Pflichtfeld bei Privat</small>
+        @if (txForm.paidByMemberId().touched() && txForm.paidByMemberId().invalid()) {
+          @for (e of txForm.paidByMemberId().errors(); track e) {
+            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+          }
         }
       </div>
-    }
 
     <!-- Notes -->
+    <!-- NOTE: [formField] is intentionally NOT used here. PrimeNG's pTextarea
+         injects NgControl with {self:true} and calls valueChanges.subscribe()
+         in ngOnInit. Signal Forms' InteropNgControl does not implement
+         valueChanges, causing a TypeError on first render. We bind manually. -->
     <div class="flex flex-col gap-1">
       <label class="label-sm" for="notes">Notizen</label>
       <textarea
         pTextarea
         id="notes"
-        formControlName="notes"
+        [value]="txForm.notes().value() ?? ''"
+        (input)="txForm.notes().value.set($any($event.target).value || null)"
         rows="3"
         placeholder="Optionale Notizen..."
-        maxlength="1000"
       ></textarea>
     </div>
 
@@ -190,15 +207,15 @@
         <div class="split-summary grid grid-cols-3 gap-2 mb-3">
           <div class="stat-card">
             <span class="label">Gesamt</span>
-            <span class="value">{{ formatAmount(tx.amountMinor) }} €</span>
+            <span class="value">{{ formatAmount(selectedTx()?.amountMinor ?? 0) }} €</span>
           </div>
           <div class="stat-card">
             <span class="label">Zugewiesen</span>
-            <span class="value text-blue-600">{{ formatAmount(meta.assignedMinor) }} €</span>
+            <span class="value text-blue-600 dark:text-blue-400">{{ formatAmount(meta.assignedMinor) }} €</span>
           </div>
           <div class="stat-card" [class.rest-zero]="meta.restMinor === 0">
             <span class="label">Rest</span>
-            <span class="value" [class]="meta.restMinor === 0 ? 'text-green-600' : 'text-orange-600'">
+            <span class="value" [class]="meta.restMinor === 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
               {{ formatAmount(meta.restMinor) }} €
             </span>
           </div>
@@ -214,12 +231,12 @@
         <div class="children-list flex flex-col gap-1 mb-3">
           @for (child of children(); track child._id) {
             <div
-              class="child-item flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-surface-50"
+              class="child-item flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-800"
               (click)="selectChild(child)"
             >
               <i class="pi pi-subdirectory-right text-surface-300 text-xs"></i>
               <span class="flex-1 text-sm">{{ child.title }}</span>
-              <span class="text-sm font-medium" [class]="child.type === 'expense' ? 'text-red-500' : 'text-green-600'">
+              <span class="text-sm font-medium" [class]="child.type === 'expense' ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
                 {{ child.type === 'expense' ? '−' : '+' }} {{ formatAmount(child.amountMinor) }} €
               </span>
             </div>
@@ -227,7 +244,7 @@
         </div>
 
         @if (meta.restMinor === 0) {
-          <div class="container-badge text-center text-xs py-1 px-2 rounded bg-purple-50 text-purple-700">
+          <div class="container-badge text-center text-xs py-1 px-2 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
             Container-only (Rest = 0, zählt nicht in Charts)
           </div>
         }
@@ -235,18 +252,28 @@
     }
 
     <!-- Save button -->
-    <div class="flex justify-end gap-2 pt-2 border-t border-surface-100">
-      <p-button
-        type="submit"
-        label="Speichern"
-        icon="pi pi-check"
-        [loading]="saving()"
-        [disabled]="form.pristine"
-      />
+    <div class="flex justify-end gap-2 pt-2 border-t border-surface-100 dark:border-surface-700">
+      @if (isNew()) {
+        <p-button
+          type="submit"
+          label="Anlegen"
+          icon="pi pi-check"
+          [loading]="saving()"
+          [disabled]="saving()"
+        />
+      } @else {
+        <p-button
+          type="submit"
+          label="Speichern"
+          icon="pi pi-check"
+          [loading]="saving()"
+          [disabled]="!canSave() || saving()"
+        />
+      }
     </div>
   </form>
 } @else {
-  <div class="flex items-center justify-center h-24 text-surface-400 text-sm">
+  <div class="flex items-center justify-center h-24 text-surface-400 dark:text-surface-500 text-sm">
     Keine Buchung ausgewählt
   </div>
 }

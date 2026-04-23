@@ -1,0 +1,43 @@
+<div class="relative">
+  <svg
+    viewBox="0 0 100 30"
+    preserveAspectRatio="none"
+    class="w-full h-20 mt-4"
+    aria-hidden="true"
+    (mousemove)="onMouseMove($event)"
+    (mouseleave)="onMouseLeave()"
+  >
+    <defs>
+      <linearGradient [attr.id]="gradientId" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#f87171" stop-opacity="0.3" />
+        <stop offset="100%" stop-color="#f87171" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+
+    <path
+      [attr.d]="chartData().dFill"
+      [attr.fill]="'url(#' + gradientId + ')'"
+      class="transition-all duration-500"
+    />
+    <path
+      [attr.d]="chartData().dLine"
+      fill="none"
+      stroke="#f87171"
+      stroke-width="2"
+      stroke-linecap="round"
+      class="transition-all duration-500"
+    />
+  </svg>
+
+  @if (hovered(); as h) {
+    <div
+      class="absolute bg-white dark:bg-surface-800 text-sm p-2 rounded shadow-lg pointer-events-none z-10"
+      [style.left.%]="h.px"
+      [style.top.%]="h.py - 5"
+      style="transform: translate(-50%, -100%);"
+      aria-live="polite"
+    >
+      {{ h.pt.label }}: {{ h.pt.value | currency:'EUR' }}
+    </div>
+  }
+</div>
