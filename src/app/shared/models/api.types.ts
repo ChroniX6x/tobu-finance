@@ -1,3 +1,67 @@
+// ---- Month-View API types (mirrors src/routes/month-view.ts response) ----
+
+export interface ApiMonthViewMember {
+  id: string;
+  name: string | null;
+  avatar: string | null;
+  role: 'owner' | 'member';
+  monthlyDueMinor: number;
+  paidAmountMinor: number;
+  openAmountMinor: number;
+  paid: boolean;
+  carryoverMinor: number;
+}
+
+export interface ApiMonthViewCategory {
+  id: string;
+  name: string | null;
+  spentMinor: number;
+  budgetMinor: number | null;
+  status: 'ok' | 'over' | 'no_budget';
+}
+
+export interface ApiMonthViewContributionRule {
+  ruleId: string;
+  description: string | null;
+  type: string;
+  amountMinor: number;
+  distributionMode: string;
+  perMember: Record<string, number>;
+}
+
+export interface ApiMonthViewMemberIncome {
+  memberId: string;
+  amountMinor: number;
+  weight: number;
+}
+
+export interface ApiMonthViewCarryover {
+  memberId: string;
+  amountMinor: number;
+  reason: string;
+}
+
+export interface ApiMonthView {
+  account: {
+    id: string;
+    name: string | null;
+    monthIso: string; // YYYY-MM
+  };
+  kpis: {
+    totalDueMinor: number;
+    totalPaidMinor: number;
+    totalSpentMinor: number;
+    carryoverTotalMinor: number;
+  };
+  members: ApiMonthViewMember[];
+  categories: ApiMonthViewCategory[];
+  contributionBreakdown: ApiMonthViewContributionRule[];
+  memberIncomes: ApiMonthViewMemberIncome[];
+  carryovers: ApiMonthViewCarryover[];
+}
+
+// ---- End of Month-View API types ----
+
 export interface ApiAccountsSummaryItem {
   id: string;
   name: string;

@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+// Month navigator: style the datepicker input as a nav chip
+// ::ng-deep is required to reach inside PrimeNG's component template
+:host ::ng-deep .month-nav-picker {
+  // Remove the calendar dropdown button — the input itself is clickable
+  .p-datepicker-dropdown {
+    display: none;
+  }
+
+  input.p-datepicker-input {
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: center;
+    min-width: 9rem;
+    cursor: pointer;
+    border: 1px solid var(--p-surface-400);
+    border-radius: var(--p-border-radius-md, 8px);
+    background: var(--p-surface-800);
+    color: var(--p-text-color);
+    padding: 0.4rem 1rem;
+    transition: border-color 0.15s;
+
+    &:hover {
+      border-color: var(--p-primary-500);
+    }
+  }
+}
+
+// Progress bar danger color override (over-budget categories)
+:host ::ng-deep .progress-danger {
+  .p-progressbar-value {
+    background: var(--p-red-500) !important;
+  }
+}
+
+// KPI tiles: min-height so they align even with short content
+.grid > .card {
+  min-height: 5rem;
+}
+
+// Category stats placeholder
+.category-chart-placeholder {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--p-surface-400);
+  border-radius: 12px;
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+  flex: 1;
+}
