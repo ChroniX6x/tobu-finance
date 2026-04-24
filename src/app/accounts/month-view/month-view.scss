@@ -2,10 +2,9 @@
   display: block;
 }
 
-// Month navigator: style the datepicker input as a nav chip
+// ── Month navigator ────────────────────────────────────────────────────────────
 // ::ng-deep is required to reach inside PrimeNG's component template
 :host ::ng-deep .month-nav-picker {
-  // Remove the calendar dropdown button — the input itself is clickable
   .p-datepicker-dropdown {
     display: none;
   }
@@ -16,38 +15,166 @@
     text-align: center;
     min-width: 9rem;
     cursor: pointer;
-    border: 1px solid var(--p-surface-400);
-    border-radius: var(--p-border-radius-md, 8px);
+    border: 1px solid var(--p-surface-600);
+    border-radius: var(--p-content-border-radius, 8px);
     background: var(--p-surface-800);
     color: var(--p-text-color);
     padding: 0.4rem 1rem;
     transition: border-color 0.15s;
 
     &:hover {
-      border-color: var(--p-primary-500);
+      border-color: var(--p-primary-400);
     }
   }
 }
 
-// Progress bar danger color override (over-budget categories)
-:host ::ng-deep .progress-danger {
-  .p-progressbar-value {
-    background: var(--p-red-500) !important;
+// ── Progress bar: danger variant (over-budget) ─────────────────────────────────
+:host ::ng-deep .progress-danger .p-progressbar-value {
+  background: var(--p-red-500) !important;
+}
+
+// ── KPI Cards ─────────────────────────────────────────────────────────────────
+// Each KPI tile has a rich semi-transparent gradient tint.
+// On a dark page background, gradients need enough opacity to be clearly visible.
+.kpi-card {
+  border-radius: var(--p-content-border-radius, 12px);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 5.5rem;
+  position: relative;
+  overflow: hidden;
+
+  // Subtle top-edge shimmer on all cards (glass highlight line)
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.12) 50%,
+      transparent 100%);
+    pointer-events: none;
+  }
+
+  // Monatsbedarf — rich emerald glass (clearly visible against dark bg)
+  &--plan {
+    background: linear-gradient(145deg,
+      rgba(16, 185, 129, 0.26) 0%,
+      rgba(16, 185, 129, 0.10) 55%,
+      rgba(16, 185, 129, 0.04) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.38);
+    box-shadow: inset 0 0 32px rgba(16, 185, 129, 0.07);
+  }
+
+  // Eingezahlt — neutral glass card (semi-transparent, no color accent)
+  &--paid {
+    background: linear-gradient(145deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.03) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  // Ausgegeben — neutral; rich red glass when over budget
+  &--spent {
+    background: linear-gradient(145deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.03) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    &.over {
+      background: linear-gradient(145deg,
+        rgba(239, 68, 68, 0.26) 0%,
+        rgba(239, 68, 68, 0.10) 55%,
+        rgba(239, 68, 68, 0.04) 100%);
+      border-color: rgba(239, 68, 68, 0.38);
+      box-shadow: inset 0 0 32px rgba(239, 68, 68, 0.07);
+    }
+  }
+
+  // Übertrag — rich amber glass (clearly visible against dark bg)
+  &--carryover {
+    background: linear-gradient(145deg,
+      rgba(245, 158, 11, 0.24) 0%,
+      rgba(245, 158, 11, 0.10) 55%,
+      rgba(245, 158, 11, 0.04) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.36);
+    box-shadow: inset 0 0 32px rgba(245, 158, 11, 0.07);
   }
 }
 
-// KPI tiles: min-height so they align even with short content
-.grid > .card {
-  min-height: 5rem;
+// ── Member Cards — glassmorphism ───────────────────────────────────────────────
+// Real glass effect: backdrop-blur + semi-transparent gradient + top-edge shimmer.
+.member-card {
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  // Subtle horizontal shimmer on top edge (glass highlight)
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.18) 50%,
+      transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  // Paid member — green-tinted glass + strong green left accent
+  &--paid {
+    background: linear-gradient(145deg,
+      rgba(16, 185, 129, 0.12) 0%,
+      rgba(16, 185, 129, 0.05) 40%,
+      rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.28);
+    border-left: 3px solid var(--p-green-500);
+
+    &:hover {
+      border-color: rgba(16, 185, 129, 0.42);
+      border-left-color: var(--p-green-400);
+    }
+  }
+
+  // Open member — amber-tinted glass + amber left accent
+  &--open {
+    background: linear-gradient(145deg,
+      rgba(245, 158, 11, 0.10) 0%,
+      rgba(245, 158, 11, 0.04) 40%,
+      rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.22);
+    border-left: 3px solid var(--p-yellow-500);
+
+    &:hover {
+      border-color: rgba(245, 158, 11, 0.36);
+      border-left-color: var(--p-yellow-400);
+    }
+  }
 }
 
-// Category stats placeholder
+// ── Category chart placeholder ─────────────────────────────────────────────────
 .category-chart-placeholder {
   min-height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px dashed var(--p-surface-400);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   color: var(--p-text-muted-color);
   font-size: 0.875rem;

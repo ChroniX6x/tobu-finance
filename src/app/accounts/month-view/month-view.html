@@ -71,40 +71,41 @@
   <!-- ---- 2. KPI row (4 tiles, full width) ---- -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-    <!-- Monatsbedarf -->
-    <div class="card p-4 flex flex-col gap-1">
+    <!-- Monatsbedarf — teal tint (plan value) -->
+    <div class="kpi-card kpi-card--plan">
       <span class="text-sm text-muted-color">Monatsbedarf</span>
       <span class="text-2xl font-bold text-color">
         {{ toEur(kpis()?.totalDueMinor ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
       </span>
     </div>
 
-    <!-- Eingezahlt — neutral white, not success-green -->
-    <div class="card p-4 flex flex-col gap-1">
+    <!-- Eingezahlt — neutral surface -->
+    <div class="kpi-card kpi-card--paid">
       <span class="text-sm text-muted-color">Eingezahlt</span>
       <span class="text-2xl font-bold text-color">
         {{ toEur(kpis()?.totalPaidMinor ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
       </span>
     </div>
 
-    <!-- Ausgegeben — red only if over paid amount -->
-    <div class="card p-4 flex flex-col gap-1">
+    <!-- Ausgegeben — neutral; red-tinted class when over budget -->
+    <div class="kpi-card kpi-card--spent"
+         [ngClass]="(kpis()?.totalSpentMinor ?? 0) > (kpis()?.totalDueMinor ?? 0) ? 'over' : ''">
       <span class="text-sm text-muted-color">Ausgegeben</span>
       <span class="text-2xl font-bold"
             [ngClass]="(kpis()?.totalSpentMinor ?? 0) > (kpis()?.totalDueMinor ?? 0)
-              ? 'text-red-500' : 'text-color'">
+              ? 'text-red-400' : 'text-color'">
         {{ toEur(kpis()?.totalSpentMinor ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
       </span>
     </div>
 
-    <!-- Übertrag — amber or red depending on sign -->
-    <div class="card p-4 flex flex-col gap-1">
+    <!-- Übertrag — amber tint (carryover status) -->
+    <div class="kpi-card kpi-card--carryover">
       <span class="text-sm text-muted-color flex items-center gap-1">
         <i class="pi pi-arrow-right-arrow-left text-xs"></i>
         Übertrag
       </span>
       <span class="text-2xl font-bold"
-            [ngClass]="(kpis()?.carryoverTotalMinor ?? 0) < 0 ? 'text-red-400' : 'text-warning-400'">
+            [ngClass]="(kpis()?.carryoverTotalMinor ?? 0) < 0 ? 'text-red-400' : 'text-yellow-400'">
         {{ toEur(kpis()?.carryoverTotalMinor ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
       </span>
     </div>
@@ -114,8 +115,9 @@
   <!-- ---- 3. Member cards (cols = member count, stacked on mobile) ---- -->
   <div class="grid gap-4 mb-6" [ngClass]="memberGridClass()">
     @for (member of members(); track member.id) {
-      <div class="card p-5 flex flex-col gap-4"
-           [ngClass]="member.paid ? 'border-l-4 border-l-success-500' : 'border-l-4 border-l-yellow-500'">
+      <!-- glassmorphism card: semi-transparent with gradient, left accent by paid status -->
+      <div class="member-card p-5 flex flex-col gap-4"
+           [ngClass]="member.paid ? 'member-card--paid' : 'member-card--open'">
 
         <!-- Member header -->
         <div class="flex items-center justify-between">
