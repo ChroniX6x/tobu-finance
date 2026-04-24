@@ -1,12 +1,5 @@
 <div class="transactions-page flex flex-col h-full">
   <div class="transactions-header mb-2">
-    <p-tabs value="transactions" (valueChange)="navigateTab($event)" styleClass="mb-2">
-      <p-tablist>
-        <p-tab value="overview"><i class="pi pi-home mr-2"></i>&#220;bersicht</p-tab>
-        <p-tab value="transactions"><i class="pi pi-list mr-2"></i>Buchungen</p-tab>
-      </p-tablist>
-    </p-tabs>
-
     <tbf-transaction-toolbar [accountId]="accountId()" />
   </div>
 

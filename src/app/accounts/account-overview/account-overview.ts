@@ -1,8 +1,5 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { filter, startWith, distinctUntilChanged, map } from 'rxjs';
-import { TabsModule } from 'primeng/tabs';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
@@ -12,14 +9,12 @@ import { TimelineModule } from 'primeng/timeline';
 import { MessageModule } from 'primeng/message';
 import { select, Store } from '@ngxs/store';
 import { AccountOverviewState } from '../state/account-overview.state';
-import { LoadAccountOverview } from '../state/account-overview.actions';
 import { AccountMemberUi } from '@/accounts/domain/account-overview.ui-model';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tbf-account-overview',
   standalone: true,
-  imports: [CommonModule, TabsModule, CardModule, ButtonModule, ChartModule, AvatarModule, TooltipModule, TimelineModule, MessageModule],
+  imports: [CommonModule, CardModule, ButtonModule, ChartModule, AvatarModule, TooltipModule, TimelineModule, MessageModule],
   templateUrl: './account-overview.html',
   styleUrls: ['./account-overview.scss']
 })
@@ -34,11 +29,6 @@ export class AccountOverview {
   };
 
   private store = inject(Store);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-
-  protected accountId = signal<string>('');
-  protected activeTab = signal<string>('overview');
 
   currentMember   = computed<AccountMemberUi | undefined>(() => this.members().find((m: AccountMemberUi) => m.id === 'm1' || m.id === '4a7b')); // TODO aktueller User (über AuthService)
   account         = select(AccountOverviewState.account);
@@ -50,40 +40,6 @@ export class AccountOverview {
   insights        = select(AccountOverviewState.insights);
   timeline        = select(AccountOverviewState.timeline);
   loading         = select(AccountOverviewState.loading);
-
-  constructor() {
-    // Watch route params and load account overview on any change
-    this.route.params
-      .pipe(
-        map(params => params['accountId']),
-        distinctUntilChanged(),
-        takeUntilDestroyed()
-      )
-      .subscribe((accountId: string) => {
-        if (accountId) {
-          this.accountId.set(accountId);
-          this.store.dispatch(new LoadAccountOverview(accountId));
-        }
-      });
-
-    // Watch router events to update active tab
-    this.router.events.pipe(
-      filter(e => e instanceof NavigationEnd),
-      startWith(null),
-      takeUntilDestroyed()
-    ).subscribe(() => {
-      this.activeTab.set(this.router.url.includes('/transactions') ? 'transactions' : 'overview');
-    });
-  }
-
-  protected navigateTab(value: string | number | undefined): void {
-    if (value == null) return;
-    const accId = this.accountId();
-    const target = value === 'transactions'
-      ? ['/accounts', accId, 'transactions']
-      : ['/accounts', accId];
-    this.router.navigate(target);
-  }
 
   // ---- Helper: formatiere aus ISO YYYY-MM oder YYYY-MM-DD → z.B. "Aug 2025" ----
   private monthLabel = (iso: string | undefined) => {
