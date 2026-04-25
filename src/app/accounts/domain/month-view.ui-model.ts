@@ -19,6 +19,10 @@ export interface MonthViewMemberUi {
   openAmountMinor: number;
   paid: boolean;
   carryoverMinor: number;
+  /** ISO datetime of the most recent booked income transaction; null = no payment yet */
+  lastPaymentDate: string | null;
+  /** Sum of private-advance expenses paid out of pocket this month */
+  privateAdvancesMinor: number;
 }
 
 export interface MonthViewCategoryUi {

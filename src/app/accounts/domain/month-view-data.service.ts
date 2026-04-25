@@ -77,6 +77,8 @@ export class MonthViewDataService {
       openAmountMinor: m.openAmountMinor,
       paid: m.paid,
       carryoverMinor: m.carryoverMinor,
+      lastPaymentDate: m.lastPaymentDate ?? null,
+      privateAdvancesMinor: m.privateAdvancesMinor ?? 0,
     };
   }
 

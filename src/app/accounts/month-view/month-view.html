@@ -174,12 +174,40 @@
           </div>
         }
 
+        <!-- Extra info: last payment + private advances -->
+        <div class="flex flex-col gap-1 text-xs text-muted-color">
+          @if (member.lastPaymentDate) {
+            <span class="flex items-center gap-1">
+              <i class="pi pi-clock text-xs"></i>
+              Zuletzt gezahlt:
+              <strong class="text-color ml-0.5">
+                {{ member.lastPaymentDate | date:'dd.MM.yyyy' }}
+              </strong>
+            </span>
+          } @else {
+            <span class="flex items-center gap-1 text-yellow-500/80">
+              <i class="pi pi-info-circle text-xs"></i>
+              Noch keine Einzahlung in diesem Monat
+            </span>
+          }
+          @if (member.privateAdvancesMinor > 0) {
+            <span class="flex items-center gap-1">
+              <i class="pi pi-wallet text-xs"></i>
+              Private Vorleistung:
+              <strong class="text-sky-400 ml-0.5">
+                {{ toEur(member.privateAdvancesMinor) | currency:'EUR':'symbol':'1.2-2' }}
+              </strong>
+            </span>
+          }
+        </div>
+
         <!-- Action button -->
         <p-button
           label="+ Einzahlung buchen"
           severity="success"
           styleClass="w-full"
-          [disabled]="member.paid" />
+          [disabled]="member.paid"
+          (onClick)="openDrawer(member)" />
 
       </div>
     }
@@ -364,6 +392,15 @@
     }
 
   </p-accordion>
+
+  <!-- ---- 6. Einzahlung-Drawer (Phase 6) ---- -->
+  <tbf-einzahlung-drawer
+    [member]="drawerMember()"
+    [accountId]="accountId()"
+    [monthIso]="selectedMonth() ?? ''"
+    [visible]="drawerVisible()"
+    (visibleChange)="drawerVisible.set($event)"
+    (saved)="onDrawerSaved()" />
 
 </div>
 } <!-- end @if (data()) -->

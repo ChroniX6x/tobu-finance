@@ -4,10 +4,11 @@ import {
   computed,
   inject,
   OnInit,
+  signal,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store, select } from '@ngxs/store';
-import { CurrencyPipe, NgClass, PercentPipe, SlicePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, NgClass, PercentPipe, SlicePipe } from '@angular/common';
 import { DateTime } from 'luxon';
 
 import { ButtonModule } from 'primeng/button';
@@ -22,6 +23,8 @@ import { FormsModule } from '@angular/forms';
 
 import { MonthViewState } from './month-view.state';
 import { LoadMonthView } from './month-view.actions';
+import { EinzahlungDrawer } from './components/einzahlung-drawer';
+import { MonthViewMemberUi } from '@/accounts/domain/month-view.ui-model';
 
 @Component({
   selector: 'tbf-month-view',
@@ -32,6 +35,7 @@ import { LoadMonthView } from './month-view.actions';
   imports: [
     NgClass,
     CurrencyPipe,
+    DatePipe,
     PercentPipe,
     FormsModule,
     ButtonModule,
@@ -43,6 +47,7 @@ import { LoadMonthView } from './month-view.actions';
     SkeletonModule,
     DatePickerModule,
     SlicePipe,
+    EinzahlungDrawer,
   ],
 })
 export class MonthView implements OnInit {
@@ -91,6 +96,11 @@ export class MonthView implements OnInit {
     if (n === 2) return 'grid-cols-1 md:grid-cols-2';
     return 'grid-cols-1 md:grid-cols-3';
   });
+
+  /** Drawer visibility */
+  protected readonly drawerVisible = signal(false);
+  /** Member for which the payment drawer is opened */
+  protected readonly drawerMember = signal<MonthViewMemberUi | null>(null);
 
   ngOnInit(): void {
     const accountId = this.accountId();
@@ -147,6 +157,18 @@ export class MonthView implements OnInit {
 
   protected memberName(memberId: string): string {
     return this.members().find(m => m.id === memberId)?.name ?? memberId;
+  }
+
+  /** Opens the Einzahlung-Drawer pre-filled with the given member */
+  protected openDrawer(member: MonthViewMemberUi): void {
+    this.drawerMember.set(member);
+    this.drawerVisible.set(true);
+  }
+
+  /** Called when the drawer emits (saved) — reloads the month view */
+  protected onDrawerSaved(): void {
+    const month = this.selectedMonth() ?? DateTime.utc().toFormat('yyyy-MM');
+    this.store.dispatch(new LoadMonthView(this.accountId(), month));
   }
 
   /** Called from error-state retry button. */

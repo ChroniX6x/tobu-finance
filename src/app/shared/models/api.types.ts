@@ -10,6 +10,10 @@ export interface ApiMonthViewMember {
   openAmountMinor: number;
   paid: boolean;
   carryoverMinor: number;
+  /** ISO datetime of the most recent booked income transaction for this member (null if none) */
+  lastPaymentDate: string | null;
+  /** Sum of private-advance expense amounts this member paid out of pocket this month */
+  privateAdvancesMinor: number;
 }
 
 export interface ApiMonthViewCategory {
