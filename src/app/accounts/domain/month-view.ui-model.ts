@@ -60,6 +60,13 @@ export interface MonthViewCarryoverUi {
   reason: string;
 }
 
+export interface MonthViewCategoryHistoryUi {
+  /** YYYY-MM */
+  month: string;
+  /** cents per category id */
+  spentByCategoryId: Record<string, number>;
+}
+
 export interface MonthViewUi {
   accountId: string;
   accountName: string;
@@ -71,4 +78,6 @@ export interface MonthViewUi {
   contributionBreakdown: MonthViewContributionRuleUi[];
   memberIncomes: MonthViewMemberIncomeUi[];
   carryovers: MonthViewCarryoverUi[];
+  /** Last 6 months of category spend for the history chart */
+  categoryHistory: MonthViewCategoryHistoryUi[];
 }

@@ -215,40 +215,60 @@
 
   <!-- ---- 4. Kategorien – zweispaltig (Spec §7 + Konzept) ---- -->
   <div class="card p-5 mb-6">
-    <div class="flex items-center justify-between mb-4">
+
+    <!-- Section header -->
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
       <h2 class="text-lg font-semibold text-color">Top Kategorien (Ausgaben)</h2>
+      <p-button
+        label="Alle Kategorien"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        [text]="true"
+        severity="secondary"
+        size="small"
+        (onClick)="showAllCategories.set(!showAllCategories())" />
     </div>
 
-    <!-- Two-column grid: list left, chart/history right -->
+    <!-- Two-column grid: list left, chart right -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      <!-- LEFT: category list -->
-      <div class="flex flex-col gap-3">
-        @if (categories().length === 0) {
-          <p class="text-muted-color text-sm">Keine Ausgaben in diesem Monat.</p>
+      <!-- ── LEFT: category list ────────────────────────────────────────── -->
+      <div class="flex flex-col gap-2">
+
+        @if (visibleCategories().length === 0) {
+          <p class="text-muted-color text-sm py-4">Keine Ausgaben in diesem Monat.</p>
         } @else {
-          @for (cat of categories(); track cat.id) {
-            <div class="flex items-center gap-3">
-              <!-- Status dot -->
-              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    [ngClass]="{
-                      'bg-success-500': cat.status === 'ok',
-                      'bg-red-500':     cat.status === 'over',
-                      'bg-surface-400': cat.status === 'no_budget'
-                    }"></span>
+          @for (cat of visibleCategories(); track cat.id; let i = $index) {
+            <!-- Click row selects/deselects category for chart -->
+            <div
+              class="cat-row"
+              [class.cat-row--selected]="selectedCategoryId() === cat.id"
+              (click)="selectCategory(cat.id)"
+              role="button"
+              [attr.aria-pressed]="selectedCategoryId() === cat.id">
 
-              <!-- Name -->
-              <span class="w-28 text-sm text-color truncate font-medium">{{ cat.name }}</span>
+              <!-- Colored dot (category palette) -->
+              <span
+                class="cat-dot flex-shrink-0"
+                [style.background-color]="catColor(i).dot">
+              </span>
 
-              <!-- Progress bar (only if budget defined) -->
+              <!-- Category name -->
+              <span class="w-28 text-sm text-color truncate font-medium select-none">
+                {{ cat.name }}
+              </span>
+
+              <!-- Progress bar (custom div for per-category color control) -->
               @if (cat.budgetMinor !== null) {
-                <p-progressbar
-                  [value]="cat.budgetPct ?? 0"
-                  [showValue]="false"
-                  styleClass="flex-1 h-2"
-                  [ngClass]="cat.status === 'over' ? 'progress-danger' : ''" />
+                <div class="flex-1 h-2 rounded overflow-hidden"
+                     style="background: rgba(255,255,255,0.08)">
+                  <div class="h-full rounded transition-all duration-300"
+                       [style.width.%]="cat.budgetPct ?? 0"
+                       [style.background-color]="catColor(i).bar"></div>
+                </div>
               } @else {
-                <div class="flex-1 h-2 bg-surface-200 dark:bg-surface-700 rounded"></div>
+                <div class="flex-1 h-2 rounded"
+                     style="background: rgba(255,255,255,0.08)"></div>
               }
 
               <!-- Amount -->
@@ -256,32 +276,65 @@
                 {{ toEur(cat.spentMinor) | currency:'EUR':'symbol':'1.0-0' }}
               </span>
 
-              <!-- Budget status tag -->
-              <p-tag [value]="categoryStatusLabel(cat.status)"
-                     [severity]="categoryStatusSeverity(cat.status)"
-                     styleClass="text-xs" />
             </div>
           }
         }
 
-        <!-- "Alle Kategorien" link at bottom -->
-        <div class="mt-2 flex justify-end">
-          <p-button label="Alle Kategorien" icon="pi pi-arrow-right" iconPos="right"
-                    [text]="true" severity="secondary" size="small" />
-        </div>
+        <!-- Show more / less button -->
+        @if (hasMoreCategories()) {
+          <p-button
+            [label]="showAllCategories() ? 'Weniger anzeigen' : (categories().length - 5) + ' weitere Kategorien'"
+            [icon]="showAllCategories() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+            iconPos="right"
+            [text]="true"
+            severity="secondary"
+            size="small"
+            styleClass="mt-1 self-start"
+            (onClick)="showAllCategories.set(!showAllCategories())" />
+        }
       </div>
 
-      <!-- RIGHT: Verlauf-Placeholder (Phase 7.2) -->
-      <div class="flex flex-col gap-2">
-        <span class="text-sm text-muted-color font-medium">Verlauf</span>
-        <div class="category-chart-placeholder">
-          <div class="flex flex-col items-center gap-2 opacity-50">
-            <i class="pi pi-chart-line text-2xl"></i>
-            <span>Kategorie auswählen</span>
-          </div>
-        </div>
-      </div>
+      <!-- ── RIGHT: history chart ───────────────────────────────────────── -->
+      <div class="flex flex-col gap-3">
 
+        <!-- Chart title: selected category or default label -->
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-muted-color">
+            @if (selectedCategoryId(); as selId) {
+              {{ catNameById(selId) }}
+            } @else {
+              Verlauf – Gesamtausgaben
+            }
+          </span>
+          @if (selectedCategoryId()) {
+            <p-button
+              icon="pi pi-times"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              size="small"
+              pTooltip="Auswahl aufheben"
+              (onClick)="selectedCategoryId.set(null)" />
+          }
+        </div>
+
+        <!-- Chart container (min-height so layout is stable during load) -->
+        <div class="category-chart-container">
+          @if (categoryHistory().length > 0) {
+            <p-chart
+              type="line"
+              [data]="chartData()"
+              [options]="chartOptions"
+              height="180" />
+          } @else {
+            <div class="flex flex-col items-center justify-center h-full gap-2 opacity-40">
+              <i class="pi pi-chart-line text-2xl"></i>
+              <span class="text-sm">Keine Verlaufsdaten</span>
+            </div>
+          }
+        </div>
+
+      </div>
     </div>
   </div>
 

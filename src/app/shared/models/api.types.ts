@@ -45,6 +45,13 @@ export interface ApiMonthViewCarryover {
   reason: string;
 }
 
+export interface ApiMonthViewCategoryHistory {
+  /** YYYY-MM */
+  month: string;
+  /** cents per category id */
+  spentByCategoryId: Record<string, number>;
+}
+
 export interface ApiMonthView {
   account: {
     id: string;
@@ -62,6 +69,8 @@ export interface ApiMonthView {
   contributionBreakdown: ApiMonthViewContributionRule[];
   memberIncomes: ApiMonthViewMemberIncome[];
   carryovers: ApiMonthViewCarryover[];
+  /** Spending per category per month for the last 6 months (for history chart) */
+  categoryHistory: ApiMonthViewCategoryHistory[];
 }
 
 // ---- End of Month-View API types ----

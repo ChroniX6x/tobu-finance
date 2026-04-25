@@ -9,6 +9,7 @@ import {
   ApiMonthViewContributionRule,
   ApiMonthViewMemberIncome,
   ApiMonthViewCarryover,
+  ApiMonthViewCategoryHistory,
 } from '@/shared/models/api.types';
 import {
   MonthViewUi,
@@ -17,6 +18,7 @@ import {
   MonthViewContributionRuleUi,
   MonthViewMemberIncomeUi,
   MonthViewCarryoverUi,
+  MonthViewCategoryHistoryUi,
 } from './month-view.ui-model';
 import { API_BASE_URL } from '@/core/api-base-url.token';
 
@@ -58,6 +60,9 @@ export class MonthViewDataService {
       ),
       carryovers: api.carryovers.map((co) =>
         this.mapCarryover(co, nameById),
+      ),
+      categoryHistory: (api.categoryHistory ?? []).map((h) =>
+        this.mapCategoryHistory(h),
       ),
     };
   }
@@ -131,6 +136,13 @@ export class MonthViewDataService {
       memberName: nameById[co.memberId] ?? '—',
       amountMinor: co.amountMinor,
       reason: co.reason,
+    };
+  }
+
+  private mapCategoryHistory(h: ApiMonthViewCategoryHistory): MonthViewCategoryHistoryUi {
+    return {
+      month: h.month,
+      spentByCategoryId: h.spentByCategoryId,
     };
   }
 }

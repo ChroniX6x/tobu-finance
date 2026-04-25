@@ -19,6 +19,7 @@ import { AccordionModule } from 'primeng/accordion';
 import { AvatarModule } from 'primeng/avatar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { DatePickerModule } from 'primeng/datepicker';
+import { ChartModule } from 'primeng/chart';
 import { FormsModule } from '@angular/forms';
 
 import { MonthViewState } from './month-view.state';
@@ -46,6 +47,7 @@ import { MonthViewMemberUi } from '@/accounts/domain/month-view.ui-model';
     AvatarModule,
     SkeletonModule,
     DatePickerModule,
+    ChartModule,
     SlicePipe,
     EinzahlungDrawer,
   ],
@@ -64,6 +66,18 @@ export class MonthView implements OnInit {
   protected readonly memberIncomes = select(MonthViewState.memberIncomes);
   protected readonly carryovers = select(MonthViewState.carryovers);
   protected readonly selectedMonth = select(MonthViewState.selectedMonth);
+  protected readonly categoryHistory = select(MonthViewState.categoryHistory);
+
+  // ── Category palette (deterministic by index, loops for >7 categories) ──────
+  private static readonly CATEGORY_COLORS = [
+    { bar: '#14b8a6', dot: '#14b8a6', line: 'rgba(20,184,166,0.9)',   area: 'rgba(20,184,166,0.12)' },  // teal
+    { bar: '#eab308', dot: '#eab308', line: 'rgba(234,179,8,0.9)',    area: 'rgba(234,179,8,0.12)'  },  // yellow
+    { bar: '#a855f7', dot: '#a855f7', line: 'rgba(168,85,247,0.9)',   area: 'rgba(168,85,247,0.12)' },  // purple
+    { bar: '#3b82f6', dot: '#3b82f6', line: 'rgba(59,130,246,0.9)',   area: 'rgba(59,130,246,0.12)' },  // blue
+    { bar: '#f97316', dot: '#f97316', line: 'rgba(249,115,22,0.9)',   area: 'rgba(249,115,22,0.12)' },  // orange
+    { bar: '#ec4899', dot: '#ec4899', line: 'rgba(236,72,153,0.9)',   area: 'rgba(236,72,153,0.12)' },  // pink
+    { bar: '#06b6d4', dot: '#06b6d4', line: 'rgba(6,182,212,0.9)',    area: 'rgba(6,182,212,0.12)'  },  // cyan
+  ];
 
   /** Date object bound to the p-datepicker (view only: month+year) */
   protected pickerDate = new Date();
@@ -86,10 +100,7 @@ export class MonthView implements OnInit {
     return k.totalPaidMinor - k.totalSpentMinor;
   });
 
-  /**
-   * Responsive grid class for member cards:
-   * exactly as many columns as members (max 3), stacked on mobile.
-   */
+  /** Responsive grid class for member cards: exactly as many columns as members (max 3). */
   protected readonly memberGridClass = computed(() => {
     const n = this.members().length;
     if (n <= 1) return 'grid-cols-1';
@@ -97,6 +108,127 @@ export class MonthView implements OnInit {
     return 'grid-cols-1 md:grid-cols-3';
   });
 
+  // ── Category 7 section signals ─────────────────────────────────────────────
+
+  /** Clicked category ID — drives right-column chart; null = total spend */
+  protected readonly selectedCategoryId = signal<string | null>(null);
+
+  /** Toggle: show all categories vs. top 5 */
+  protected readonly showAllCategories = signal(false);
+
+  /** Slice of categories shown in the left column (top 5 or all) */
+  protected readonly visibleCategories = computed(() =>
+    this.showAllCategories() ? this.categories() : this.categories().slice(0, 5),
+  );
+
+  /** True when there are more categories than the visible slice */
+  protected readonly hasMoreCategories = computed(
+    () => this.categories().length > 5,
+  );
+
+  /** Chart.js data object — recomputed when history or selectedCategoryId changes */
+  protected readonly chartData = computed(() => {
+    const history = this.categoryHistory();
+    const cats = this.categories();
+    const selId = this.selectedCategoryId();
+
+    const labels = history.map((h) =>
+      DateTime.fromISO(`${h.month}-01`).setLocale('de').toFormat('MMM'),
+    );
+
+    if (selId) {
+      // Single selected category with optional budget dashed line
+      const catIdx = cats.findIndex((c) => c.id === selId);
+      const color = MonthView.CATEGORY_COLORS[catIdx >= 0 ? catIdx % MonthView.CATEGORY_COLORS.length : 0];
+      const cat = cats.find((c) => c.id === selId);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const datasets: any[] = [
+        {
+          label: cat?.name ?? '—',
+          data: history.map((h) => ((h.spentByCategoryId[selId] ?? 0) / 100)),
+          borderColor: color.line,
+          backgroundColor: color.area,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: color.dot,
+        },
+      ];
+
+      // Dashed budget line when a budget is defined for this category
+      if (cat?.budgetMinor != null && cat.budgetMinor > 0) {
+        datasets.push({
+          label: 'Budget',
+          data: history.map(() => (cat.budgetMinor ?? 0) / 100),
+          borderColor: 'rgba(255,255,255,0.28)',
+          borderDash: [5, 4],
+          backgroundColor: 'transparent',
+          fill: false,
+          tension: 0,
+          pointRadius: 0,
+        });
+      }
+
+      return { labels, datasets };
+    }
+
+    // Default: total spend across all categories per month (single line)
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Gesamtausgaben',
+          data: history.map((h) =>
+            Object.values(h.spentByCategoryId).reduce((a, b) => a + b, 0) / 100,
+          ),
+          borderColor: 'rgba(20,184,166,0.9)',
+          backgroundColor: 'rgba(20,184,166,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#14b8a6',
+        },
+      ],
+    };
+  });
+
+  /** Static Chart.js options — dark theme, minimal axes */
+  protected readonly chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 250 },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          label: (ctx: any) =>
+            `${ctx.dataset.label}: ${Number(ctx.parsed.y).toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} €`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        ticks: { color: 'rgba(255,255,255,0.50)', font: { size: 11 } },
+      },
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        ticks: {
+          color: 'rgba(255,255,255,0.50)',
+          font: { size: 11 },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          callback: (v: any) => `${v} €`,
+        },
+      },
+    },
+  };
+
+  // ── Drawer signals ────────────────────────────────────────────────────────
   /** Drawer visibility */
   protected readonly drawerVisible = signal(false);
   /** Member for which the payment drawer is opened */
@@ -174,6 +306,21 @@ export class MonthView implements OnInit {
   /** Called from error-state retry button. */
   protected reload(): void {
     this.ngOnInit();
+  }
+
+  /** Returns the color config for a category at a given index in the sorted list */
+  protected catColor(index: number) {
+    return MonthView.CATEGORY_COLORS[index % MonthView.CATEGORY_COLORS.length];
+  }
+
+  /** Toggle selected category; clicking same again deselects → shows total */
+  protected selectCategory(catId: string): void {
+    this.selectedCategoryId.update((cur) => (cur === catId ? null : catId));
+  }
+
+  /** Returns the display name for a category by its ID */
+  protected catNameById(catId: string): string {
+    return this.categories().find((c) => c.id === catId)?.name ?? catId;
   }
 }
 

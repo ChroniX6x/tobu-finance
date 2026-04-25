@@ -41,6 +41,7 @@ export class MonthViewState {
     return s.data?.memberIncomes ?? [];
   }
   @Selector() static carryovers(s: MonthViewStateModel) { return s.data?.carryovers ?? []; }
+  @Selector() static categoryHistory(s: MonthViewStateModel) { return s.data?.categoryHistory ?? []; }
 
   @Action(SetMonthViewMonth)
   setMonth(ctx: StateContext<MonthViewStateModel>, { month }: SetMonthViewMonth) {
