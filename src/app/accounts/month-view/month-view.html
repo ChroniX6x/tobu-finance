@@ -336,87 +336,265 @@
 
       </div>
     </div>
-  </div>
+
+    <!-- Task 8.4: Kategorie-Details — collapsible table below the two-column section -->
+    <p-accordion [multiple]="false" styleClass="mt-5">
+      <p-accordion-panel value="catdetails">
+        <p-accordion-header>
+          <span class="flex items-center gap-2">
+            <i class="pi pi-table text-muted-color"></i>
+            <span class="text-sm text-muted-color">Kategorie-Details</span>
+          </span>
+        </p-accordion-header>
+        <p-accordion-content>
+          @if (categories().length === 0) {
+            <p class="text-muted-color text-sm p-4">Keine Kategoriedaten für diesen Monat.</p>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="detail-table">
+                <thead>
+                  <tr>
+                    <th class="text-left">Kategorie</th>
+                    <th class="text-right">Budget</th>
+                    <th class="text-right">Ausgaben</th>
+                    <th class="text-right">Abweichung</th>
+                    <th class="text-left">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (cat of categories(); track cat.id) {
+                    <tr>
+                      <td class="font-medium text-color">{{ cat.name }}</td>
+                      <td class="text-right text-muted-color">
+                        {{ cat.budgetMinor != null
+                           ? (toEur(cat.budgetMinor) | currency:'EUR':'symbol':'1.0-0')
+                           : '—' }}
+                      </td>
+                      <td class="text-right font-semibold">
+                        {{ toEur(cat.spentMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                      </td>
+                      <!-- Abweichung = Ist − Budget; positiv = über Budget (rot) -->
+                      <td class="text-right"
+                          [ngClass]="deviationClass(cat.spentMinor, cat.budgetMinor)">
+                        {{ cat.budgetMinor != null
+                           ? (toEur(cat.spentMinor - cat.budgetMinor) | currency:'EUR':'symbol':'1.0-0')
+                           : '—' }}
+                      </td>
+                      <td>
+                        <p-tag
+                          [value]="categoryStatusLabel(cat.status)"
+                          [severity]="categoryStatusSeverity(cat.status)"
+                          styleClass="text-xs" />
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td class="font-semibold text-muted-color">Gesamt</td>
+                    <td class="text-right font-semibold">
+                      {{ toEur(categories().reduce((s, c) => s + (c.budgetMinor ?? 0), 0))
+                         | currency:'EUR':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-right font-bold">
+                      {{ toEur(categories().reduce((s, c) => s + c.spentMinor, 0))
+                         | currency:'EUR':'symbol':'1.0-0' }}
+                    </td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          }
+        </p-accordion-content>
+      </p-accordion-panel>
+    </p-accordion>
+
+  </div><!-- end categories card -->
 
   <!-- ---- 5. Beitragslogik (Accordion) ---- -->
   <p-accordion [multiple]="true" styleClass="mb-6">
 
-    <!-- 5a. Beitragsregeln -->
-    <p-accordion-panel value="rules">
+    <!-- 5a. Contribution Breakdown — per member × type (Base / Additional / TopUp / Gesamt) -->
+    <p-accordion-panel value="breakdown">
       <p-accordion-header>
         <span class="flex items-center gap-2">
           <i class="pi pi-calculator text-primary-500"></i>
           Beitragslogik
+          <p-tag
+            [value]="memberBreakdown().length.toString() + ' Mitglieder'"
+            severity="secondary"
+            styleClass="text-xs ml-1" />
         </span>
       </p-accordion-header>
       <p-accordion-content>
-        @if (contributionBreakdown().length === 0) {
-          <p class="text-muted-color text-sm p-4">Keine aktiven Beitragsregeln in diesem Monat.</p>
+        @if (memberBreakdown().length === 0) {
+          <p class="text-muted-color text-sm p-4">Keine Mitgliedsdaten für diesen Monat.</p>
         } @else {
+          <!-- Main per-member table: rows=members, cols=Base|Additional|TopUp|Gesamt -->
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="detail-table">
               <thead>
-                <tr class="text-left text-muted-color border-b border-surface-200 dark:border-surface-700">
-                  <th class="py-2 pr-4">Regel</th>
-                  <th class="py-2 pr-4">Typ</th>
-                  <th class="py-2 pr-4">Gesamt</th>
-                  <th class="py-2 pr-4">Verteilung</th>
-                  @for (m of members(); track m.id) {
-                    <th class="py-2 pr-2 text-right">{{ m.name }}</th>
-                  }
+                <tr>
+                  <th class="text-left">Mitglied</th>
+                  <th class="text-right" pTooltip="Reguläre Grundverteilung" tooltipPosition="top">Base</th>
+                  <th class="text-right" pTooltip="Zusatzbeiträge" tooltipPosition="top">Additional</th>
+                  <th class="text-right" pTooltip="Auffüll- / Korrekturbeiträge" tooltipPosition="top">TopUp</th>
+                  <th class="text-right detail-table__total">Gesamt</th>
                 </tr>
               </thead>
               <tbody>
-                @for (rule of contributionBreakdown(); track rule.ruleId) {
-                  <tr class="border-b border-surface-100 dark:border-surface-800">
-                    <td class="py-2 pr-4 font-medium">{{ rule.description }}</td>
-                    <td class="py-2 pr-4 text-muted-color capitalize">{{ rule.type }}</td>
-                    <td class="py-2 pr-4 font-semibold">
-                      {{ toEur(rule.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                @for (row of memberBreakdown(); track row.memberId) {
+                  <tr>
+                    <td class="font-medium text-color">{{ row.memberName }}</td>
+                    <td class="text-right" [ngClass]="row.base === 0 ? 'text-muted-color' : ''">
+                      {{ row.base === 0 ? '—' : (toEur(row.base) | currency:'EUR':'symbol':'1.0-0') }}
                     </td>
-                    <td class="py-2 pr-4 text-muted-color">{{ rule.distributionMode }}</td>
-                    @for (m of members(); track m.id) {
-                      <td class="py-2 pr-2 text-right">
-                        {{ toEur(rule.perMember[m.id]) | currency:'EUR':'symbol':'1.0-0' }}
-                      </td>
-                    }
+                    <td class="text-right" [ngClass]="row.additional === 0 ? 'text-muted-color' : ''">
+                      {{ row.additional === 0 ? '—' : (toEur(row.additional) | currency:'EUR':'symbol':'1.0-0') }}
+                    </td>
+                    <td class="text-right" [ngClass]="row.topup === 0 ? 'text-muted-color' : ''">
+                      {{ row.topup === 0 ? '—' : (toEur(row.topup) | currency:'EUR':'symbol':'1.0-0') }}
+                    </td>
+                    <td class="text-right font-bold detail-table__total">
+                      {{ toEur(row.totalMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                    </td>
                   </tr>
                 }
               </tbody>
+              <!-- Footer: column totals -->
+              <tfoot>
+                <tr>
+                  <td class="font-semibold text-muted-color">Gesamt</td>
+                  <td class="text-right font-semibold">
+                    {{ toEur(memberBreakdown().reduce((s, r) => s + r.base, 0))
+                       | currency:'EUR':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="text-right font-semibold">
+                    {{ toEur(memberBreakdown().reduce((s, r) => s + r.additional, 0))
+                       | currency:'EUR':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="text-right font-semibold">
+                    {{ toEur(memberBreakdown().reduce((s, r) => s + r.topup, 0))
+                       | currency:'EUR':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="text-right font-bold detail-table__total">
+                    {{ toEur(memberBreakdown().reduce((s, r) => s + r.totalMinor, 0))
+                       | currency:'EUR':'symbol':'1.0-0' }}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
+
+          <!-- Sub-accordion: per-rule detail (Regeldetails) -->
+          @if (contributionBreakdown().length > 0) {
+            <p-accordion [multiple]="false" styleClass="mt-4">
+              <p-accordion-panel value="ruledetail">
+                <p-accordion-header>
+                  <span class="text-sm text-muted-color flex items-center gap-2">
+                    <i class="pi pi-list"></i>
+                    Regeldetails anzeigen
+                  </span>
+                </p-accordion-header>
+                <p-accordion-content>
+                  <div class="overflow-x-auto">
+                    <table class="detail-table detail-table--sm">
+                      <thead>
+                        <tr>
+                          <th class="text-left">Regel</th>
+                          <th class="text-left">Typ</th>
+                          <th class="text-right">Betrag</th>
+                          <th class="text-left">Verteilung</th>
+                          @for (m of members(); track m.id) {
+                            <th class="text-right">{{ m.name }}</th>
+                          }
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (rule of contributionBreakdown(); track rule.ruleId) {
+                          <tr>
+                            <td class="font-medium">{{ rule.description }}</td>
+                            <td class="text-muted-color capitalize">{{ rule.type }}</td>
+                            <td class="text-right font-semibold">
+                              {{ toEur(rule.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                            </td>
+                            <td class="text-muted-color text-xs">{{ rule.distributionMode }}</td>
+                            @for (m of members(); track m.id) {
+                              <td class="text-right"
+                                [ngClass]="toEur(rule.perMember[m.id]) === 0 ? 'text-muted-color' : ''">
+                              {{ toEur(rule.perMember[m.id]) === 0 ? '—'
+                                   : (toEur(rule.perMember[m.id]) | currency:'EUR':'symbol':'1.0-0') }}
+                              </td>
+                            }
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </p-accordion-content>
+              </p-accordion-panel>
+            </p-accordion>
+          }
         }
       </p-accordion-content>
     </p-accordion-panel>
 
-    <!-- 5b. Einkommensbasis -->
-    <p-accordion-panel value="incomes">
-      <p-accordion-header>
-        <span class="flex items-center gap-2">
-          <i class="pi pi-wallet text-primary-500"></i>
-          Einkommensbasis
-        </span>
-      </p-accordion-header>
-      <p-accordion-content>
-        @if (memberIncomes().length === 0) {
-          <p class="text-muted-color text-sm p-4">Keine Einkommensdaten für diesen Monat.</p>
-        } @else {
-          <div class="flex flex-col gap-3 p-2">
-            @for (inc of memberIncomes(); track inc.memberId) {
-              <div class="flex items-center gap-4">
-                <span class="w-32 font-medium text-color">{{ inc.memberName }}</span>
-                <span class="text-sm">
-                  {{ toEur(inc.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
-                </span>
-                <span class="text-xs text-muted-color ml-auto">
-                  Gewichtung: {{ inc.weight | percent:'1.1-1' }}
-                </span>
-              </div>
-            }
-          </div>
-        }
-      </p-accordion-content>
-    </p-accordion-panel>
+    <!-- 5b. Income Basis — only visible when proRataIncome is used -->
+    @if (hasProRata()) {
+      <p-accordion-panel value="incomes">
+        <p-accordion-header>
+          <span class="flex items-center gap-2">
+            <i class="pi pi-wallet text-primary-500"></i>
+            ProRata-Grundlage
+            <p-tag value="ProRata aktiv" severity="info" styleClass="text-xs ml-1" />
+          </span>
+        </p-accordion-header>
+        <p-accordion-content>
+          @if (memberIncomes().length === 0) {
+            <p class="text-muted-color text-sm p-4">Keine Einkommensdaten für diesen Monat.</p>
+          } @else {
+            <p class="text-xs text-muted-color px-1 pb-3">
+              Diese Werte werden für alle proRataIncome-Bausteine im ausgewählten Monat verwendet.
+            </p>
+            <div class="overflow-x-auto">
+              <table class="detail-table">
+                <thead>
+                  <tr>
+                    <th class="text-left">Mitglied</th>
+                    <th class="text-right">Einkommen</th>
+                    <th class="text-right detail-table__total">Anteil</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (inc of memberIncomes(); track inc.memberId) {
+                    <tr>
+                      <td class="font-medium text-color">{{ inc.memberName }}</td>
+                      <td class="text-right">
+                        {{ toEur(inc.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-right font-bold detail-table__total">
+                        {{ inc.weight | percent:'1.1-1' }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td class="font-semibold text-muted-color">Gesamt</td>
+                    <td class="text-right font-semibold">
+                      {{ toEur(memberIncomes().reduce((s, i) => s + i.amountMinor, 0))
+                         | currency:'EUR':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-right font-bold detail-table__total">100 %</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          }
+        </p-accordion-content>
+      </p-accordion-panel>
+    }
 
     <!-- 5c. Überträge -->
     @if (carryovers().length > 0) {
@@ -429,16 +607,28 @@
           </span>
         </p-accordion-header>
         <p-accordion-content>
-          <div class="flex flex-col gap-3 p-2">
-            @for (co of carryovers(); track co.memberId + co.reason) {
-              <div class="flex items-center gap-4 border-b border-surface-100 dark:border-surface-800 pb-2">
-                <span class="w-32 font-medium text-color">{{ co.memberName }}</span>
-                <span class="font-semibold text-amber-600 dark:text-amber-400">
-                  {{ toEur(co.amountMinor) | currency:'EUR':'symbol':'1.2-2' }}
-                </span>
-                <span class="text-sm text-muted-color">{{ co.reason }}</span>
-              </div>
-            }
+          <div class="overflow-x-auto">
+            <table class="detail-table">
+              <thead>
+                <tr>
+                  <th class="text-left">Mitglied</th>
+                  <th class="text-right detail-table__total">Übertrag</th>
+                  <th class="text-left">Grund</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (co of carryovers(); track co.memberId + co.reason) {
+                  <tr>
+                    <td class="font-medium text-color">{{ co.memberName }}</td>
+                    <td class="text-right font-semibold detail-table__total"
+                        [ngClass]="co.amountMinor < 0 ? 'text-red-400' : 'text-amber-400'">
+                      {{ toEur(co.amountMinor) | currency:'EUR':'symbol':'1.2-2' }}
+                    </td>
+                    <td class="text-muted-color text-sm">{{ co.reason }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
         </p-accordion-content>
       </p-accordion-panel>

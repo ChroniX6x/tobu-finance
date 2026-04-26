@@ -229,3 +229,53 @@
   font-size: 0.875rem;
   flex: 1;
 }
+// ── Detail tables (Accordion Detailtabellen, Phase 8) ──────────────────────────────
+// Shared table style for all accordion detail tables.
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th {
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    color: var(--p-text-muted-color);
+    border-bottom: 1px solid var(--p-surface-700);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.5rem 0.75rem;
+    color: var(--p-text-color);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  tfoot td {
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--p-surface-700);
+    font-size: 0.875rem;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  // Gesamt column — slightly highlighted
+  &__total {
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  // Smaller variant for nested Regeldetails
+  &--sm {
+    font-size: 0.8125rem;
+
+    th, td {
+      padding: 0.35rem 0.6rem;
+    }
+  }
+}

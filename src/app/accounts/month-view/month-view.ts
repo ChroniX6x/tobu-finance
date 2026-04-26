@@ -291,6 +291,47 @@ export class MonthView implements OnInit {
     return this.members().find(m => m.id === memberId)?.name ?? memberId;
   }
 
+  // ── Phase 8: Detailtabellen computeds ────────────────────────────────────
+
+  /**
+   * Per-member breakdown pivoted by rule type (base / additional / topup).
+   * Used in the Contribution-Breakdown accordion table.
+   * The totalMinor must equal member.monthlyDueMinor (sanity check).
+   */
+  protected readonly memberBreakdown = computed(() => {
+    const members = this.members();
+    const rules = this.contributionBreakdown();
+    return members.map(member => {
+      const base = rules
+        .filter(r => r.type === 'base')
+        .reduce((sum, r) => sum + (r.perMember[member.id] ?? 0), 0);
+      const additional = rules
+        .filter(r => r.type === 'additional')
+        .reduce((sum, r) => sum + (r.perMember[member.id] ?? 0), 0);
+      const topup = rules
+        .filter(r => r.type === 'topup')
+        .reduce((sum, r) => sum + (r.perMember[member.id] ?? 0), 0);
+      return { memberId: member.id, memberName: member.name, base, additional, topup, totalMinor: member.monthlyDueMinor };
+    });
+  });
+
+  /**
+   * True when at least one active contribution rule uses proRataIncome distribution.
+   * Controls visibility of the Income-Basis accordion panel.
+   */
+  protected readonly hasProRata = computed(() =>
+    this.contributionBreakdown().some(r => r.distributionMode === 'proRataIncome'),
+  );
+
+  /** Deviation label class for Kategorie-Details table */
+  protected deviationClass(spentMinor: number, budgetMinor: number | null): string {
+    if (budgetMinor == null) return 'text-muted-color';
+    const diff = spentMinor - budgetMinor;
+    if (diff > 0) return 'text-red-400 font-semibold';
+    if (diff < 0) return 'text-success-600';
+    return 'text-color';
+  }
+
   /** Opens the Einzahlung-Drawer pre-filled with the given member */
   protected openDrawer(member: MonthViewMemberUi): void {
     this.drawerMember.set(member);
