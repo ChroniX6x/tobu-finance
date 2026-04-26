@@ -291,6 +291,54 @@ export class MonthView implements OnInit {
     return this.members().find(m => m.id === memberId)?.name ?? memberId;
   }
 
+  // ── Phase 9: Beitragslogik-Bereich ────────────────────────────────────────
+
+  /**
+   * Task 9.1: Monatsbedarf breakdown by rule type.
+   * Shows how the total monthly requirement is composed from
+   * base-, additional- and topup-rules.
+   * NOTE: carryover is informational context (not part of totalDueMinor calculation).
+   */
+  protected readonly monthlyRequirementBreakdown = computed(() => {
+    const rules = this.contributionBreakdown();
+    const base       = rules.filter(r => r.type === 'base').reduce((s, r) => s + r.amountMinor, 0);
+    const additional = rules.filter(r => r.type === 'additional').reduce((s, r) => s + r.amountMinor, 0);
+    const topup      = rules.filter(r => r.type === 'topup').reduce((s, r) => s + r.amountMinor, 0);
+    const carryover  = this.kpis()?.carryoverTotalMinor ?? 0;
+    const total      = base + additional + topup;
+    return { base, additional, topup, carryover, total };
+  });
+
+  /** Task 9.2: Human-readable label for rule type */
+  protected ruleTypeLabel(type: string): string {
+    switch (type) {
+      case 'base':       return 'Basis';
+      case 'additional': return 'Zusatz';
+      case 'topup':      return 'TopUp';
+      default:           return type;
+    }
+  }
+
+  /** Task 9.2: PrimeNG tag severity for rule type */
+  protected ruleTypeSeverity(type: string): 'success' | 'info' | 'warn' | 'secondary' {
+    switch (type) {
+      case 'base':       return 'success';
+      case 'additional': return 'info';
+      case 'topup':      return 'warn';
+      default:           return 'secondary';
+    }
+  }
+
+  /** Task 9.2: Human-readable label for distribution mode */
+  protected distributionModeLabel(mode: string): string {
+    switch (mode) {
+      case 'proRataIncome': return 'ProRata (Einkommen)';
+      case 'perMember':     return 'Pro Mitglied';
+      case 'customSplit':   return 'Individuell';
+      default:              return mode;
+    }
+  }
+
   // ── Phase 8: Detailtabellen computeds ────────────────────────────────────
 
   /**

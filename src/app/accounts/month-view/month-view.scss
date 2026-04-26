@@ -229,7 +229,97 @@
   font-size: 0.875rem;
   flex: 1;
 }
-// ── Detail tables (Accordion Detailtabellen, Phase 8) ──────────────────────────────
+// ── Phase 9: Monatsbedarf-Herleitung block ─────────────────────────────────────
+.herleitung-box {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+// Each contribution component row in the herleitung block
+.herleitung-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+
+  .herleitung-label {
+    color: var(--p-text-muted-color);
+  }
+
+  .herleitung-amount {
+    font-weight: 600;
+    color: var(--p-text-color);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &--base {
+    background: rgba(16, 185, 129, 0.07);
+    border-left: 3px solid rgba(16, 185, 129, 0.6);
+  }
+
+  &--additional {
+    background: rgba(59, 130, 246, 0.07);
+    border-left: 3px solid rgba(59, 130, 246, 0.6);
+  }
+
+  &--topup {
+    background: rgba(234, 179, 8, 0.07);
+    border-left: 3px solid rgba(234, 179, 8, 0.6);
+  }
+
+  &--carryover {
+    background: rgba(245, 158, 11, 0.05);
+    border-left: 3px solid rgba(245, 158, 11, 0.35);
+  }
+}
+
+// Total row separating line + bold layout
+.herleitung-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.65rem 0.1rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--p-surface-700, rgba(255,255,255,0.12));
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Phase 9: Baustein-Cards (aktive Beitragsbausteine) ─────────────────────────
+.baustein-card {
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.055);
+  }
+
+  // Left accent border by rule type
+  &--base       { border-left: 3px solid rgba(16, 185, 129, 0.7); }
+  &--additional { border-left: 3px solid rgba(59, 130, 246,  0.7); }
+  &--topup      { border-left: 3px solid rgba(234, 179, 8,   0.7); }
+}
+
+// Per-member share chips inside baustein-cards
+.baustein-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--p-text-muted-color);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  white-space: nowrap;
+}
 // Shared table style for all accordion detail tables.
 .detail-table {
   width: 100%;

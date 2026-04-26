@@ -431,6 +431,123 @@
         @if (memberBreakdown().length === 0) {
           <p class="text-muted-color text-sm p-4">Keine Mitgliedsdaten für diesen Monat.</p>
         } @else {
+
+          <!-- ── Task 9.1: Monatsbedarf-Herleitung ────────────────────────── -->
+          @if (monthlyRequirementBreakdown(); as hrech) {
+            @if (hrech.total > 0) {
+              <div class="herleitung-box mb-5">
+                <div class="text-xs text-muted-color mb-3 font-semibold uppercase tracking-wide">
+                  Monatsbedarf — Herleitung
+                </div>
+
+                <div class="flex flex-col gap-0.5">
+                  @if (hrech.base > 0) {
+                    <div class="herleitung-row herleitung-row--base">
+                      <span class="herleitung-label">Basisbeiträge</span>
+                      <span class="herleitung-amount">
+                        {{ toEur(hrech.base) | currency:'EUR':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                  }
+                  @if (hrech.additional > 0) {
+                    <div class="herleitung-row herleitung-row--additional">
+                      <span class="herleitung-label flex items-center gap-1.5">
+                        <i class="pi pi-plus text-xs opacity-50"></i>
+                        Zusatzbeiträge
+                      </span>
+                      <span class="herleitung-amount">
+                        {{ toEur(hrech.additional) | currency:'EUR':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                  }
+                  @if (hrech.topup > 0) {
+                    <div class="herleitung-row herleitung-row--topup">
+                      <span class="herleitung-label flex items-center gap-1.5">
+                        <i class="pi pi-plus text-xs opacity-50"></i>
+                        TopUp-Beiträge
+                      </span>
+                      <span class="herleitung-amount">
+                        {{ toEur(hrech.topup) | currency:'EUR':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                  }
+                  @if (hrech.carryover !== 0) {
+                    <div class="herleitung-row herleitung-row--carryover">
+                      <span class="herleitung-label flex items-center gap-1.5">
+                        <i class="pi pi-arrow-right-arrow-left text-xs opacity-50"></i>
+                        Übertrag (informativ)
+                      </span>
+                      <span class="herleitung-amount"
+                            [ngClass]="hrech.carryover < 0 ? 'text-red-400' : 'text-amber-400'">
+                        {{ toEur(hrech.carryover) | currency:'EUR':'symbol':'1.2-2' }}
+                      </span>
+                    </div>
+                  }
+                  <!-- Total separator row -->
+                  <div class="herleitung-total">
+                    <span class="font-semibold text-color">Monatsbedarf gesamt</span>
+                    <span class="text-xl font-bold text-color">
+                      {{ toEur(hrech.total) | currency:'EUR':'symbol':'1.0-0' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+
+          <!-- ── Task 9.2: Aktive Beitragsbausteine als Karten ────────────── -->
+          @if (contributionBreakdown().length > 0) {
+            <div class="text-xs text-muted-color mb-2 font-semibold uppercase tracking-wide">
+              Aktive Bausteine ({{ contributionBreakdown().length }})
+            </div>
+            <div class="flex flex-col gap-2 mb-5">
+              @for (rule of contributionBreakdown(); track rule.ruleId) {
+                <div class="baustein-card" [ngClass]="'baustein-card--' + rule.type">
+
+                  <!-- Card header: type badge + description + amount + distribution -->
+                  <div class="flex items-start justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-2 flex-wrap min-w-0">
+                      <p-tag
+                        [value]="ruleTypeLabel(rule.type)"
+                        [severity]="ruleTypeSeverity(rule.type)"
+                        styleClass="text-xs flex-shrink-0" />
+                      <span class="font-medium text-color text-sm truncate max-w-xs">
+                        {{ rule.description || '(kein Name)' }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-3 flex-shrink-0">
+                      <span class="text-xs text-muted-color hidden sm:inline">
+                        {{ distributionModeLabel(rule.distributionMode) }}
+                      </span>
+                      <span class="font-bold text-color text-base">
+                        {{ toEur(rule.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Distribution mode label on mobile (hidden on sm+) -->
+                  <div class="text-xs text-muted-color mt-0.5 sm:hidden">
+                    {{ distributionModeLabel(rule.distributionMode) }}
+                  </div>
+
+                  <!-- Per-member distribution chips -->
+                  @if (members().length > 0) {
+                    <div class="flex flex-wrap gap-1 mt-2">
+                      @for (m of members(); track m.id) {
+                        @if (toEur(rule.perMember[m.id]) > 0) {
+                          <span class="baustein-chip">
+                            {{ m.name }}:
+                            {{ toEur(rule.perMember[m.id]) | currency:'EUR':'symbol':'1.0-0' }}
+                          </span>
+                        }
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
           <!-- Main per-member table: rows=members, cols=Base|Additional|TopUp|Gesamt -->
           <div class="overflow-x-auto">
             <table class="detail-table">

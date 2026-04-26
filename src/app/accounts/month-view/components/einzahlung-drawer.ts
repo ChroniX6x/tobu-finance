@@ -127,11 +127,17 @@ interface EinzahlungFormModel {
           </div>
 
           <!-- Notes -->
+          <!-- NOTE: [formField] intentionally NOT used on pTextarea.
+               PrimeNG pTextarea injects NgControl with {self:true} and calls
+               valueChanges.subscribe() — Signal Forms' InteropNgControl does
+               not implement valueChanges → TypeError on first render.
+               Binding manually instead (same pattern as transaction-detail-editor). -->
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-color">Notiz (optional)</label>
             <textarea
               pTextarea
-              [formField]="paymentForm.notes"
+              [value]="paymentForm.notes().value() || ''"
+              (input)="paymentForm.notes().value.set($any($event.target).value || null)"
               rows="2"
               placeholder="Optionale Anmerkung…"
               class="w-full resize-none"></textarea>
