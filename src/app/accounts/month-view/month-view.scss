@@ -229,6 +229,55 @@
   font-size: 0.875rem;
   flex: 1;
 }
+// ── Phase 10: Empty / Setup-Gap states ────────────────────────────────────────
+// Centered info block for missing members or missing rule configuration.
+.month-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: var(--p-text-muted-color);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+// ── Phase 11: KPI card responsive font sizes ───────────────────────────────────
+// On narrow screens (< sm) KPI values use text-base to avoid overflow.
+@media (max-width: 479px) {
+  .kpi-card {
+    padding: 0.75rem 0.875rem;
+
+    // KPI value spans (target the large bold numbers)
+    span.text-xl,
+    span.text-2xl {
+      font-size: 1.125rem !important;
+    }
+  }
+}
+
+// ── Phase 11: Member card mobile ───────────────────────────────────────────────
+@media (max-width: 479px) {
+  .member-card {
+    padding: 1rem !important;
+  }
+}
+
+// ── Phase 11: detail-table mobile ─────────────────────────────────────────────
+// Slightly reduced padding on xs to prevent horizontal overflow
+@media (max-width: 639px) {
+  .detail-table {
+    font-size: 0.8125rem;
+
+    th,
+    td {
+      padding: 0.375rem 0.5rem;
+    }
+  }
+}
+
 // ── Phase 9: Monatsbedarf-Herleitung block ─────────────────────────────────────
 .herleitung-box {
   background: rgba(255, 255, 255, 0.025);

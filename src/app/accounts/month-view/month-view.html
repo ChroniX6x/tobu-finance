@@ -6,26 +6,41 @@
 <!-- ---- Loading skeleton ---- -->
 @if (loading() && !data()) {
   <div class="flex flex-col gap-6 pt-4">
-    <p-skeleton height="2.5rem" width="16rem" />
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <p-skeleton height="2.5rem" width="6rem" />
+      <p-skeleton height="2rem" width="2rem" borderRadius="50%" />
+      <p-skeleton height="2.5rem" width="9rem" />
+      <p-skeleton height="2rem" width="2rem" borderRadius="50%" />
+    </div>
+    <!-- KPI row -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       @for (_ of [1,2,3,4]; track $index) {
-        <p-skeleton height="6rem" />
+        <p-skeleton height="5.5rem" borderRadius="12px" />
       }
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      @for (_ of [1,2]; track $index) {
-        <p-skeleton height="14rem" />
+    <!-- Member cards (up to 3) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      @for (_ of [1,2,3]; track $index) {
+        <p-skeleton height="16rem" borderRadius="12px" />
       }
     </div>
+    <!-- Category section -->
+    <p-skeleton height="18rem" borderRadius="12px" />
+    <!-- Accordion -->
+    <p-skeleton height="3rem" borderRadius="8px" />
   </div>
 }
 
 <!-- ---- Error state ---- -->
 @if (error() && !loading()) {
-  <div class="card p-6 text-center text-red-500">
-    <i class="pi pi-exclamation-circle text-2xl mb-2"></i>
-    <p>{{ error() }}</p>
-    <p-button label="Erneut versuchen" severity="secondary" class="mt-4"
+  <div class="card p-8 flex flex-col items-center gap-4 mt-4">
+    <i class="pi pi-exclamation-triangle text-4xl text-red-400"></i>
+    <div class="text-center">
+      <p class="font-semibold text-color mb-1">Daten konnten nicht geladen werden</p>
+      <p class="text-sm text-muted-color">{{ error() }}</p>
+    </div>
+    <p-button label="Erneut versuchen" icon="pi pi-refresh" severity="secondary"
               (onClick)="reload()" />
   </div>
 }
@@ -59,9 +74,9 @@
                 (onClick)="nextMonth()" pTooltip="Nächster Monat" tooltipPosition="top" />
     </div>
 
-    <!-- Right: account balance chip -->
+    <!-- Right: account balance chip (responsive: smaller on mobile) -->
     @if (balanceMinor() !== null) {
-      <span class="text-3xl font-bold"
+      <span class="text-xl sm:text-3xl font-bold transition-colors"
             [ngClass]="(balanceMinor() ?? 0) >= 0 ? 'text-success-600' : 'text-red-500'">
         {{ toEur(balanceMinor() ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
       </span>
@@ -74,16 +89,23 @@
     <!-- Monatsbedarf — teal tint (plan value) -->
     <div class="kpi-card kpi-card--plan">
       <span class="text-sm text-muted-color">Monatsbedarf</span>
-      <span class="text-2xl font-bold text-color">
-        {{ toEur(kpis()?.totalDueMinor ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
-      </span>
+      @if (isUnconfiguredMonth()) {
+        <span class="text-2xl font-bold text-muted-color">—</span>
+        <span class="text-xs text-muted-color mt-0.5">Noch keine Regeln</span>
+      } @else {
+        <span class="text-xl sm:text-2xl font-bold text-color">
+          {{ toEur(kpis()?.totalDueMinor ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
+        </span>
+      }
     </div>
 
     <!-- Eingezahlt — neutral surface -->
     <div class="kpi-card kpi-card--paid">
       <span class="text-sm text-muted-color">Eingezahlt</span>
-      <span class="text-2xl font-bold text-color">
-        {{ toEur(kpis()?.totalPaidMinor ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
+      <span class="text-xl sm:text-2xl font-bold"
+            [ngClass]="isUnconfiguredMonth() ? 'text-muted-color' : 'text-color'">
+        {{ isUnconfiguredMonth() ? '—'
+           : (toEur(kpis()?.totalPaidMinor ?? 0) | currency:'EUR':'symbol':'1.0-0') }}
       </span>
     </div>
 
@@ -91,10 +113,11 @@
     <div class="kpi-card kpi-card--spent"
          [ngClass]="(kpis()?.totalSpentMinor ?? 0) > (kpis()?.totalDueMinor ?? 0) ? 'over' : ''">
       <span class="text-sm text-muted-color">Ausgegeben</span>
-      <span class="text-2xl font-bold"
+      <span class="text-xl sm:text-2xl font-bold"
             [ngClass]="(kpis()?.totalSpentMinor ?? 0) > (kpis()?.totalDueMinor ?? 0)
-              ? 'text-red-400' : 'text-color'">
-        {{ toEur(kpis()?.totalSpentMinor ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
+              ? 'text-red-400' : isUnconfiguredMonth() ? 'text-muted-color' : 'text-color'">
+        {{ isUnconfiguredMonth() ? '—'
+           : (toEur(kpis()?.totalSpentMinor ?? 0) | currency:'EUR':'symbol':'1.0-0') }}
       </span>
     </div>
 
@@ -104,15 +127,30 @@
         <i class="pi pi-arrow-right-arrow-left text-xs"></i>
         Übertrag
       </span>
-      <span class="text-2xl font-bold"
-            [ngClass]="(kpis()?.carryoverTotalMinor ?? 0) < 0 ? 'text-red-400' : 'text-yellow-400'">
-        {{ toEur(kpis()?.carryoverTotalMinor ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
-      </span>
+      @if (isUnconfiguredMonth() || (kpis()?.carryoverTotalMinor ?? 0) === 0) {
+        <span class="text-xl sm:text-2xl font-bold text-muted-color">—</span>
+      } @else {
+        <span class="text-xl sm:text-2xl font-bold"
+              [ngClass]="(kpis()?.carryoverTotalMinor ?? 0) < 0 ? 'text-red-400' : 'text-yellow-400'">
+          {{ toEur(kpis()?.carryoverTotalMinor ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
+        </span>
+      }
     </div>
 
   </div>
 
   <!-- ---- 3. Member cards (cols = member count, stacked on mobile) ---- -->
+  <!-- Empty state: no members configured on this account -->
+  @if (hasNoMembers()) {
+    <div class="month-empty-state mb-6">
+      <i class="pi pi-users text-3xl opacity-40"></i>
+      <div class="text-center">
+        <p class="font-semibold text-color mb-1">Keine Mitglieder konfiguriert</p>
+        <p class="text-sm text-muted-color">Füge Mitglieder zum Account hinzu, um Beiträge zu sehen.</p>
+      </div>
+    </div>
+  }
+
   <div class="grid gap-4 mb-6" [ngClass]="memberGridClass()">
     @for (member of members(); track member.id) {
       <!-- glassmorphism card: semi-transparent with gradient, left accent by paid status -->
@@ -160,6 +198,12 @@
                 : 0"
               [showValue]="false"
               styleClass="h-2" />
+          </div>
+        } @else {
+          <!-- Task 10.1: member has no due amount this month → inform the user clearly -->
+          <div class="flex items-center gap-2 px-1 py-0.5 text-sm text-muted-color">
+            <i class="pi pi-info-circle text-xs"></i>
+            Kein Beitrag für diesen Monat
           </div>
         }
 
@@ -428,8 +472,16 @@
         </span>
       </p-accordion-header>
       <p-accordion-content>
-        @if (memberBreakdown().length === 0) {
-          <p class="text-muted-color text-sm p-4">Keine Mitgliedsdaten für diesen Monat.</p>
+        @if (hasNoRules()) {
+          <!-- Task 10.2: Setup gap — no rules configured for this month -->
+          <div class="month-empty-state py-6">
+            <i class="pi pi-cog text-3xl opacity-40"></i>
+            <div class="text-center">
+              <p class="font-semibold text-color mb-1">Keine Beitragsregeln konfiguriert</p>
+              <p class="text-sm text-muted-color">Richte Beitragsbausteine ein, um die Berechnung zu sehen.</p>
+            </div>
+          </div>
+        } @else if (memberBreakdown().length === 0) {
         } @else {
 
           <!-- ── Task 9.1: Monatsbedarf-Herleitung ────────────────────────── -->

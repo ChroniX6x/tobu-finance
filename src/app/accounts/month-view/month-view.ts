@@ -371,6 +371,21 @@ export class MonthView implements OnInit {
     this.contributionBreakdown().some(r => r.distributionMode === 'proRataIncome'),
   );
 
+  /** True when data is loaded but no contribution rules are active for this month (setup gap). */
+  protected readonly hasNoRules = computed(
+    () => !!this.data() && !this.loading() && this.contributionBreakdown().length === 0,
+  );
+
+  /** True when data is loaded but no members are configured on this account (setup gap). */
+  protected readonly hasNoMembers = computed(
+    () => !!this.data() && !this.loading() && this.members().length === 0,
+  );
+
+  /** True when data is loaded but all KPI values are zero (fresh / unconfigured month). */
+  protected readonly isUnconfiguredMonth = computed(
+    () => this.hasNoRules() && (this.kpis()?.totalDueMinor ?? 0) === 0,
+  );
+
   /** Deviation label class for Kategorie-Details table */
   protected deviationClass(spentMinor: number, budgetMinor: number | null): string {
     if (budgetMinor == null) return 'text-muted-color';
