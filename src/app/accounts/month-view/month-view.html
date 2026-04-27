@@ -154,8 +154,9 @@
   <div class="grid gap-4 mb-6" [ngClass]="memberGridClass()">
     @for (member of members(); track member.id) {
       <!-- glassmorphism card: semi-transparent with gradient, left accent by paid status -->
+      <!-- no accent for zero-due members (nothing to pay → neutral) -->
       <div class="member-card p-5 flex flex-col gap-4"
-           [ngClass]="member.paid ? 'member-card--paid' : 'member-card--open'">
+           [ngClass]="member.monthlyDueMinor === 0 ? '' : (member.paid ? 'member-card--paid' : 'member-card--open')">
 
         <!-- Member header -->
         <div class="flex items-center justify-between">

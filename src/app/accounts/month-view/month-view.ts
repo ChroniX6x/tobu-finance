@@ -359,7 +359,10 @@ export class MonthView implements OnInit {
       const topup = rules
         .filter(r => r.type === 'topup')
         .reduce((sum, r) => sum + (r.perMember[member.id] ?? 0), 0);
-      return { memberId: member.id, memberName: member.name, base, additional, topup, totalMinor: member.monthlyDueMinor };
+      // totalMinor = sum of per-rule distributed amounts (matches dueByMember in backend).
+      // Use computed sum so table columns always add up correctly (avoids 1-cent Math.round drift).
+      const totalMinor = base + additional + topup;
+      return { memberId: member.id, memberName: member.name, base, additional, topup, totalMinor };
     });
   });
 
