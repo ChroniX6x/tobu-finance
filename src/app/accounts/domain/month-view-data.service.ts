@@ -38,7 +38,10 @@ export class MonthViewDataService {
   // ---- Mapping ----
 
   private mapToUi(api: ApiMonthView): MonthViewUi {
-    const nameById = this.buildNameIndex(api.members);
+    if (!api?.account || !api?.kpis) {
+      throw new Error('Ungültige API-Antwort: Fehlende Pflichtfelder (account/kpis). Bitte Backend-Version prüfen.');
+    }
+    const nameById = this.buildNameIndex(api.members ?? []);
 
     return {
       accountId: api.account.id,
@@ -50,20 +53,12 @@ export class MonthViewDataService {
         totalSpentMinor: api.kpis.totalSpentMinor,
         carryoverTotalMinor: api.kpis.carryoverTotalMinor,
       },
-      members: api.members.map((m) => this.mapMember(m)),
-      categories: api.categories.map((c) => this.mapCategory(c)),
-      contributionBreakdown: api.contributionBreakdown.map((r) =>
-        this.mapContributionRule(r),
-      ),
-      memberIncomes: api.memberIncomes.map((i) =>
-        this.mapMemberIncome(i, nameById),
-      ),
-      carryovers: api.carryovers.map((co) =>
-        this.mapCarryover(co, nameById),
-      ),
-      categoryHistory: (api.categoryHistory ?? []).map((h) =>
-        this.mapCategoryHistory(h),
-      ),
+      members:               (api.members ?? []).map((m) => this.mapMember(m)),
+      categories:            (api.categories ?? []).map((c) => this.mapCategory(c)),
+      contributionBreakdown: (api.contributionBreakdown ?? []).map((r) => this.mapContributionRule(r)),
+      memberIncomes:         (api.memberIncomes ?? []).map((i) => this.mapMemberIncome(i, nameById)),
+      carryovers:            (api.carryovers ?? []).map((co) => this.mapCarryover(co, nameById)),
+      categoryHistory:       (api.categoryHistory ?? []).map((h) => this.mapCategoryHistory(h)),
     };
   }
 
