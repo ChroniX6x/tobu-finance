@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store, select } from '@ngxs/store';
-import { CurrencyPipe, DatePipe, NgClass, PercentPipe, SlicePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, NgClass, NgStyle, PercentPipe, SlicePipe } from '@angular/common';
 import { DateTime } from 'luxon';
 
 import { ButtonModule } from 'primeng/button';
@@ -35,6 +35,7 @@ import { MonthViewMemberUi } from '@/accounts/domain/month-view.ui-model';
   styleUrl: './month-view.scss',
   imports: [
     NgClass,
+    NgStyle,
     CurrencyPipe,
     DatePipe,
     PercentPipe,
@@ -107,6 +108,57 @@ export class MonthView implements OnInit {
     if (n === 2) return 'grid-cols-1 md:grid-cols-2';
     return 'grid-cols-1 md:grid-cols-3';
   });
+
+  // ── Member card: deterministic per-member gradient palette ─────────────────
+  // 6 colors from the same cool-toned Aura/Tailwind family as the rest of the app.
+  // All feel cohesive (no harsh rose/red which reads as "error") but are visually
+  // distinct enough to tell members apart.
+  // Status (bezahlt / offen) has NO influence on the card background.
+  private static readonly MEMBER_PALETTES: Array<{ r: number; g: number; b: number }> = [
+    { r: 16,  g: 185, b: 129 }, // emerald-500  (app primary)
+    { r: 6,   g: 182, b: 212 }, // cyan-500
+    { r: 99,  g: 102, b: 241 }, // indigo-500
+    { r: 20,  g: 184, b: 166 }, // teal-500
+    { r: 139, g: 92,  b: 246 }, // violet-500
+    { r: 14,  g: 165, b: 233 }, // sky-500
+  ];
+
+  private hashId(id: string): number {
+    let h = 0;
+    for (let i = 0; i < id.length; i++) {
+      h = Math.imul(31, h) + id.charCodeAt(i) | 0;
+    }
+    return Math.abs(h);
+  }
+
+  /** Returns inline styles for a member card.
+   * Background: deterministic per member-ID (static palette color).
+   * Left border: semantic — green = paid, amber = open, white = no contribution due.
+   */
+  protected memberCardStyle(
+    id: string,
+    paid: boolean,
+    hasDue: boolean,
+  ): Record<string, string> {
+    const palette = MonthView.MEMBER_PALETTES;
+    const { r, g, b } = palette[this.hashId(id) % palette.length];
+    const rgb = `${r}, ${g}, ${b}`;
+
+    // Semantic left-border color
+    const accentColor = !hasDue
+      ? 'rgba(255,255,255,0.20)'          // neutral — no contribution this month
+      : paid
+        ? 'rgba(16, 185, 129, 0.90)'      // emerald — fully paid
+        : 'rgba(245, 158, 11, 0.90)';     // amber   — open
+
+    return {
+      background:      `linear-gradient(145deg, rgba(${rgb}, 0.18) 0%, rgba(${rgb}, 0.08) 45%, rgba(255,255,255,0.02) 100%)`,
+      'border-top':    `1px solid rgba(${rgb}, 0.30)`,
+      'border-right':  `1px solid rgba(${rgb}, 0.30)`,
+      'border-bottom': `1px solid rgba(${rgb}, 0.30)`,
+      'border-left':   `3px solid ${accentColor}`,
+    };
+  }
 
   // ── Category 7 section signals ─────────────────────────────────────────────
 

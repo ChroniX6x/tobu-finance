@@ -156,7 +156,7 @@
       <!-- glassmorphism card: semi-transparent with gradient, left accent by paid status -->
       <!-- no accent for zero-due members (nothing to pay → neutral) -->
       <div class="member-card p-5 flex flex-col gap-4"
-           [ngClass]="member.monthlyDueMinor === 0 ? '' : (member.paid ? 'member-card--paid' : 'member-card--open')">
+           [ngStyle]="memberCardStyle(member.id, member.paid, member.monthlyDueMinor > 0)">
 
         <!-- Member header -->
         <div class="flex items-center justify-between">
