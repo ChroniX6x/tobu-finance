@@ -1,0 +1,9 @@
+<p-tabs [value]="activeTab()" (valueChange)="navigateTab($event)" styleClass="-mx-8 mb-5">
+  <p-tablist>
+    <p-tab value="overview"><i class="pi pi-home mr-2"></i>&#220;bersicht</p-tab>
+    <p-tab value="transactions"><i class="pi pi-list mr-2"></i>Buchungen</p-tab>
+    <p-tab value="month"><i class="pi pi-calendar mr-2"></i>Monat</p-tab>
+  </p-tablist>
+</p-tabs>
+
+<router-outlet />

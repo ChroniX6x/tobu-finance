@@ -1,5 +1,5 @@
 import { ApplicationConfig, inject, provideBrowserGlobalErrorListeners, provideAppInitializer, provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter, withDebugTracing, withEnabledBlockingInitialNavigation, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, withDebugTracing, withEnabledBlockingInitialNavigation, withInMemoryScrolling, withRouterConfig } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { routes } from './app.routes';
@@ -37,7 +37,8 @@ export const appConfig: ApplicationConfig = {
           scrollPositionRestoration: 'enabled'
       }),
       withEnabledBlockingInitialNavigation(),
-      withDebugTracing()
+      withDebugTracing(),
+      withRouterConfig({ paramsInheritanceStrategy: 'always' })
     ),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),

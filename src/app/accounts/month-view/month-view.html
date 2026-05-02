@@ -1,0 +1,819 @@
+﻿<!-- ================================================================
+     Month-View Template
+     Concept reference: month-page-concept.png
+     ================================================================ -->
+
+<!-- ---- Loading skeleton ---- -->
+@if (loading() && !data()) {
+  <div class="flex flex-col gap-6 pt-4">
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <p-skeleton height="2.5rem" width="6rem" />
+      <p-skeleton height="2rem" width="2rem" borderRadius="50%" />
+      <p-skeleton height="2.5rem" width="9rem" />
+      <p-skeleton height="2rem" width="2rem" borderRadius="50%" />
+    </div>
+    <!-- KPI row -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      @for (_ of [1,2,3,4]; track $index) {
+        <p-skeleton height="5.5rem" borderRadius="12px" />
+      }
+    </div>
+    <!-- Member cards (up to 3) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      @for (_ of [1,2,3]; track $index) {
+        <p-skeleton height="16rem" borderRadius="12px" />
+      }
+    </div>
+    <!-- Category section -->
+    <p-skeleton height="18rem" borderRadius="12px" />
+    <!-- Accordion -->
+    <p-skeleton height="3rem" borderRadius="8px" />
+  </div>
+}
+
+<!-- ---- Error state ---- -->
+@if (error() && !loading()) {
+  <div class="card p-8 flex flex-col items-center gap-4 mt-4">
+    <i class="pi pi-exclamation-triangle text-4xl text-red-400"></i>
+    <div class="text-center">
+      <p class="font-semibold text-color mb-1">Daten konnten nicht geladen werden</p>
+      <p class="text-sm text-muted-color">{{ error() }}</p>
+    </div>
+    <p-button label="Erneut versuchen" icon="pi pi-refresh" severity="secondary"
+              (onClick)="reload()" />
+  </div>
+}
+
+<!-- ================================================================ -->
+<!-- ---- Main content ---- -->
+@if (data(); as mv) {
+<div class="pt-4">
+
+  <!-- ---- 1. Page header ---- -->
+  <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
+
+    <!-- Left: title + month navigator -->
+    <div class="flex items-center gap-3">
+      <h1 class="text-3xl font-bold text-color">Monat</h1>
+
+      <p-button icon="pi pi-chevron-left" [text]="true" [rounded]="true" severity="secondary"
+                (onClick)="prevMonth()" pTooltip="Vorheriger Monat" tooltipPosition="top" />
+
+      <!-- Month datepicker — styled as nav chip via ::ng-deep .month-nav-picker -->
+      <p-datepicker
+        [(ngModel)]="pickerDate"
+        view="month"
+        dateFormat="M yy"
+        [showButtonBar]="false"
+        [readonlyInput]="true"
+        styleClass="month-nav-picker"
+        (onSelect)="onPickerMonthSelect($event)" />
+
+      <p-button icon="pi pi-chevron-right" [text]="true" [rounded]="true" severity="secondary"
+                (onClick)="nextMonth()" pTooltip="Nächster Monat" tooltipPosition="top" />
+    </div>
+
+    <!-- Right: account balance chip (responsive: smaller on mobile) -->
+    @if (balanceMinor() !== null) {
+      <span class="text-xl sm:text-3xl font-bold transition-colors"
+            [ngClass]="(balanceMinor() ?? 0) >= 0 ? 'text-success-600' : 'text-red-500'">
+        {{ toEur(balanceMinor() ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
+      </span>
+    }
+  </div>
+
+  <!-- ---- 2. KPI row (4 tiles, full width) ---- -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+    <!-- Monatsbedarf — teal tint (plan value) -->
+    <div class="kpi-card kpi-card--plan">
+      <span class="text-sm text-muted-color">Monatsbedarf</span>
+      @if (isUnconfiguredMonth()) {
+        <span class="text-2xl font-bold text-muted-color">—</span>
+        <span class="text-xs text-muted-color mt-0.5">Noch keine Regeln</span>
+      } @else {
+        <span class="text-xl sm:text-2xl font-bold text-color">
+          {{ toEur(kpis()?.totalDueMinor ?? 0) | currency:'EUR':'symbol':'1.0-0' }}
+        </span>
+      }
+    </div>
+
+    <!-- Eingezahlt — neutral surface -->
+    <div class="kpi-card kpi-card--paid">
+      <span class="text-sm text-muted-color">Eingezahlt</span>
+      <span class="text-xl sm:text-2xl font-bold"
+            [ngClass]="isUnconfiguredMonth() ? 'text-muted-color' : 'text-color'">
+        {{ isUnconfiguredMonth() ? '—'
+           : (toEur(kpis()?.totalPaidMinor ?? 0) | currency:'EUR':'symbol':'1.0-0') }}
+      </span>
+    </div>
+
+    <!-- Ausgegeben — neutral; red-tinted class when over budget -->
+    <div class="kpi-card kpi-card--spent"
+         [ngClass]="(kpis()?.totalSpentMinor ?? 0) > (kpis()?.totalDueMinor ?? 0) ? 'over' : ''">
+      <span class="text-sm text-muted-color">Ausgegeben</span>
+      <span class="text-xl sm:text-2xl font-bold"
+            [ngClass]="(kpis()?.totalSpentMinor ?? 0) > (kpis()?.totalDueMinor ?? 0)
+              ? 'text-red-400' : isUnconfiguredMonth() ? 'text-muted-color' : 'text-color'">
+        {{ isUnconfiguredMonth() ? '—'
+           : (toEur(kpis()?.totalSpentMinor ?? 0) | currency:'EUR':'symbol':'1.0-0') }}
+      </span>
+    </div>
+
+    <!-- Übertrag — amber tint (carryover status) -->
+    <div class="kpi-card kpi-card--carryover">
+      <span class="text-sm text-muted-color flex items-center gap-1">
+        <i class="pi pi-arrow-right-arrow-left text-xs"></i>
+        Übertrag
+      </span>
+      @if (isUnconfiguredMonth() || (kpis()?.carryoverTotalMinor ?? 0) === 0) {
+        <span class="text-xl sm:text-2xl font-bold text-muted-color">—</span>
+      } @else {
+        <span class="text-xl sm:text-2xl font-bold"
+              [ngClass]="(kpis()?.carryoverTotalMinor ?? 0) < 0 ? 'text-red-400' : 'text-yellow-400'">
+          {{ toEur(kpis()?.carryoverTotalMinor ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
+        </span>
+      }
+    </div>
+
+  </div>
+
+  <!-- ---- 3. Member cards (cols = member count, stacked on mobile) ---- -->
+  <!-- Empty state: no members configured on this account -->
+  @if (hasNoMembers()) {
+    <div class="month-empty-state mb-6">
+      <i class="pi pi-users text-3xl opacity-40"></i>
+      <div class="text-center">
+        <p class="font-semibold text-color mb-1">Keine Mitglieder konfiguriert</p>
+        <p class="text-sm text-muted-color">Füge Mitglieder zum Account hinzu, um Beiträge zu sehen.</p>
+      </div>
+    </div>
+  }
+
+  <div class="grid gap-4 mb-6" [ngClass]="memberGridClass()">
+    @for (member of members(); track member.id) {
+      <!-- glassmorphism card: semi-transparent with gradient, left accent by paid status -->
+      <!-- no accent for zero-due members (nothing to pay → neutral) -->
+      <div class="member-card p-5 flex flex-col gap-4"
+           [ngStyle]="memberCardStyle(member.id, member.paid, member.monthlyDueMinor > 0)">
+
+        <!-- Member header -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <p-avatar
+              [label]="member.avatar ? '' : (member.name | slice:0:1)"
+              [image]="member.avatar ?? undefined"
+              shape="circle"
+              size="large" />
+            <div>
+              <div class="font-semibold text-color text-lg">{{ member.name }}</div>
+              <div class="text-xs text-muted-color capitalize">{{ member.role }}</div>
+            </div>
+          </div>
+          <!-- Status badge -->
+          @if (member.paid) {
+            <p-tag value="Bezahlt" severity="success" icon="pi pi-check" />
+          } @else {
+            <p-tag value="Offen" severity="warn" icon="pi pi-clock" />
+          }
+        </div>
+
+        <!-- Progress bar: paidAmount / monthlyDue -->
+        @if (member.monthlyDueMinor > 0) {
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-sm">
+              <span class="font-bold text-xl">
+                {{ toEur(member.monthlyDueMinor) | currency:'EUR':'symbol':'1.0-0' }}
+              </span>
+              <span class="text-muted-color">
+                Offen
+                <strong [ngClass]="member.openAmountMinor > 0 ? 'text-yellow-500' : 'text-success-600'">
+                  {{ toEur(member.openAmountMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                </strong>
+              </span>
+            </div>
+            <p-progressbar
+              [value]="member.monthlyDueMinor > 0
+                ? ((member.paidAmountMinor / member.monthlyDueMinor) * 100)
+                : 0"
+              [showValue]="false"
+              styleClass="h-2" />
+          </div>
+        } @else {
+          <!-- Task 10.1: member has no due amount this month → inform the user clearly -->
+          <div class="flex items-center gap-2 px-1 py-0.5 text-sm text-muted-color">
+            <i class="pi pi-info-circle text-xs"></i>
+            Kein Beitrag für diesen Monat
+          </div>
+        }
+
+        <!-- Carryover chip -->
+        @if (member.carryoverMinor !== 0) {
+          <div class="flex">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+                         bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+              <i class="pi pi-arrow-right-arrow-left text-xs"></i>
+              {{ toEur(member.carryoverMinor) | currency:'EUR':'symbol':'1.2-2' }} Übertrag
+            </span>
+          </div>
+        }
+
+        <!-- Extra info: last payment + private advances -->
+        <div class="flex flex-col gap-1 text-xs text-muted-color">
+          @if (member.lastPaymentDate) {
+            <span class="flex items-center gap-1">
+              <i class="pi pi-clock text-xs"></i>
+              Zuletzt gezahlt:
+              <strong class="text-color ml-0.5">
+                {{ member.lastPaymentDate | date:'dd.MM.yyyy' }}
+              </strong>
+            </span>
+          } @else {
+            <span class="flex items-center gap-1 text-yellow-500/80">
+              <i class="pi pi-info-circle text-xs"></i>
+              Noch keine Einzahlung in diesem Monat
+            </span>
+          }
+          @if (member.privateAdvancesMinor > 0) {
+            <span class="flex items-center gap-1">
+              <i class="pi pi-wallet text-xs"></i>
+              Private Vorleistung:
+              <strong class="text-sky-400 ml-0.5">
+                {{ toEur(member.privateAdvancesMinor) | currency:'EUR':'symbol':'1.2-2' }}
+              </strong>
+            </span>
+          }
+        </div>
+
+        <!-- Action button -->
+        <p-button
+          label="+ Einzahlung buchen"
+          severity="success"
+          styleClass="w-full"
+          [disabled]="member.paid"
+          (onClick)="openDrawer(member)" />
+
+      </div>
+    }
+  </div>
+
+  <!-- ---- 4. Kategorien – zweispaltig (Spec §7 + Konzept) ---- -->
+  <div class="card p-5 mb-6">
+
+    <!-- Section header -->
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <h2 class="text-lg font-semibold text-color">Top Kategorien (Ausgaben)</h2>
+      <p-button
+        label="Alle Kategorien"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        [text]="true"
+        severity="secondary"
+        size="small"
+        (onClick)="showAllCategories.set(!showAllCategories())" />
+    </div>
+
+    <!-- Two-column grid: list left, chart right -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- ── LEFT: category list ────────────────────────────────────────── -->
+      <div class="flex flex-col gap-2">
+
+        @if (visibleCategories().length === 0) {
+          <p class="text-muted-color text-sm py-4">Keine Ausgaben in diesem Monat.</p>
+        } @else {
+          @for (cat of visibleCategories(); track cat.id; let i = $index) {
+            <!-- Click row selects/deselects category for chart -->
+            <div
+              class="cat-row"
+              [class.cat-row--selected]="selectedCategoryId() === cat.id"
+              (click)="selectCategory(cat.id)"
+              role="button"
+              [attr.aria-pressed]="selectedCategoryId() === cat.id">
+
+              <!-- Colored dot (category palette) -->
+              <span
+                class="cat-dot flex-shrink-0"
+                [style.background-color]="catColor(i).dot">
+              </span>
+
+              <!-- Category name -->
+              <span class="w-28 text-sm text-color truncate font-medium select-none">
+                {{ cat.name }}
+              </span>
+
+              <!-- Progress bar (custom div for per-category color control) -->
+              @if (cat.budgetMinor !== null) {
+                <div class="flex-1 h-2 rounded overflow-hidden"
+                     style="background: rgba(255,255,255,0.08)">
+                  <div class="h-full rounded transition-all duration-300"
+                       [style.width.%]="cat.budgetPct ?? 0"
+                       [style.background-color]="catColor(i).bar"></div>
+                </div>
+              } @else {
+                <div class="flex-1 h-2 rounded"
+                     style="background: rgba(255,255,255,0.08)"></div>
+              }
+
+              <!-- Amount -->
+              <span class="text-sm font-semibold text-right w-20 flex-shrink-0 text-color">
+                {{ toEur(cat.spentMinor) | currency:'EUR':'symbol':'1.0-0' }}
+              </span>
+
+            </div>
+          }
+        }
+
+        <!-- Show more / less button -->
+        @if (hasMoreCategories()) {
+          <p-button
+            [label]="showAllCategories() ? 'Weniger anzeigen' : (categories().length - 5) + ' weitere Kategorien'"
+            [icon]="showAllCategories() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+            iconPos="right"
+            [text]="true"
+            severity="secondary"
+            size="small"
+            styleClass="mt-1 self-start"
+            (onClick)="showAllCategories.set(!showAllCategories())" />
+        }
+      </div>
+
+      <!-- ── RIGHT: history chart ───────────────────────────────────────── -->
+      <div class="flex flex-col gap-3">
+
+        <!-- Chart title: selected category or default label -->
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-muted-color">
+            @if (selectedCategoryId(); as selId) {
+              {{ catNameById(selId) }}
+            } @else {
+              Verlauf – Gesamtausgaben
+            }
+          </span>
+          @if (selectedCategoryId()) {
+            <p-button
+              icon="pi pi-times"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              size="small"
+              pTooltip="Auswahl aufheben"
+              (onClick)="selectedCategoryId.set(null)" />
+          }
+        </div>
+
+        <!-- Chart container (min-height so layout is stable during load) -->
+        <div class="category-chart-container">
+          @if (categoryHistory().length > 0) {
+            <p-chart
+              type="line"
+              [data]="chartData()"
+              [options]="chartOptions"
+              height="180" />
+          } @else {
+            <div class="flex flex-col items-center justify-center h-full gap-2 opacity-40">
+              <i class="pi pi-chart-line text-2xl"></i>
+              <span class="text-sm">Keine Verlaufsdaten</span>
+            </div>
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Task 8.4: Kategorie-Details — collapsible table below the two-column section -->
+    <p-accordion [multiple]="false" styleClass="mt-5">
+      <p-accordion-panel value="catdetails">
+        <p-accordion-header>
+          <span class="flex items-center gap-2">
+            <i class="pi pi-table text-muted-color"></i>
+            <span class="text-sm text-muted-color">Kategorie-Details</span>
+          </span>
+        </p-accordion-header>
+        <p-accordion-content>
+          @if (categories().length === 0) {
+            <p class="text-muted-color text-sm p-4">Keine Kategoriedaten für diesen Monat.</p>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="detail-table">
+                <thead>
+                  <tr>
+                    <th class="text-left">Kategorie</th>
+                    <th class="text-right">Budget</th>
+                    <th class="text-right">Ausgaben</th>
+                    <th class="text-right">Abweichung</th>
+                    <th class="text-left">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (cat of categories(); track cat.id) {
+                    <tr>
+                      <td class="font-medium text-color">{{ cat.name }}</td>
+                      <td class="text-right text-muted-color">
+                        {{ cat.budgetMinor != null
+                           ? (toEur(cat.budgetMinor) | currency:'EUR':'symbol':'1.0-0')
+                           : '—' }}
+                      </td>
+                      <td class="text-right font-semibold">
+                        {{ toEur(cat.spentMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                      </td>
+                      <!-- Abweichung = Ist − Budget; positiv = über Budget (rot) -->
+                      <td class="text-right"
+                          [ngClass]="deviationClass(cat.spentMinor, cat.budgetMinor)">
+                        {{ cat.budgetMinor != null
+                           ? (toEur(cat.spentMinor - cat.budgetMinor) | currency:'EUR':'symbol':'1.0-0')
+                           : '—' }}
+                      </td>
+                      <td>
+                        <p-tag
+                          [value]="categoryStatusLabel(cat.status)"
+                          [severity]="categoryStatusSeverity(cat.status)"
+                          styleClass="text-xs" />
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td class="font-semibold text-muted-color">Gesamt</td>
+                    <td class="text-right font-semibold">
+                      {{ toEur(categories().reduce((s, c) => s + (c.budgetMinor ?? 0), 0))
+                         | currency:'EUR':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-right font-bold">
+                      {{ toEur(categories().reduce((s, c) => s + c.spentMinor, 0))
+                         | currency:'EUR':'symbol':'1.0-0' }}
+                    </td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          }
+        </p-accordion-content>
+      </p-accordion-panel>
+    </p-accordion>
+
+  </div><!-- end categories card -->
+
+  <!-- ---- 5. Beitragslogik (Accordion) ---- -->
+  <p-accordion [multiple]="true" styleClass="mb-6">
+
+    <!-- 5a. Contribution Breakdown — per member × type (Base / Additional / TopUp / Gesamt) -->
+    <p-accordion-panel value="breakdown">
+      <p-accordion-header>
+        <span class="flex items-center gap-2">
+          <i class="pi pi-calculator text-primary-500"></i>
+          Beitragslogik
+          <p-tag
+            [value]="memberBreakdown().length.toString() + ' Mitglieder'"
+            severity="secondary"
+            styleClass="text-xs ml-1" />
+        </span>
+      </p-accordion-header>
+      <p-accordion-content>
+        @if (hasNoRules()) {
+          <!-- Task 10.2: Setup gap — no rules configured for this month -->
+          <div class="month-empty-state py-6">
+            <i class="pi pi-cog text-3xl opacity-40"></i>
+            <div class="text-center">
+              <p class="font-semibold text-color mb-1">Keine Beitragsregeln konfiguriert</p>
+              <p class="text-sm text-muted-color">Richte Beitragsbausteine ein, um die Berechnung zu sehen.</p>
+            </div>
+          </div>
+        } @else if (memberBreakdown().length === 0) {
+        } @else {
+
+          <!-- ── Task 9.1: Monatsbedarf-Herleitung ────────────────────────── -->
+          @if (monthlyRequirementBreakdown(); as hrech) {
+            @if (hrech.total > 0) {
+              <div class="herleitung-box mb-5">
+                <div class="text-xs text-muted-color mb-3 font-semibold uppercase tracking-wide">
+                  Monatsbedarf — Herleitung
+                </div>
+
+                <div class="flex flex-col gap-0.5">
+                  @if (hrech.base > 0) {
+                    <div class="herleitung-row herleitung-row--base">
+                      <span class="herleitung-label">Basisbeiträge</span>
+                      <span class="herleitung-amount">
+                        {{ toEur(hrech.base) | currency:'EUR':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                  }
+                  @if (hrech.additional > 0) {
+                    <div class="herleitung-row herleitung-row--additional">
+                      <span class="herleitung-label flex items-center gap-1.5">
+                        <i class="pi pi-plus text-xs opacity-50"></i>
+                        Zusatzbeiträge
+                      </span>
+                      <span class="herleitung-amount">
+                        {{ toEur(hrech.additional) | currency:'EUR':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                  }
+                  @if (hrech.topup > 0) {
+                    <div class="herleitung-row herleitung-row--topup">
+                      <span class="herleitung-label flex items-center gap-1.5">
+                        <i class="pi pi-plus text-xs opacity-50"></i>
+                        TopUp-Beiträge
+                      </span>
+                      <span class="herleitung-amount">
+                        {{ toEur(hrech.topup) | currency:'EUR':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                  }
+                  @if (hrech.carryover !== 0) {
+                    <div class="herleitung-row herleitung-row--carryover">
+                      <span class="herleitung-label flex items-center gap-1.5">
+                        <i class="pi pi-arrow-right-arrow-left text-xs opacity-50"></i>
+                        Übertrag (informativ)
+                      </span>
+                      <span class="herleitung-amount"
+                            [ngClass]="hrech.carryover < 0 ? 'text-red-400' : 'text-amber-400'">
+                        {{ toEur(hrech.carryover) | currency:'EUR':'symbol':'1.2-2' }}
+                      </span>
+                    </div>
+                  }
+                  <!-- Total separator row -->
+                  <div class="herleitung-total">
+                    <span class="font-semibold text-color">Monatsbedarf gesamt</span>
+                    <span class="text-xl font-bold text-color">
+                      {{ toEur(hrech.total) | currency:'EUR':'symbol':'1.0-0' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+
+          <!-- ── Task 9.2: Aktive Beitragsbausteine als Karten ────────────── -->
+          @if (contributionBreakdown().length > 0) {
+            <div class="text-xs text-muted-color mb-2 font-semibold uppercase tracking-wide">
+              Aktive Bausteine ({{ contributionBreakdown().length }})
+            </div>
+            <div class="flex flex-col gap-2 mb-5">
+              @for (rule of contributionBreakdown(); track rule.ruleId) {
+                <div class="baustein-card" [ngClass]="'baustein-card--' + rule.type">
+
+                  <!-- Card header: type badge + description + amount + distribution -->
+                  <div class="flex items-start justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-2 flex-wrap min-w-0">
+                      <p-tag
+                        [value]="ruleTypeLabel(rule.type)"
+                        [severity]="ruleTypeSeverity(rule.type)"
+                        styleClass="text-xs flex-shrink-0" />
+                      <span class="font-medium text-color text-sm truncate max-w-xs">
+                        {{ rule.description || '(kein Name)' }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-3 flex-shrink-0">
+                      <span class="text-xs text-muted-color hidden sm:inline">
+                        {{ distributionModeLabel(rule.distributionMode) }}
+                      </span>
+                      <span class="font-bold text-color text-base">
+                        {{ toEur(rule.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Distribution mode label on mobile (hidden on sm+) -->
+                  <div class="text-xs text-muted-color mt-0.5 sm:hidden">
+                    {{ distributionModeLabel(rule.distributionMode) }}
+                  </div>
+
+                  <!-- Per-member distribution chips -->
+                  @if (members().length > 0) {
+                    <div class="flex flex-wrap gap-1 mt-2">
+                      @for (m of members(); track m.id) {
+                        @if (toEur(rule.perMember[m.id]) > 0) {
+                          <span class="baustein-chip">
+                            {{ m.name }}:
+                            {{ toEur(rule.perMember[m.id]) | currency:'EUR':'symbol':'1.0-0' }}
+                          </span>
+                        }
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Main per-member table: rows=members, cols=Base|Additional|TopUp|Gesamt -->
+          <div class="overflow-x-auto">
+            <table class="detail-table">
+              <thead>
+                <tr>
+                  <th class="text-left">Mitglied</th>
+                  <th class="text-right" pTooltip="Reguläre Grundverteilung" tooltipPosition="top">Base</th>
+                  <th class="text-right" pTooltip="Zusatzbeiträge" tooltipPosition="top">Additional</th>
+                  <th class="text-right" pTooltip="Auffüll- / Korrekturbeiträge" tooltipPosition="top">TopUp</th>
+                  <th class="text-right detail-table__total">Gesamt</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of memberBreakdown(); track row.memberId) {
+                  <tr>
+                    <td class="font-medium text-color">{{ row.memberName }}</td>
+                    <td class="text-right" [ngClass]="row.base === 0 ? 'text-muted-color' : ''">
+                      {{ row.base === 0 ? '—' : (toEur(row.base) | currency:'EUR':'symbol':'1.0-0') }}
+                    </td>
+                    <td class="text-right" [ngClass]="row.additional === 0 ? 'text-muted-color' : ''">
+                      {{ row.additional === 0 ? '—' : (toEur(row.additional) | currency:'EUR':'symbol':'1.0-0') }}
+                    </td>
+                    <td class="text-right" [ngClass]="row.topup === 0 ? 'text-muted-color' : ''">
+                      {{ row.topup === 0 ? '—' : (toEur(row.topup) | currency:'EUR':'symbol':'1.0-0') }}
+                    </td>
+                    <td class="text-right font-bold detail-table__total">
+                      {{ toEur(row.totalMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <!-- Footer: column totals -->
+              <tfoot>
+                <tr>
+                  <td class="font-semibold text-muted-color">Gesamt</td>
+                  <td class="text-right font-semibold">
+                    {{ toEur(memberBreakdown().reduce((s, r) => s + r.base, 0))
+                       | currency:'EUR':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="text-right font-semibold">
+                    {{ toEur(memberBreakdown().reduce((s, r) => s + r.additional, 0))
+                       | currency:'EUR':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="text-right font-semibold">
+                    {{ toEur(memberBreakdown().reduce((s, r) => s + r.topup, 0))
+                       | currency:'EUR':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="text-right font-bold detail-table__total">
+                    {{ toEur(memberBreakdown().reduce((s, r) => s + r.totalMinor, 0))
+                       | currency:'EUR':'symbol':'1.0-0' }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Sub-accordion: per-rule detail (Regeldetails) -->
+          @if (contributionBreakdown().length > 0) {
+            <p-accordion [multiple]="false" styleClass="mt-4">
+              <p-accordion-panel value="ruledetail">
+                <p-accordion-header>
+                  <span class="text-sm text-muted-color flex items-center gap-2">
+                    <i class="pi pi-list"></i>
+                    Regeldetails anzeigen
+                  </span>
+                </p-accordion-header>
+                <p-accordion-content>
+                  <div class="overflow-x-auto">
+                    <table class="detail-table detail-table--sm">
+                      <thead>
+                        <tr>
+                          <th class="text-left">Regel</th>
+                          <th class="text-left">Typ</th>
+                          <th class="text-right">Betrag</th>
+                          <th class="text-left">Verteilung</th>
+                          @for (m of members(); track m.id) {
+                            <th class="text-right">{{ m.name }}</th>
+                          }
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (rule of contributionBreakdown(); track rule.ruleId) {
+                          <tr>
+                            <td class="font-medium">{{ rule.description }}</td>
+                            <td class="text-muted-color capitalize">{{ rule.type }}</td>
+                            <td class="text-right font-semibold">
+                              {{ toEur(rule.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                            </td>
+                            <td class="text-muted-color text-xs">{{ rule.distributionMode }}</td>
+                            @for (m of members(); track m.id) {
+                              <td class="text-right"
+                                [ngClass]="toEur(rule.perMember[m.id]) === 0 ? 'text-muted-color' : ''">
+                              {{ toEur(rule.perMember[m.id]) === 0 ? '—'
+                                   : (toEur(rule.perMember[m.id]) | currency:'EUR':'symbol':'1.0-0') }}
+                              </td>
+                            }
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </p-accordion-content>
+              </p-accordion-panel>
+            </p-accordion>
+          }
+        }
+      </p-accordion-content>
+    </p-accordion-panel>
+
+    <!-- 5b. Income Basis — only visible when proRataIncome is used -->
+    @if (hasProRata()) {
+      <p-accordion-panel value="incomes">
+        <p-accordion-header>
+          <span class="flex items-center gap-2">
+            <i class="pi pi-wallet text-primary-500"></i>
+            ProRata-Grundlage
+            <p-tag value="ProRata aktiv" severity="info" styleClass="text-xs ml-1" />
+          </span>
+        </p-accordion-header>
+        <p-accordion-content>
+          @if (memberIncomes().length === 0) {
+            <p class="text-muted-color text-sm p-4">Keine Einkommensdaten für diesen Monat.</p>
+          } @else {
+            <p class="text-xs text-muted-color px-1 pb-3">
+              Diese Werte werden für alle proRataIncome-Bausteine im ausgewählten Monat verwendet.
+            </p>
+            <div class="overflow-x-auto">
+              <table class="detail-table">
+                <thead>
+                  <tr>
+                    <th class="text-left">Mitglied</th>
+                    <th class="text-right">Einkommen</th>
+                    <th class="text-right detail-table__total">Anteil</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (inc of memberIncomes(); track inc.memberId) {
+                    <tr>
+                      <td class="font-medium text-color">{{ inc.memberName }}</td>
+                      <td class="text-right">
+                        {{ toEur(inc.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-right font-bold detail-table__total">
+                        {{ inc.weight | percent:'1.1-1' }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td class="font-semibold text-muted-color">Gesamt</td>
+                    <td class="text-right font-semibold">
+                      {{ toEur(memberIncomes().reduce((s, i) => s + i.amountMinor, 0))
+                         | currency:'EUR':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-right font-bold detail-table__total">100 %</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          }
+        </p-accordion-content>
+      </p-accordion-panel>
+    }
+
+    <!-- 5c. Überträge -->
+    @if (carryovers().length > 0) {
+      <p-accordion-panel value="carryovers">
+        <p-accordion-header>
+          <span class="flex items-center gap-2">
+            <i class="pi pi-arrow-right-arrow-left text-amber-500"></i>
+            Überträge
+            <p-tag [value]="carryovers().length.toString()" severity="warn" styleClass="text-xs ml-1" />
+          </span>
+        </p-accordion-header>
+        <p-accordion-content>
+          <div class="overflow-x-auto">
+            <table class="detail-table">
+              <thead>
+                <tr>
+                  <th class="text-left">Mitglied</th>
+                  <th class="text-right detail-table__total">Übertrag</th>
+                  <th class="text-left">Grund</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (co of carryovers(); track co.memberId + co.reason) {
+                  <tr>
+                    <td class="font-medium text-color">{{ co.memberName }}</td>
+                    <td class="text-right font-semibold detail-table__total"
+                        [ngClass]="co.amountMinor < 0 ? 'text-red-400' : 'text-amber-400'">
+                      {{ toEur(co.amountMinor) | currency:'EUR':'symbol':'1.2-2' }}
+                    </td>
+                    <td class="text-muted-color text-sm">{{ co.reason }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </p-accordion-content>
+      </p-accordion-panel>
+    }
+
+  </p-accordion>
+
+  <!-- ---- 6. Einzahlung-Drawer (Phase 6) ---- -->
+  <tbf-einzahlung-drawer
+    [member]="drawerMember()"
+    [accountId]="accountId()"
+    [monthIso]="selectedMonth() ?? ''"
+    [visible]="drawerVisible()"
+    (visibleChange)="drawerVisible.set($event)"
+    (saved)="onDrawerSaved()" />
+
+</div>
+} <!-- end @if (data()) -->

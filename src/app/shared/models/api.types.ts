@@ -1,3 +1,80 @@
+// ---- Month-View API types (mirrors src/routes/month-view.ts response) ----
+
+export interface ApiMonthViewMember {
+  id: string;
+  name: string | null;
+  avatar: string | null;
+  role: 'owner' | 'member';
+  monthlyDueMinor: number;
+  paidAmountMinor: number;
+  openAmountMinor: number;
+  paid: boolean;
+  carryoverMinor: number;
+  /** ISO datetime of the most recent booked income transaction for this member (null if none) */
+  lastPaymentDate: string | null;
+  /** Sum of private-advance expense amounts this member paid out of pocket this month */
+  privateAdvancesMinor: number;
+}
+
+export interface ApiMonthViewCategory {
+  id: string;
+  name: string | null;
+  spentMinor: number;
+  budgetMinor: number | null;
+  status: 'ok' | 'over' | 'no_budget';
+}
+
+export interface ApiMonthViewContributionRule {
+  ruleId: string;
+  description: string | null;
+  type: string;
+  amountMinor: number;
+  distributionMode: string;
+  perMember: Record<string, number>;
+}
+
+export interface ApiMonthViewMemberIncome {
+  memberId: string;
+  amountMinor: number;
+  weight: number;
+}
+
+export interface ApiMonthViewCarryover {
+  memberId: string;
+  amountMinor: number;
+  reason: string;
+}
+
+export interface ApiMonthViewCategoryHistory {
+  /** YYYY-MM */
+  month: string;
+  /** cents per category id */
+  spentByCategoryId: Record<string, number>;
+}
+
+export interface ApiMonthView {
+  account: {
+    id: string;
+    name: string | null;
+    monthIso: string; // YYYY-MM
+  };
+  kpis: {
+    totalDueMinor: number;
+    totalPaidMinor: number;
+    totalSpentMinor: number;
+    carryoverTotalMinor: number;
+  };
+  members: ApiMonthViewMember[];
+  categories: ApiMonthViewCategory[];
+  contributionBreakdown: ApiMonthViewContributionRule[];
+  memberIncomes: ApiMonthViewMemberIncome[];
+  carryovers: ApiMonthViewCarryover[];
+  /** Spending per category per month for the last 6 months (for history chart) */
+  categoryHistory: ApiMonthViewCategoryHistory[];
+}
+
+// ---- End of Month-View API types ----
+
 export interface ApiAccountsSummaryItem {
   id: string;
   name: string;
