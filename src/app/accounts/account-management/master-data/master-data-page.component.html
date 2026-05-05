@@ -62,11 +62,11 @@
     <div class="flex-1 flex flex-col gap-12 min-w-0">
 
       <section id="account-section" aria-labelledby="account-section-heading">
-        <tbf-account-master-section />
+        <tbf-account-master-section [accountVm]="vm()!.account" />
       </section>
 
       <section id="members-section" aria-labelledby="members-section-heading">
-        <tbf-member-master-section />
+        <tbf-member-master-section [accountVm]="vm()!.account" />
       </section>
 
       <section id="categories-section" aria-labelledby="categories-section-heading">

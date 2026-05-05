@@ -1,7 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { map, distinctUntilChanged } from 'rxjs/operators';
 import { Store, select } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
@@ -33,13 +31,15 @@ export class MasterDataPageComponent {
   protected readonly vm = select(MasterDataPageState.vm);
 
   constructor() {
-    this.route.params.pipe(
-      map(p => p['accountId'] as string),
-      distinctUntilChanged(),
-      takeUntilDestroyed(),
-    ).subscribe(id => {
-      if (id) this.store.dispatch(new LoadMasterData(id));
-    });
+    // accountId lives on the grandparent :accountId route, not on this leaf route.
+    // pathFromRoot merges params from all ancestor routes to find it safely.
+    const accountId = this.route.snapshot.pathFromRoot
+      .map(r => r.params['accountId'])
+      .find(id => !!id);
+
+    if (accountId) {
+      this.store.dispatch(new LoadMasterData(accountId));
+    }
   }
 
   protected retry(): void {

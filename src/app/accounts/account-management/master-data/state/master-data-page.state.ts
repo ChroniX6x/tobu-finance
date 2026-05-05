@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { AccountMasterDataResponse } from '../account-master-data.models';
 import { MasterDataApiService } from '../services/master-data-api.service';
+import { LoadAccountOverview } from '../../../state/account-overview.actions';
 import {
   LoadMasterData,
   ReloadMasterData,
@@ -32,6 +33,7 @@ export interface MasterDataPageStateModel {
   activeSection: 'account' | 'members' | 'categories';
   editor: MasterDataEditor;
   currentAccountId: string | null;
+  accountSaveError: string | null;
 }
 
 const defaults: MasterDataPageStateModel = {
@@ -41,6 +43,7 @@ const defaults: MasterDataPageStateModel = {
   activeSection: 'account',
   editor: null,
   currentAccountId: null,
+  accountSaveError: null,
 };
 
 @State<MasterDataPageStateModel>({
@@ -55,28 +58,43 @@ export class MasterDataPageState {
   // ---- Selectors ----
 
   @Selector()
-  static vm(s: MasterDataPageStateModel) {
-    return s.vm;
+  static vm(s: MasterDataPageStateModel | undefined) {
+    return s?.vm ?? null;
   }
 
   @Selector()
-  static loading(s: MasterDataPageStateModel) {
-    return s.loading;
+  static loading(s: MasterDataPageStateModel | undefined) {
+    return s?.loading ?? false;
   }
 
   @Selector()
-  static error(s: MasterDataPageStateModel) {
-    return s.error;
+  static error(s: MasterDataPageStateModel | undefined) {
+    return s?.error ?? null;
   }
 
   @Selector()
-  static activeSection(s: MasterDataPageStateModel) {
-    return s.activeSection;
+  static activeSection(s: MasterDataPageStateModel | undefined) {
+    return s?.activeSection ?? 'account';
   }
 
   @Selector()
-  static editor(s: MasterDataPageStateModel) {
-    return s.editor;
+  static editor(s: MasterDataPageStateModel | undefined) {
+    return s?.editor ?? null;
+  }
+
+  @Selector()
+  static accountSaveError(s: MasterDataPageStateModel | undefined) {
+    return s?.accountSaveError ?? null;
+  }
+
+  @Selector()
+  static members(s: MasterDataPageStateModel | undefined) {
+    return s?.vm?.members ?? [];
+  }
+
+  @Selector()
+  static categories(s: MasterDataPageStateModel | undefined) {
+    return s?.vm?.categories ?? [];
   }
 
   // ---- Read ----
@@ -134,15 +152,13 @@ export class MasterDataPageState {
     if (!currentAccountId) return of(null);
     return this.api.patchAccount(currentAccountId, payload).pipe(
       tap(() => {
+        ctx.patchState({ accountSaveError: null });
         this.toast.add({ severity: 'success', summary: 'Account gespeichert', life: 3000 });
-        ctx.dispatch(new ReloadMasterData());
+        ctx.dispatch([new ReloadMasterData(), new LoadAccountOverview(currentAccountId)]);
       }),
       catchError(err => {
-        this.toast.add({
-          severity: 'error',
-          summary: 'Fehler beim Speichern',
-          detail: err?.error?.message ?? err?.message,
-          life: 5000,
+        ctx.patchState({
+          accountSaveError: err?.error?.message ?? err?.message ?? 'Speichern fehlgeschlagen.',
         });
         return of(null);
       }),
