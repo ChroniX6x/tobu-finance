@@ -1,9 +1,22 @@
-<p-tabs [value]="activeTab()" (valueChange)="navigateTab($event)" styleClass="-mx-8 mb-5">
-  <p-tablist>
-    <p-tab value="overview"><i class="pi pi-home mr-2"></i>&#220;bersicht</p-tab>
-    <p-tab value="transactions"><i class="pi pi-list mr-2"></i>Buchungen</p-tab>
-    <p-tab value="month"><i class="pi pi-calendar mr-2"></i>Monat</p-tab>
-  </p-tablist>
-</p-tabs>
+<div class="relative">
+  <p-tabs [value]="activeTab()" (valueChange)="navigateTab($event)" styleClass="-mx-8 mb-5">
+    <p-tablist>
+      <p-tab value="overview"><i class="pi pi-home mr-2"></i>&#220;bersicht</p-tab>
+      <p-tab value="transactions"><i class="pi pi-list mr-2"></i>Buchungen</p-tab>
+      <p-tab value="month"><i class="pi pi-calendar mr-2"></i>Monat</p-tab>
+    </p-tablist>
+  </p-tabs>
+
+  <button
+    type="button"
+    class="absolute top-1.5 right-0 p-2 rounded-full transition-colors"
+    [class.text-primary]="activeTab() === 'manage'"
+    [class.text-muted-color]="activeTab() !== 'manage'"
+    (click)="navigateToManage()"
+    title="Account verwalten"
+    aria-label="Account verwalten">
+    <i class="pi pi-cog text-lg"></i>
+  </button>
+</div>
 
 <router-outlet />
