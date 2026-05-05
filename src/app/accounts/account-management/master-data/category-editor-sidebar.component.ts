@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { Store, select } from '@ngxs/store';
 import { form, FormField, required, minLength, maxLength } from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
 import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -34,6 +35,7 @@ interface CategoryFormModel {
     DrawerModule,
     ButtonModule,
     InputTextModule,
+    FormsModule,
     ToggleSwitchModule,
     MessageModule,
     FluidModule,
@@ -79,8 +81,8 @@ interface CategoryFormModel {
               </div>
               <p-toggleswitch
                 inputId="cat-split-toggle"
-                [checked]="hasCustomSplit()"
-                (onChange)="onToggle($event.checked)" />
+                [ngModel]="hasCustomSplit()"
+                (ngModelChange)="onToggle($event)" />
             </div>
 
             <!-- Custom Split Editor -->
