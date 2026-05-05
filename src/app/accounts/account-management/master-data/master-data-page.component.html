@@ -7,48 +7,72 @@
   </p>
 </div>
 
-<!-- Zweispaltig (Desktop): Sticky-Nav links, Inhalt rechts -->
-<div class="flex gap-10 items-start">
-
-  <!-- Sekundärnavigation – nur Desktop -->
-  <nav class="hidden md:flex flex-col w-40 shrink-0 sticky top-6 gap-0.5" aria-label="Seitennavigation Stammdaten">
-    <button
-      type="button"
-      class="text-left px-3 py-2 rounded-lg text-sm font-medium text-muted-color hover:text-color hover:bg-surface-hover transition-colors"
-      (click)="scrollToSection('account-section')"
-      aria-label="Zum Bereich Account springen">
-      Account
-    </button>
-    <button
-      type="button"
-      class="text-left px-3 py-2 rounded-lg text-sm font-medium text-muted-color hover:text-color hover:bg-surface-hover transition-colors"
-      (click)="scrollToSection('members-section')"
-      aria-label="Zum Bereich Mitglieder springen">
-      Mitglieder
-    </button>
-    <button
-      type="button"
-      class="text-left px-3 py-2 rounded-lg text-sm font-medium text-muted-color hover:text-color hover:bg-surface-hover transition-colors"
-      (click)="scrollToSection('categories-section')"
-      aria-label="Zum Bereich Kategorien springen">
-      Kategorien
-    </button>
-  </nav>
-
-  <!-- Inhaltsbereiche -->
-  <div class="flex-1 flex flex-col gap-12 min-w-0">
-
-    <section id="account-section" aria-labelledby="account-section-heading">
-      <tbf-account-master-section />
-    </section>
-
-    <section id="members-section" aria-labelledby="members-section-heading">
-      <tbf-member-master-section />
-    </section>
-
-    <section id="categories-section" aria-labelledby="categories-section-heading">
-      <tbf-category-master-section />
-    </section>
-
+<!-- Loading -->
+@if (loading()) {
+  <div class="flex flex-col gap-6">
+    @for (_ of [1, 2, 3]; track $index) {
+      <div class="p-skeleton h-32 rounded-xl w-full animate-pulse bg-surface-200"></div>
+    }
   </div>
-</div>
+}
+
+<!-- Error -->
+@else if (error()) {
+  <div class="flex flex-col items-start gap-4">
+    <p-message severity="error" [text]="error()!" styleClass="w-full" />
+    <p-button
+      label="Erneut versuchen"
+      icon="pi pi-refresh"
+      severity="secondary"
+      (click)="retry()" />
+  </div>
+}
+
+<!-- Content -->
+@else if (vm()) {
+  <!-- Zweispaltig (Desktop): Sticky-Nav links, Inhalt rechts -->
+  <div class="flex gap-10 items-start">
+
+    <!-- Sekundärnavigation – nur Desktop -->
+    <nav class="hidden md:flex flex-col w-40 shrink-0 sticky top-6 gap-0.5" aria-label="Seitennavigation Stammdaten">
+      <button
+        type="button"
+        class="text-left px-3 py-2 rounded-lg text-sm font-medium text-muted-color hover:text-color hover:bg-surface-hover transition-colors"
+        (click)="scrollToSection('account-section')"
+        aria-label="Zum Bereich Account springen">
+        Account
+      </button>
+      <button
+        type="button"
+        class="text-left px-3 py-2 rounded-lg text-sm font-medium text-muted-color hover:text-color hover:bg-surface-hover transition-colors"
+        (click)="scrollToSection('members-section')"
+        aria-label="Zum Bereich Mitglieder springen">
+        Mitglieder
+      </button>
+      <button
+        type="button"
+        class="text-left px-3 py-2 rounded-lg text-sm font-medium text-muted-color hover:text-color hover:bg-surface-hover transition-colors"
+        (click)="scrollToSection('categories-section')"
+        aria-label="Zum Bereich Kategorien springen">
+        Kategorien
+      </button>
+    </nav>
+
+    <!-- Inhaltsbereiche -->
+    <div class="flex-1 flex flex-col gap-12 min-w-0">
+
+      <section id="account-section" aria-labelledby="account-section-heading">
+        <tbf-account-master-section />
+      </section>
+
+      <section id="members-section" aria-labelledby="members-section-heading">
+        <tbf-member-master-section />
+      </section>
+
+      <section id="categories-section" aria-labelledby="categories-section-heading">
+        <tbf-category-master-section />
+      </section>
+
+    </div>
+  </div>
+}
