@@ -34,6 +34,11 @@ export default [
         providers: [provideStates([MonthViewState])],
         loadComponent: () => import('./month-view/month-view').then(m => m.MonthView),
       },
+      {
+        path: 'manage',
+        data: { breadcrumb: 'Account verwalten' },
+        loadChildren: () => import('./account-management/master-data/master-data-page.routes'),
+      },
     ],
   },
   { path: '**', redirectTo: '/notfound' }
