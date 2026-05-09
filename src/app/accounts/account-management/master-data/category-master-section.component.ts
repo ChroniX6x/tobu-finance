@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { Store, select } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageModule } from 'primeng/message';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -16,6 +17,7 @@ import { CategoryEditorSidebarComponent } from './category-editor-sidebar.compon
   providers: [ConfirmationService],
   imports: [
     ButtonModule,
+    TagModule,
     TooltipModule,
     MessageModule,
     ConfirmDialogModule,
@@ -57,9 +59,18 @@ import { CategoryEditorSidebarComponent } from './category-editor-sidebar.compon
               <span class="font-medium text-color">
                 {{ cat.name ?? 'Unbenannte Kategorie' }}
               </span>
-              <span class="text-xs text-muted-color">
-                {{ cat.customSplitLabel ?? 'Standard-Verteilung' }}
-              </span>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs text-muted-color">
+                  {{ cat.customSplitLabel ?? 'Standard-Verteilung' }}
+                </span>
+                @if (cat.hasCustomSplit && splitSum(cat) !== 100) {
+                  <p-tag
+                    value="Split prüfen"
+                    severity="warn"
+                    icon="pi pi-exclamation-triangle"
+                    styleClass="text-xs" />
+                }
+              </div>
               <div class="flex flex-wrap gap-3 text-xs text-muted-color mt-1">
                 <span>{{ cat.transactionCount }} Buchung{{ cat.transactionCount === 1 ? '' : 'en' }}</span>
                 @if (cat.hasBudget) {
@@ -121,6 +132,10 @@ export class CategoryMasterSectionComponent {
   readonly meta = input.required<MasterDataMetaVm>();
 
   protected readonly categories = select(MasterDataPageState.categories);
+
+  protected splitSum(cat: CategoryMasterItemVm): number {
+    return cat.customSplit.reduce((s, r) => s + r.split, 0);
+  }
 
   protected openCreate(): void {
     this.store.dispatch(new OpenCategorySidebar('create'));

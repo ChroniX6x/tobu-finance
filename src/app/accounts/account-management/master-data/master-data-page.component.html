@@ -30,49 +30,83 @@
 
 <!-- Content -->
 @else if (vm()) {
-  <!-- Zweispaltig (Desktop): Sticky-Nav links, Inhalt rechts -->
-  <div class="flex gap-10 items-start">
 
-    <!-- Sekundärnavigation – nur Desktop -->
-    <nav class="hidden md:flex flex-col w-40 shrink-0 sticky top-6 gap-0.5" aria-label="Seitennavigation Stammdaten">
-      <button
-        type="button"
-        class="text-left px-3 py-2 rounded-lg text-sm font-medium text-muted-color hover:text-color hover:bg-surface-hover transition-colors"
-        (click)="scrollToSection('account-section')"
-        aria-label="Zum Bereich Account springen">
-        Account
-      </button>
-      <button
-        type="button"
-        class="text-left px-3 py-2 rounded-lg text-sm font-medium text-muted-color hover:text-color hover:bg-surface-hover transition-colors"
-        (click)="scrollToSection('members-section')"
-        aria-label="Zum Bereich Mitglieder springen">
-        Mitglieder
-      </button>
-      <button
-        type="button"
-        class="text-left px-3 py-2 rounded-lg text-sm font-medium text-muted-color hover:text-color hover:bg-surface-hover transition-colors"
-        (click)="scrollToSection('categories-section')"
-        aria-label="Zum Bereich Kategorien springen">
-        Kategorien
-      </button>
-    </nav>
+  <!-- DESKTOP: Zweispaltig mit Sticky-Sekundärnavigation -->
+  @if (!isMobile()) {
+    <div class="flex gap-10 items-start">
 
-    <!-- Inhaltsbereiche -->
-    <div class="flex-1 flex flex-col gap-12 min-w-0">
+      <!-- Sekundärnavigation -->
+      <nav class="flex flex-col w-40 shrink-0 sticky top-6 gap-0.5" aria-label="Seitennavigation Stammdaten">
+        <button
+          type="button"
+          [class]="'text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ' +
+            (activeSection() === 'account'
+              ? 'text-primary bg-primary-50 dark:bg-primary-900/20'
+              : 'text-muted-color hover:text-color hover:bg-surface-hover')"
+          (click)="scrollToSection('account')"
+          aria-label="Zum Bereich Account springen">
+          Account
+        </button>
+        <button
+          type="button"
+          [class]="'text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ' +
+            (activeSection() === 'members'
+              ? 'text-primary bg-primary-50 dark:bg-primary-900/20'
+              : 'text-muted-color hover:text-color hover:bg-surface-hover')"
+          (click)="scrollToSection('members')"
+          aria-label="Zum Bereich Mitglieder springen">
+          Mitglieder
+        </button>
+        <button
+          type="button"
+          [class]="'text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ' +
+            (activeSection() === 'categories'
+              ? 'text-primary bg-primary-50 dark:bg-primary-900/20'
+              : 'text-muted-color hover:text-color hover:bg-surface-hover')"
+          (click)="scrollToSection('categories')"
+          aria-label="Zum Bereich Kategorien springen">
+          Kategorien
+        </button>
+      </nav>
 
-      <section id="account-section" aria-labelledby="account-section-heading">
-        <tbf-account-master-section [accountVm]="vm()!.account" />
-      </section>
-
-      <section id="members-section" aria-labelledby="members-section-heading">
-        <tbf-member-master-section [accountVm]="vm()!.account" />
-      </section>
-
-      <section id="categories-section" aria-labelledby="categories-section-heading">
-        <tbf-category-master-section [meta]="vm()!.meta" />
-      </section>
+      <!-- Inhaltsbereiche -->
+      <div class="flex-1 flex flex-col gap-12 min-w-0">
+        <section id="account-section">
+          <tbf-account-master-section [accountVm]="vm()!.account" />
+        </section>
+        <section id="members-section">
+          <tbf-member-master-section [accountVm]="vm()!.account" />
+        </section>
+        <section id="categories-section">
+          <tbf-category-master-section [meta]="vm()!.meta" />
+        </section>
+      </div>
 
     </div>
-  </div>
+  }
+
+  <!-- MOBILE: Accordions -->
+  @else {
+    <p-accordion [multiple]="true" [value]="['account']">
+      <p-accordion-panel value="account">
+        <p-accordion-header>Account</p-accordion-header>
+        <p-accordion-content>
+          <tbf-account-master-section [accountVm]="vm()!.account" />
+        </p-accordion-content>
+      </p-accordion-panel>
+      <p-accordion-panel value="members">
+        <p-accordion-header>Mitglieder</p-accordion-header>
+        <p-accordion-content>
+          <tbf-member-master-section [accountVm]="vm()!.account" />
+        </p-accordion-content>
+      </p-accordion-panel>
+      <p-accordion-panel value="categories">
+        <p-accordion-header>Kategorien</p-accordion-header>
+        <p-accordion-content>
+          <tbf-category-master-section [meta]="vm()!.meta" />
+        </p-accordion-content>
+      </p-accordion-panel>
+    </p-accordion>
+  }
+
 }

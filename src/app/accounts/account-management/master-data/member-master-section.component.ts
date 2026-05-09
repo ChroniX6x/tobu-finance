@@ -49,6 +49,14 @@ import { MemberEditorSidebarComponent } from './member-editor-sidebar.component'
         text="Dieser Account hat aktuell nur ein Mitglied. Für ein Gemeinschaftskonto sind normalerweise mindestens zwei Mitglieder sinnvoll." />
     }
 
+    <!-- Empty state (legacy accounts without members) -->
+    @if (members().length === 0) {
+      <p-message
+        severity="warn"
+        styleClass="mb-4 w-full"
+        text="Dieser Account hat keine Mitglieder. Das kann bei Legacy-Daten vorkommen. Bitte mindestens ein Mitglied hinzufügen." />
+    }
+
     <!-- Member cards -->
     <div class="flex flex-col gap-3">
       @for (member of members(); track member.memberId) {
