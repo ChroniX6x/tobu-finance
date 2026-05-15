@@ -1,0 +1,93 @@
+<!-- Seitenheader -->
+<div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+  <div>
+    <h1 class="text-2xl font-bold text-color">Planung</h1>
+    <p class="text-sm text-muted-color mt-1">
+      Budgets, Einkommen und Beitragsregeln für diesen Account.
+    </p>
+  </div>
+  <!-- Monat-Auswahl: wird in Baustein 3 aktiviert -->
+  <div class="shrink-0 text-sm text-muted-color italic self-center">
+    Monatsauswahl folgt in Baustein 3
+  </div>
+</div>
+
+<!-- DESKTOP: Zweispaltig mit Sticky-Sekundärnavigation -->
+@if (!isMobile()) {
+  <div class="flex gap-10 items-start">
+
+    <!-- Sekundärnavigation -->
+    <nav
+      class="flex flex-col w-44 shrink-0 sticky top-6 gap-0.5"
+      aria-label="Seitennavigation Planung">
+      @for (item of navItems; track item.key) {
+        <button
+          type="button"
+          [class]="'text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ' +
+            (activeSection() === item.key
+              ? 'text-primary bg-primary-50 dark:bg-primary-900/20'
+              : 'text-muted-color hover:text-color hover:bg-surface-hover')"
+          (click)="scrollToSection(item.key)"
+          [attr.aria-label]="'Zum Bereich ' + item.label + ' springen'">
+          {{ item.label }}
+        </button>
+      }
+    </nav>
+
+    <!-- Inhaltsbereiche -->
+    <div class="flex-1 flex flex-col gap-12 min-w-0">
+      <section id="planning-overview-section">
+        <tbf-planning-overview-section />
+      </section>
+      <section id="planning-budgets-section">
+        <tbf-budget-planning-section />
+      </section>
+      <section id="planning-incomes-section">
+        <tbf-income-planning-section />
+      </section>
+      <section id="planning-rules-section">
+        <tbf-contribution-rules-section />
+      </section>
+      <section id="planning-specials-section">
+        <tbf-special-blocks-section />
+      </section>
+    </div>
+
+  </div>
+}
+
+<!-- MOBILE: Accordions -->
+@else {
+  <p-accordion [multiple]="true" [value]="['overview']">
+    <p-accordion-panel value="overview">
+      <p-accordion-header>Überblick</p-accordion-header>
+      <p-accordion-content>
+        <tbf-planning-overview-section />
+      </p-accordion-content>
+    </p-accordion-panel>
+    <p-accordion-panel value="budgets">
+      <p-accordion-header>Budgets</p-accordion-header>
+      <p-accordion-content>
+        <tbf-budget-planning-section />
+      </p-accordion-content>
+    </p-accordion-panel>
+    <p-accordion-panel value="incomes">
+      <p-accordion-header>Einkommen</p-accordion-header>
+      <p-accordion-content>
+        <tbf-income-planning-section />
+      </p-accordion-content>
+    </p-accordion-panel>
+    <p-accordion-panel value="rules">
+      <p-accordion-header>Beitragsregeln</p-accordion-header>
+      <p-accordion-content>
+        <tbf-contribution-rules-section />
+      </p-accordion-content>
+    </p-accordion-panel>
+    <p-accordion-panel value="specials">
+      <p-accordion-header>Sonderbausteine</p-accordion-header>
+      <p-accordion-content>
+        <tbf-special-blocks-section />
+      </p-accordion-content>
+    </p-accordion-panel>
+  </p-accordion>
+}
