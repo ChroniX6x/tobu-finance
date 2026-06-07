@@ -82,4 +82,9 @@ export class PlanningPageSelectors {
   static preview(s: PlanningPageStateModel) {
     return s.vm?.preview ?? null;
   }
+
+  @Selector([PlanningPageState])
+  static categories(s: PlanningPageStateModel): Array<{ id: string; name: string | null }> {
+    return s.vm?.categories ?? [];
+  }
 }

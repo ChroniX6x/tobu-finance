@@ -8,6 +8,8 @@ export interface AccountPlanningResponse {
   specialBlocks: ContributionBlockVm[];
   preview: PlanningPreviewVm;
   hints: PlanningHintVm[];
+  /** Alle Kategorien des Accounts – für CRUD-Formulare (z.B. Budget-Editor). */
+  categories: Array<{ id: string; name: string | null }>;
 }
 
 export interface PlanningOverviewVm {

@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
-import { select } from '@ngxs/store';
+import { Store, select } from '@ngxs/store';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { PlanningPageSelectors } from './state/planning.selectors';
+import { OpenBudgetSidebar } from './state/planning.actions';
 
 @Component({
   selector: 'tbf-budget-planning-section',
@@ -18,8 +19,7 @@ import { PlanningPageSelectors } from './state/planning.selectors';
         icon="pi pi-plus"
         size="small"
         severity="secondary"
-        [disabled]="true"
-        pTooltip="Verfügbar in Baustein 4" />
+        (onClick)="openCreate()" />
     </div>
 
     @if (allBudgets().length === 0) {
@@ -63,8 +63,8 @@ import { PlanningPageSelectors } from './state/planning.selectors';
                   [text]="true"
                   size="small"
                   severity="secondary"
-                  [disabled]="true"
-                  pTooltip="Bearbeiten – verfügbar in Baustein 4" />
+                  pTooltip="Bearbeiten"
+                  (onClick)="openEdit(budget.budgetId)" />
               </div>
 
             </div>
@@ -75,7 +75,16 @@ import { PlanningPageSelectors } from './state/planning.selectors';
   `,
 })
 export class BudgetPlanningSectionComponent {
+  private readonly store = inject(Store);
   protected readonly allBudgets = select(PlanningPageSelectors.allBudgets);
+
+  protected openCreate(): void {
+    this.store.dispatch(new OpenBudgetSidebar('create'));
+  }
+
+  protected openEdit(budgetId: string): void {
+    this.store.dispatch(new OpenBudgetSidebar('edit', budgetId));
+  }
 
   protected toEur(minor: number): number {
     return minor / 100;
