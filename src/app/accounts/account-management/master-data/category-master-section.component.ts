@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Store, select } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -16,6 +17,7 @@ import { CategoryEditorSidebarComponent } from './category-editor-sidebar.compon
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService],
   imports: [
+    RouterLink,
     ButtonModule,
     TagModule,
     TooltipModule,
@@ -79,6 +81,13 @@ import { CategoryEditorSidebarComponent } from './category-editor-sidebar.compon
                   <span>Kein Budget</span>
                 }
               </div>
+              @if (accountId()) {
+                <a
+                  [routerLink]="['/accounts', accountId(), 'planning']"
+                  class="text-xs text-primary mt-1 hover:underline inline-flex items-center gap-1">
+                  In Planung bearbeiten <i class="pi pi-arrow-right text-[10px]"></i>
+                </a>
+              }
               <!-- Usage hints when delete is blocked -->
               @if (!cat.canDelete && cat.usageHints.length > 0) {
                 <ul class="mt-1 text-xs text-orange-600 dark:text-orange-400 list-disc list-inside space-y-0.5">
@@ -130,6 +139,7 @@ export class CategoryMasterSectionComponent {
   private readonly confirmationService = inject(ConfirmationService);
 
   readonly meta = input.required<MasterDataMetaVm>();
+  readonly accountId = input<string | null>(null);
 
   protected readonly categories = select(MasterDataPageState.categories);
 

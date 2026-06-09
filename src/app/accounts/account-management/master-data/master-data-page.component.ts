@@ -37,6 +37,7 @@ export class MasterDataPageComponent {
   protected readonly vm = select(MasterDataPageState.vm);
   protected readonly isMobile = signal(false);
   protected readonly activeSection = signal<'account' | 'members' | 'categories'>('account');
+  protected readonly currentAccountId = signal<string | null>(null);
 
   constructor() {
     // accountId lives on the grandparent :accountId route, not on this leaf route.
@@ -45,6 +46,7 @@ export class MasterDataPageComponent {
       .find(id => !!id);
 
     if (accountId) {
+      this.currentAccountId.set(accountId);
       this.store.dispatch(new LoadMasterData(accountId));
     }
 
