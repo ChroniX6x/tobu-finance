@@ -41,9 +41,9 @@ import { OpenBudgetSidebar } from './state/planning.actions';
                   {{ toEur(budget.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
                 </span>
                 <span class="text-xs text-muted-color">
-                  ab {{ budget.fromMonth }}
+                  {{ budget.fromMonth !== 'open' ? 'ab ' + budget.fromMonth : '(offen)' }}
                   @if (budget.toMonth) { bis {{ budget.toMonth }} }
-                  @else { (offen) }
+                  @else { – (offen) }
                 </span>
                 @if (budget.hasOverlapConflict) {
                   <span class="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-1 mt-1">

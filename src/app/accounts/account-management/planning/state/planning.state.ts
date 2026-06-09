@@ -164,15 +164,6 @@ export class PlanningPageState {
         this.toast.add({ severity: 'success', summary: 'Einkommen erstellt', life: 3000 });
         ctx.dispatch(new ReloadPlanning());
       }),
-      catchError(err => {
-        this.toast.add({
-          severity: 'error',
-          summary: 'Fehler',
-          detail: err?.error?.message ?? err?.message,
-          life: 5000,
-        });
-        return of(null);
-      }),
     );
   }
 
@@ -184,15 +175,6 @@ export class PlanningPageState {
         this.toast.add({ severity: 'success', summary: 'Einkommen aktualisiert', life: 3000 });
         ctx.dispatch(new ReloadPlanning());
       }),
-      catchError(err => {
-        this.toast.add({
-          severity: 'error',
-          summary: 'Fehler',
-          detail: err?.error?.message ?? err?.message,
-          life: 5000,
-        });
-        return of(null);
-      }),
     );
   }
 
@@ -202,15 +184,6 @@ export class PlanningPageState {
       tap(() => {
         this.toast.add({ severity: 'success', summary: 'Einkommen gelöscht', life: 3000 });
         ctx.dispatch(new ReloadPlanning());
-      }),
-      catchError(err => {
-        this.toast.add({
-          severity: 'error',
-          summary: 'Fehler',
-          detail: err?.error?.message ?? err?.message,
-          life: 5000,
-        });
-        return of(null);
       }),
     );
   }

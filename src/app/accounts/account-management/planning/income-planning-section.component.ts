@@ -1,17 +1,26 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CurrencyPipe, PercentPipe } from '@angular/common';
-import { select } from '@ngxs/store';
+import { Store, select } from '@ngxs/store';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { PlanningPageSelectors } from './state/planning.selectors';
+import { OpenIncomeSidebar } from './state/planning.actions';
 
 @Component({
   selector: 'tbf-income-planning-section',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, PercentPipe, TagModule, ButtonModule, TooltipModule],
   template: `
-    <h2 class="text-lg font-semibold text-color mb-4">Einkommen</h2>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-color">Einkommen</h2>
+      <p-button
+        label="Einkommen hinzufügen"
+        icon="pi pi-plus"
+        size="small"
+        severity="secondary"
+        (onClick)="openCreate()" />
+    </div>
 
     @if (overview()?.proRataStatus === 'notUsed') {
       <div class="mb-4 rounded-lg px-3 py-2 text-sm bg-surface-card border border-surface text-muted-color">
@@ -39,9 +48,9 @@ import { PlanningPageSelectors } from './state/planning.selectors';
                     {{ toEur(income.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
                   </span>
                   <span class="text-xs text-muted-color">
-                    ab {{ income.fromMonth }}
+                    {{ income.fromMonth !== 'open' ? 'ab ' + income.fromMonth : '(offen)' }}
                     @if (income.toMonth) { bis {{ income.toMonth }} }
-                    @else { (offen) }
+                    @else { – (offen) }
                   </span>
                   @if (member.incomeSharePct !== null) {
                     <span class="text-xs text-muted-color mt-1">
@@ -53,9 +62,18 @@ import { PlanningPageSelectors } from './state/planning.selectors';
                 }
 
                 @if (member.missingForProRata) {
-                  <span class="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-1 mt-1">
-                    <i class="pi pi-exclamation-triangle"></i> Einkommen fehlt für ProRata-Verteilung
-                  </span>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                      <i class="pi pi-exclamation-triangle"></i> Einkommen fehlt für ProRata-Verteilung
+                    </span>
+                    <p-button
+                      label="Einkommen ergänzen"
+                      icon="pi pi-plus"
+                      size="small"
+                      severity="warn"
+                      [text]="true"
+                      (onClick)="openCreateForMember(member.memberId)" />
+                  </div>
                 }
 
                 <!-- History Toggle -->
@@ -71,10 +89,19 @@ import { PlanningPageSelectors } from './state/planning.selectors';
                   @if (isHistoryOpen(member.memberId)) {
                     <div class="mt-2 flex flex-col gap-1 pl-3 border-l border-surface">
                       @for (h of member.history; track h.incomeId) {
-                        <span class="text-xs text-muted-color">
-                          {{ toEur(h.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
-                          · {{ h.fromMonth }}–{{ h.toMonth ?? 'offen' }}
-                        </span>
+                        <div class="flex items-center justify-between gap-2">
+                          <span class="text-xs text-muted-color">
+                            {{ toEur(h.amountMinor) | currency:'EUR':'symbol':'1.0-0' }}
+                            · {{ h.fromMonth }}–{{ h.toMonth ?? 'offen' }}
+                          </span>
+                          <p-button
+                            icon="pi pi-pencil"
+                            [text]="true"
+                            size="small"
+                            severity="secondary"
+                            pTooltip="Bearbeiten"
+                            (onClick)="openEdit(h.incomeId)" />
+                        </div>
                       }
                     </div>
                   }
@@ -84,16 +111,16 @@ import { PlanningPageSelectors } from './state/planning.selectors';
               <div class="flex flex-col items-end gap-2 shrink-0">
                 @if (member.activeIncome) {
                   <p-tag severity="success" value="Aktiv" />
+                  <p-button
+                    icon="pi pi-pencil"
+                    [text]="true"
+                    size="small"
+                    severity="secondary"
+                    pTooltip="Bearbeiten"
+                    (onClick)="openEdit(member.activeIncome.incomeId)" />
                 } @else {
                   <p-tag severity="secondary" value="Kein Einkommen" />
                 }
-                <p-button
-                  icon="pi pi-pencil"
-                  [text]="true"
-                  size="small"
-                  severity="secondary"
-                  [disabled]="true"
-                  pTooltip="Bearbeiten – verfügbar in Baustein 5" />
               </div>
 
             </div>
@@ -104,8 +131,21 @@ import { PlanningPageSelectors } from './state/planning.selectors';
   `,
 })
 export class IncomePlanningSectionComponent {
+  private readonly store = inject(Store);
   protected readonly allIncomes = select(PlanningPageSelectors.allIncomes);
   protected readonly overview = select(PlanningPageSelectors.overview);
+
+  protected openCreate(): void {
+    this.store.dispatch(new OpenIncomeSidebar('create'));
+  }
+
+  protected openCreateForMember(memberId: string): void {
+    this.store.dispatch(new OpenIncomeSidebar('create', undefined, memberId));
+  }
+
+  protected openEdit(incomeId: string): void {
+    this.store.dispatch(new OpenIncomeSidebar('edit', incomeId));
+  }
   private readonly openHistories = signal<Set<string>>(new Set());
 
   protected toEur(minor: number): number {

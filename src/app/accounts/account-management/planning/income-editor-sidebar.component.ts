@@ -20,14 +20,14 @@ import { TooltipModule } from 'primeng/tooltip';
 import { PlanningPageSelectors } from './state/planning.selectors';
 import {
   ClosePlanningSidebar,
-  CreateBudget,
-  DeleteBudget,
-  UpdateBudget,
+  CreateIncome,
+  DeleteIncome,
+  UpdateIncome,
 } from './state/planning.actions';
-import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
+import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
 
 @Component({
-  selector: 'tbf-budget-editor-sidebar',
+  selector: 'tbf-income-editor-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
@@ -43,7 +43,7 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
   template: `
     <p-drawer
       [visible]="isOpen()"
-      [header]="isCreate() ? 'Budget hinzufügen' : 'Budget bearbeiten'"
+      [header]="isCreate() ? 'Einkommen hinzufügen' : 'Einkommen bearbeiten'"
       position="right"
       styleClass="!w-full md:!w-[480px]"
       (onHide)="close()">
@@ -64,34 +64,32 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
         <p-fluid>
           <div class="flex flex-col gap-4">
 
-            <!-- Kategorie -->
+            <!-- Mitglied -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="bud-cat">Kategorie *</label>
+              <label class="text-sm font-medium text-color" for="inc-member">Mitglied *</label>
               @if (isCreate()) {
                 <p-select
-                  inputId="bud-cat"
-                  name="categoryId"
-                  [ngModel]="categoryId()"
-                  (ngModelChange)="categoryId.set($event)"
-                  [options]="categories()"
-                  optionLabel="name"
-                  optionValue="id"
-                  placeholder="Kategorie wählen …"
-                  [filter]="true"
-                  filterPlaceholder="Suchen"
+                  inputId="inc-member"
+                  name="memberId"
+                  [ngModel]="memberId()"
+                  (ngModelChange)="memberId.set($event)"
+                  [options]="memberOptions()"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Mitglied wählen …"
                   styleClass="w-full" />
               } @else {
                 <span class="text-sm text-color py-2 pl-1">
-                  {{ currentBudget()?.categoryName ?? '—' }}
+                  {{ currentIncome()?.memberName ?? '—' }}
                 </span>
               }
             </div>
 
             <!-- Betrag -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="bud-amt">Monatliches Budget *</label>
+              <label class="text-sm font-medium text-color" for="inc-amt">Monatliches Einkommen *</label>
               <p-inputnumber
-                inputId="bud-amt"
+                inputId="inc-amt"
                 name="amountEur"
                 [ngModel]="amountEur()"
                 (ngModelChange)="amountEur.set($event)"
@@ -101,14 +99,14 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
                 [min]="1"
                 suffix=" €"
                 styleClass="w-full"
-                placeholder="z.B. 500" />
+                placeholder="z.B. 2000" />
             </div>
 
             <!-- Gültig ab -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="bud-from">Gültig ab *</label>
+              <label class="text-sm font-medium text-color" for="inc-from">Gültig ab *</label>
               <p-datepicker
-                inputId="bud-from"
+                inputId="inc-from"
                 name="fromMonth"
                 [ngModel]="fromMonthDate()"
                 (onSelect)="onFromMonthSelect($event)"
@@ -155,7 +153,7 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
             @if (!showDeleteConfirm()) {
               <p-button
                 type="button"
-                label="Budget löschen"
+                label="Einkommen löschen"
                 icon="pi pi-trash"
                 severity="danger"
                 [text]="true"
@@ -165,7 +163,7 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
               <div class="flex flex-col gap-3">
                 <p-message
                   severity="warn"
-                  text="Diese Änderung kann bereits berechnete Monatsansichten rückwirkend verändern. Trotzdem löschen?"
+                  text="Wenn dadurch eine ProRata-Verteilung nicht mehr berechenbar ist, erscheint ein Planungs-Hinweis."
                   styleClass="w-full" />
                 <div class="flex gap-2">
                   <p-button
@@ -175,7 +173,7 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
                     severity="danger"
                     size="small"
                     [loading]="saving()"
-                    (onClick)="deleteBudget()" />
+                    (onClick)="deleteIncome()" />
                   <p-button
                     type="button"
                     label="Abbrechen"
@@ -209,12 +207,11 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
     </p-drawer>
   `,
 })
-export class BudgetEditorSidebarComponent {
+export class IncomeEditorSidebarComponent {
   private readonly store = inject(Store);
 
   protected readonly editor = select(PlanningPageSelectors.editor);
-  protected readonly allBudgets = select(PlanningPageSelectors.allBudgets);
-  protected readonly categories = select(PlanningPageSelectors.categories);
+  protected readonly allIncomes = select(PlanningPageSelectors.allIncomes);
   private readonly vm = select(PlanningPageSelectors.vm);
 
   protected readonly saving = signal(false);
@@ -222,22 +219,35 @@ export class BudgetEditorSidebarComponent {
   protected readonly showDeleteConfirm = signal(false);
 
   // Form fields
-  protected readonly categoryId = signal<string>('');
+  protected readonly memberId = signal<string>('');
   protected readonly amountEur = signal<number | null>(null);
   protected readonly fromMonthDate = signal<Date>(
     DateTime.now().startOf('month').toJSDate(),
   );
   protected readonly toMonthDate = signal<Date | null>(null);
 
-  protected readonly isOpen = computed(() => this.editor()?.kind === 'budget');
+  protected readonly isOpen = computed(() => this.editor()?.kind === 'income');
   protected readonly isCreate = computed(
-    () => this.editor()?.kind === 'budget' && this.editor()!.mode === 'create',
+    () => this.editor()?.kind === 'income' && this.editor()!.mode === 'create',
   );
-  protected readonly currentBudget = computed(() => {
+
+  /** Sucht das Income-Objekt anhand der incomeId in activeIncome + history aller Members */
+  protected readonly currentIncome = computed(() => {
     const ed = this.editor();
-    if (ed?.kind !== 'budget' || !ed.budgetId) return null;
-    return this.allBudgets().find(b => b.budgetId === ed.budgetId) ?? null;
+    if (ed?.kind !== 'income' || !ed.incomeId) return null;
+    for (const m of this.allIncomes()) {
+      if (m.activeIncome?.incomeId === ed.incomeId) {
+        return { ...m.activeIncome, memberId: m.memberId, memberName: m.memberName };
+      }
+      const hist = m.history.find(h => h.incomeId === ed.incomeId);
+      if (hist) return { ...hist, memberId: m.memberId, memberName: m.memberName };
+    }
+    return null;
   });
+
+  protected readonly memberOptions = computed(() =>
+    this.allIncomes().map(m => ({ label: m.memberName ?? m.memberId, value: m.memberId })),
+  );
 
   protected readonly fromMonthLabel = computed(() =>
     DateTime.fromJSDate(this.fromMonthDate()).toFormat('yyyy-MM'),
@@ -253,7 +263,7 @@ export class BudgetEditorSidebarComponent {
   });
 
   protected readonly isInvalid = computed(() => {
-    if (!this.categoryId()) return true;
+    if (!this.memberId()) return true;
     const amt = this.amountEur();
     if (amt == null || amt < 1) return true;
     const to = this.toMonthLabel();
@@ -264,29 +274,30 @@ export class BudgetEditorSidebarComponent {
   constructor() {
     effect(() => {
       const ed = this.editor();
-      if (ed?.kind !== 'budget') return;
+      if (ed?.kind !== 'income') return;
 
       this.saveError.set(null);
       this.showDeleteConfirm.set(false);
 
       if (ed.mode === 'edit') {
-        const budget = this.currentBudget();
-        if (!budget) return;
-        this.categoryId.set(budget.categoryId);
-        this.amountEur.set(budget.amountMinor / 100);
-        const fromLabel = budget.fromMonth === 'open'
+        const income = this.currentIncome();
+        if (!income) return;
+        this.memberId.set(income.memberId);
+        this.amountEur.set(income.amountMinor / 100);
+        const fromLabel = income.fromMonth === 'open'
           ? DateTime.now().toFormat('yyyy-MM')
-          : budget.fromMonth;
+          : income.fromMonth;
         this.fromMonthDate.set(
           DateTime.fromFormat(fromLabel, 'yyyy-MM').startOf('month').toJSDate(),
         );
         this.toMonthDate.set(
-          budget.toMonth
-            ? DateTime.fromFormat(budget.toMonth, 'yyyy-MM').startOf('month').toJSDate()
+          income.toMonth
+            ? DateTime.fromFormat(income.toMonth, 'yyyy-MM').startOf('month').toJSDate()
             : null,
         );
       } else {
-        this.categoryId.set(ed.categoryId ?? '');
+        // Create: ggf. memberId vorbelegen wenn über "Einkommen ergänzen" geöffnet
+        this.memberId.set(ed.memberId ?? '');
         this.amountEur.set(null);
         this.fromMonthDate.set(DateTime.now().startOf('month').toJSDate());
         this.toMonthDate.set(null);
@@ -320,40 +331,41 @@ export class BudgetEditorSidebarComponent {
     const toMonth = this.toMonthLabel() ?? undefined;
 
     if (this.isCreate()) {
-      const payload: CreateBudgetPayload = {
+      const payload: CreateIncomePayload = {
         accountId: this.vm()?.accountId ?? '',
-        categoryId: this.categoryId(),
+        memberId: this.memberId(),
         amountMinor,
         fromMonth,
         toMonth,
       };
-      this.store.dispatch(new CreateBudget(payload)).subscribe({
+      this.store.dispatch(new CreateIncome(payload)).subscribe({
         error: (err: unknown) => {
           this.saving.set(false);
           const body = (err as { error?: { code?: string; message?: string } })?.error;
-          if (body?.code === 'BUDGET_OVERLAP') {
+          if (body?.code === 'INCOME_OVERLAP') {
             this.saveError.set(
-              'Für diese Kategorie existiert bereits ein Budget mit überschneidendem Zeitraum.',
+              'Für dieses Mitglied existiert bereits ein Einkommen mit überschneidendem Zeitraum.',
             );
           } else {
-            this.saveError.set(body?.message ?? 'Fehler beim Anlegen des Budgets.');
+            this.saveError.set(body?.message ?? 'Fehler beim Anlegen des Einkommens.');
           }
         },
         complete: () => this.saving.set(false),
       });
     } else {
-      const budgetId = (this.editor() as { kind: 'budget'; mode: 'edit'; budgetId?: string }).budgetId!;
-      const payload: UpdateBudgetPayload = { amountMinor, fromMonth, toMonth };
-      this.store.dispatch(new UpdateBudget(budgetId, payload)).subscribe({
+      const ed = this.editor();
+      const incomeId = (ed as { kind: 'income'; mode: 'edit'; incomeId?: string }).incomeId!;
+      const payload: UpdateIncomePayload = { amountMinor, fromMonth, toMonth };
+      this.store.dispatch(new UpdateIncome(incomeId, payload)).subscribe({
         error: (err: unknown) => {
           this.saving.set(false);
           const body = (err as { error?: { code?: string; message?: string } })?.error;
-          if (body?.code === 'BUDGET_OVERLAP') {
+          if (body?.code === 'INCOME_OVERLAP') {
             this.saveError.set(
-              'Für diese Kategorie existiert bereits ein Budget mit überschneidendem Zeitraum.',
+              'Für dieses Mitglied existiert bereits ein Einkommen mit überschneidendem Zeitraum.',
             );
           } else {
-            this.saveError.set(body?.message ?? 'Fehler beim Speichern des Budgets.');
+            this.saveError.set(body?.message ?? 'Fehler beim Speichern des Einkommens.');
           }
         },
         complete: () => this.saving.set(false),
@@ -361,15 +373,16 @@ export class BudgetEditorSidebarComponent {
     }
   }
 
-  protected deleteBudget(): void {
-    const budgetId = (this.editor() as { kind: 'budget'; mode: 'edit'; budgetId?: string }).budgetId;
-    if (!budgetId) return;
+  protected deleteIncome(): void {
+    const ed = this.editor();
+    const incomeId = (ed as { kind: 'income'; mode: 'edit'; incomeId?: string }).incomeId;
+    if (!incomeId) return;
     this.saving.set(true);
-    this.store.dispatch(new DeleteBudget(budgetId)).subscribe({
+    this.store.dispatch(new DeleteIncome(incomeId)).subscribe({
       error: (err: unknown) => {
         this.saving.set(false);
         const msg = (err as { error?: { message?: string } })?.error?.message;
-        this.saveError.set(msg ?? 'Fehler beim Löschen des Budgets.');
+        this.saveError.set(msg ?? 'Fehler beim Löschen des Einkommens.');
         this.showDeleteConfirm.set(false);
       },
       complete: () => this.saving.set(false),
