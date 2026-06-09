@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CurrencyPipe, PercentPipe } from '@angular/common';
-import { select } from '@ngxs/store';
+import { Store, select } from '@ngxs/store';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { PlanningPageSelectors } from './state/planning.selectors';
 import { ContributionBlockVm } from './planning.models';
+import { OpenRuleSidebar } from './state/planning.actions';
 
 @Component({
   selector: 'tbf-special-blocks-section',
@@ -19,14 +20,12 @@ import { ContributionBlockVm } from './planning.models';
           label="+ TopUp"
           size="small"
           severity="secondary"
-          [disabled]="true"
-          pTooltip="Verfügbar in Baustein 6" />
+          (onClick)="openCreate('topup')" />
         <p-button
           label="+ Zusatzbeitrag"
           size="small"
           severity="secondary"
-          [disabled]="true"
-          pTooltip="Verfügbar in Baustein 6" />
+          (onClick)="openCreate('additional')" />
       </div>
     </div>
 
@@ -91,8 +90,8 @@ import { ContributionBlockVm } from './planning.models';
                   [text]="true"
                   size="small"
                   severity="secondary"
-                  [disabled]="true"
-                  pTooltip="Bearbeiten – verfügbar in Baustein 6" />
+                  pTooltip="Bearbeiten"
+                  (onClick)="openEdit(block.ruleId!)" />
               </div>
 
             </div>
@@ -103,7 +102,16 @@ import { ContributionBlockVm } from './planning.models';
   `,
 })
 export class SpecialBlocksSectionComponent {
+  private readonly store = inject(Store);
   protected readonly specialBlocks = select(PlanningPageSelectors.specialBlocks);
+
+  protected openCreate(type: 'topup' | 'additional'): void {
+    this.store.dispatch(new OpenRuleSidebar('create', undefined, type));
+  }
+
+  protected openEdit(ruleId: string): void {
+    this.store.dispatch(new OpenRuleSidebar('edit', ruleId));
+  }
   private readonly openDetails = signal<Set<string>>(new Set());
 
   protected toEur(minor: number): number {

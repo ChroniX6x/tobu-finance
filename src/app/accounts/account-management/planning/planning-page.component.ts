@@ -25,6 +25,7 @@ import { SpecialBlocksSectionComponent } from './special-blocks-section.componen
 import { PlanningPreviewCardComponent } from './planning-preview-card.component';
 import { BudgetEditorSidebarComponent } from './budget-editor-sidebar.component';
 import { IncomeEditorSidebarComponent } from './income-editor-sidebar.component';
+import { ContributionRuleEditorSidebarComponent } from './contribution-rule-editor-sidebar.component';
 
 type ActiveSection = 'overview' | 'budgets' | 'incomes' | 'rules' | 'specials';
 
@@ -41,6 +42,7 @@ type ActiveSection = 'overview' | 'budgets' | 'incomes' | 'rules' | 'specials';
     PlanningPreviewCardComponent,
     BudgetEditorSidebarComponent,
     IncomeEditorSidebarComponent,
+    ContributionRuleEditorSidebarComponent,
     PlanningOverviewSectionComponent,
     BudgetPlanningSectionComponent,
     IncomePlanningSectionComponent,
