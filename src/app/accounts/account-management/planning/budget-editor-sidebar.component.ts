@@ -45,7 +45,7 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
       [visible]="isOpen()"
       [header]="isCreate() ? 'Budget hinzufügen' : 'Budget bearbeiten'"
       position="right"
-      styleClass="!w-full md:!w-[480px]"
+      styleClass="!w-full lg:!w-[480px]"
       (onHide)="close()">
 
       <form (ngSubmit)="save()" class="flex flex-col gap-5 h-full">
@@ -165,7 +165,7 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
               <div class="flex flex-col gap-3">
                 <p-message
                   severity="warn"
-                  text="Diese Änderung kann bereits berechnete Monatsansichten rückwirkend verändern. Trotzdem löschen?"
+                  text="Diese Änderung kann bereits berechnete Monatsansichten rückwirkend verändern. Budget trotzdem löschen?"
                   styleClass="w-full" />
                 <div class="flex gap-2">
                   <p-button
@@ -336,7 +336,7 @@ export class BudgetEditorSidebarComponent {
               'Für diese Kategorie existiert bereits ein Budget mit überschneidendem Zeitraum.',
             );
           } else {
-            this.saveError.set(body?.message ?? 'Fehler beim Anlegen des Budgets.');
+            this.saveError.set(body?.message ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
           }
         },
         complete: () => this.saving.set(false),
@@ -353,7 +353,7 @@ export class BudgetEditorSidebarComponent {
               'Für diese Kategorie existiert bereits ein Budget mit überschneidendem Zeitraum.',
             );
           } else {
-            this.saveError.set(body?.message ?? 'Fehler beim Speichern des Budgets.');
+            this.saveError.set(body?.message ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
           }
         },
         complete: () => this.saving.set(false),
@@ -369,7 +369,7 @@ export class BudgetEditorSidebarComponent {
       error: (err: unknown) => {
         this.saving.set(false);
         const msg = (err as { error?: { message?: string } })?.error?.message;
-        this.saveError.set(msg ?? 'Fehler beim Löschen des Budgets.');
+        this.saveError.set(msg ?? 'Löschen fehlgeschlagen – bitte erneut versuchen.');
         this.showDeleteConfirm.set(false);
       },
       complete: () => this.saving.set(false),

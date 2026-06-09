@@ -60,7 +60,7 @@ type Distribution = ContributionBlockVm['distribution'];
       [visible]="isOpen()"
       [header]="isCreate() ? 'Beitragsregel hinzufügen' : 'Beitragsregel bearbeiten'"
       position="right"
-      styleClass="!w-full md:!w-[540px]"
+      styleClass="!w-full lg:!w-[540px]"
       (onHide)="close()">
 
       <form (ngSubmit)="save()" class="flex flex-col gap-5 h-full">
@@ -223,7 +223,7 @@ type Distribution = ContributionBlockVm['distribution'];
               <div class="flex flex-col gap-3">
                 <p-message
                   severity="warn"
-                  text="Diese Änderung kann bereits berechnete Monatsansichten rückwirkend verändern. Trotzdem löschen?"
+                  text="Diese Regel fließt in die monatlichen Sollwerte ein. Beitragsbaustein trotzdem löschen?"
                   styleClass="w-full" />
                 <div class="flex gap-2">
                   <p-button
@@ -435,7 +435,7 @@ export class ContributionRuleEditorSidebarComponent {
         error: (err: unknown) => {
           this.saving.set(false);
           const msg = (err as { error?: { message?: string } })?.error?.message;
-          this.saveError.set(msg ?? 'Fehler beim Anlegen der Regel.');
+          this.saveError.set(msg ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
         },
         complete: () => this.saving.set(false),
       });
@@ -455,7 +455,7 @@ export class ContributionRuleEditorSidebarComponent {
         error: (err: unknown) => {
           this.saving.set(false);
           const msg = (err as { error?: { message?: string } })?.error?.message;
-          this.saveError.set(msg ?? 'Fehler beim Speichern der Regel.');
+          this.saveError.set(msg ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
         },
         complete: () => this.saving.set(false),
       });
@@ -471,7 +471,7 @@ export class ContributionRuleEditorSidebarComponent {
       error: (err: unknown) => {
         this.saving.set(false);
         const msg = (err as { error?: { message?: string } })?.error?.message;
-        this.saveError.set(msg ?? 'Fehler beim Löschen der Regel.');
+        this.saveError.set(msg ?? 'Löschen fehlgeschlagen – bitte erneut versuchen.');
         this.showDeleteConfirm.set(false);
       },
       complete: () => this.saving.set(false),

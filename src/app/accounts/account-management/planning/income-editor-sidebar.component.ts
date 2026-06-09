@@ -45,7 +45,7 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
       [visible]="isOpen()"
       [header]="isCreate() ? 'Einkommen hinzufügen' : 'Einkommen bearbeiten'"
       position="right"
-      styleClass="!w-full md:!w-[480px]"
+      styleClass="!w-full lg:!w-[480px]"
       (onHide)="close()">
 
       <form (ngSubmit)="save()" class="flex flex-col gap-5 h-full">
@@ -163,7 +163,7 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
               <div class="flex flex-col gap-3">
                 <p-message
                   severity="warn"
-                  text="Wenn dadurch eine ProRata-Verteilung nicht mehr berechenbar ist, erscheint ein Planungs-Hinweis."
+                  text="Wenn dadurch eine ProRata-Verteilung nicht mehr berechenbar ist, erscheint ein Planungs-Hinweis. Einkommen trotzdem löschen?"
                   styleClass="w-full" />
                 <div class="flex gap-2">
                   <p-button
@@ -347,7 +347,7 @@ export class IncomeEditorSidebarComponent {
               'Für dieses Mitglied existiert bereits ein Einkommen mit überschneidendem Zeitraum.',
             );
           } else {
-            this.saveError.set(body?.message ?? 'Fehler beim Anlegen des Einkommens.');
+            this.saveError.set(body?.message ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
           }
         },
         complete: () => this.saving.set(false),
@@ -365,7 +365,7 @@ export class IncomeEditorSidebarComponent {
               'Für dieses Mitglied existiert bereits ein Einkommen mit überschneidendem Zeitraum.',
             );
           } else {
-            this.saveError.set(body?.message ?? 'Fehler beim Speichern des Einkommens.');
+            this.saveError.set(body?.message ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
           }
         },
         complete: () => this.saving.set(false),
@@ -382,7 +382,7 @@ export class IncomeEditorSidebarComponent {
       error: (err: unknown) => {
         this.saving.set(false);
         const msg = (err as { error?: { message?: string } })?.error?.message;
-        this.saveError.set(msg ?? 'Fehler beim Löschen des Einkommens.');
+        this.saveError.set(msg ?? 'Löschen fehlgeschlagen – bitte erneut versuchen.');
         this.showDeleteConfirm.set(false);
       },
       complete: () => this.saving.set(false),

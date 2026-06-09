@@ -84,7 +84,7 @@ export class PlanningPageComponent {
     }
 
     this.breakpointObserver
-      .observe('(max-width: 767px)')
+      .observe('(max-width: 1023px)')
       .pipe(takeUntilDestroyed())
       .subscribe(state => this.isMobile.set(state.matches));
   }

@@ -127,7 +127,7 @@ export class PlanningPageState {
     return this.api.createBudget(payload).pipe(
       tap(() => {
         ctx.dispatch(new ClosePlanningSidebar());
-        this.toast.add({ severity: 'success', summary: 'Budget erstellt', life: 3000 });
+        this.toast.add({ severity: 'success', summary: 'Budget gespeichert', life: 3000 });
         ctx.dispatch(new ReloadPlanning());
       }),
     );
@@ -161,7 +161,7 @@ export class PlanningPageState {
     return this.api.createIncome(payload).pipe(
       tap(() => {
         ctx.dispatch(new ClosePlanningSidebar());
-        this.toast.add({ severity: 'success', summary: 'Einkommen erstellt', life: 3000 });
+        this.toast.add({ severity: 'success', summary: 'Einkommen gespeichert', life: 3000 });
         ctx.dispatch(new ReloadPlanning());
       }),
     );
@@ -198,7 +198,7 @@ export class PlanningPageState {
     return this.api.createContributionRule(payload).pipe(
       tap(() => {
         ctx.dispatch(new ClosePlanningSidebar());
-        this.toast.add({ severity: 'success', summary: 'Beitragsregel erstellt', life: 3000 });
+        this.toast.add({ severity: 'success', summary: 'Beitragsbaustein gespeichert', life: 3000 });
         ctx.dispatch(new ReloadPlanning());
       }),
     );
@@ -212,7 +212,7 @@ export class PlanningPageState {
     return this.api.updateContributionRule(ruleId, payload).pipe(
       tap(() => {
         ctx.dispatch(new ClosePlanningSidebar());
-        this.toast.add({ severity: 'success', summary: 'Beitragsregel aktualisiert', life: 3000 });
+        this.toast.add({ severity: 'success', summary: 'Beitragsbaustein aktualisiert', life: 3000 });
         ctx.dispatch(new ReloadPlanning());
       }),
     );
@@ -225,7 +225,7 @@ export class PlanningPageState {
   ) {
     return this.api.deleteContributionRule(ruleId).pipe(
       tap(() => {
-        this.toast.add({ severity: 'success', summary: 'Beitragsregel gelöscht', life: 3000 });
+        this.toast.add({ severity: 'success', summary: 'Beitragsbaustein gelöscht', life: 3000 });
         ctx.dispatch(new ReloadPlanning());
       }),
     );
