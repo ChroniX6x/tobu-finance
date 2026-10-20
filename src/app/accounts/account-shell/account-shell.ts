@@ -39,6 +39,7 @@ export class AccountShell {
       const url = this.router.url;
       if (url.includes('/transactions')) this.activeTab.set('transactions');
       else if (url.includes('/month')) this.activeTab.set('month');
+      else if (url.includes('/planning')) this.activeTab.set('planning');
       else if (url.includes('/manage')) this.activeTab.set('manage');
       else this.activeTab.set('overview');
     });
@@ -49,6 +50,7 @@ export class AccountShell {
     const accId = this.accountId();
     if (value === 'transactions') this.router.navigate(['/accounts', accId, 'transactions']);
     else if (value === 'month') this.router.navigate(['/accounts', accId, 'month']);
+    else if (value === 'planning') this.router.navigate(['/accounts', accId, 'planning']);
     else this.router.navigate(['/accounts', accId]);
   }
 

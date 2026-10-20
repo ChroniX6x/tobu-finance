@@ -6,6 +6,7 @@ import { AccountOverview } from './account-overview/account-overview';
 import { AccountsSummaryState } from './state/accounts-summary.state';
 import { AccountOverviewState } from './state/account-overview.state';
 import { MonthViewState } from './month-view/month-view.state';
+import { PlanningPageState } from './account-management/planning/state/planning.state';
 
 export default [
   {
@@ -38,6 +39,14 @@ export default [
         path: 'manage',
         data: { breadcrumb: 'Account verwalten' },
         loadChildren: () => import('./account-management/master-data/master-data-page.routes'),
+      },
+      {
+        path: 'planning',
+        data: { breadcrumb: 'Planung' },
+        providers: [provideStates([PlanningPageState])],
+        loadComponent: () =>
+          import('./account-management/planning/planning-page.component')
+            .then(m => m.PlanningPageComponent),
       },
     ],
   },

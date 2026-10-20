@@ -78,7 +78,7 @@
           <tbf-member-master-section [accountVm]="vm()!.account" />
         </section>
         <section id="categories-section">
-          <tbf-category-master-section [meta]="vm()!.meta" />
+          <tbf-category-master-section [meta]="vm()!.meta" [accountId]="currentAccountId()" />
         </section>
       </div>
 
@@ -103,7 +103,7 @@
       <p-accordion-panel value="categories">
         <p-accordion-header>Kategorien</p-accordion-header>
         <p-accordion-content>
-          <tbf-category-master-section [meta]="vm()!.meta" />
+        <tbf-category-master-section [meta]="vm()!.meta" [accountId]="currentAccountId()" />
         </p-accordion-content>
       </p-accordion-panel>
     </p-accordion>
