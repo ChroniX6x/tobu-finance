@@ -53,6 +53,8 @@ Ein frisches `npm ci` ist in einem eigenständigen Checkout zu verifizieren, nic
 
 ## Korrektur zur Rollen-Bestandsaufnahme
 
+**Nachtrag nach Phase 2:** Die folgende damals offene Abgrenzung ist durch die [verbindliche Rollenentscheidung](roles-and-access.md) geklärt. Nutzerverwaltung gehört zum globalen Admin; Einladungen und Mitgliedschaftsverwaltung eines Finanzkontos gehören zu dessen Owner. Die frühere pauschale Admin-Regel ist damit ersetzt. Der nachfolgende Absatz bleibt als historische Bestandsaufnahme erhalten.
+
 Das alte API-Skript `scripts/link-users-to-members.ts` enthält bereits globale Rollen `user` und `admin`; die Phase-0-Annahme, es gebe keine zusätzliche Admin-Rolle, ist damit zu korrigieren. Daneben existieren kontobezogene Rollen `owner` und `member`. Die Nutzerentscheidung „nur Admins dürfen Mitglieder erstellen/einladen“ bleibt verbindlich. Vor ihrer Implementierung muss die Abgrenzung globaler Admin gegenüber Kontoeigentümer eindeutig feststehen. Phase 1 ändert die Berechtigungen nicht; die bestehenden CRUD-Tests sind kein Nachweis der künftigen Admin-Regel.
 
 Nach diesem Phase-1-Stand auf weitere Anweisungen warten. Keine automatische Fortsetzung mit dem Workspace-Umzug.
