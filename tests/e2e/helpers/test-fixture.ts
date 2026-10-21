@@ -5,9 +5,8 @@ export type TestOptions = {
   /**
    * When `true` (default), all API calls are intercepted with mock responses.
    *
-   * When `false`, only the `api/auth/refresh` endpoint is mocked so the app
-   * can bootstrap through the auth guard; every other API call is forwarded to
-   * the real server at `API_BASE_URL` (default http://localhost:4000).
+   * When `false`, helper mocks are disabled. Real API tests live in *.real.spec.ts
+   * and use a real refresh-cookie session, without route interception.
    *
    * Switch modes by running a different Playwright project:
    *   npx playwright test                            # mocked (chromium project)

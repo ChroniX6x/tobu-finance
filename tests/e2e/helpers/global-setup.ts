@@ -1,5 +1,4 @@
-import { chromium, type FullConfig } from '@playwright/test';
-import fs from 'node:fs';
+import { request } from '@playwright/test';
 
 /**
  * Playwright global setup for the `chromium-real-api` project.
@@ -17,47 +16,40 @@ import fs from 'node:fs';
  * Optional:
  *   API_BASE_URL  — defaults to http://localhost:4000
  *
- * If the variables are not set an empty state file is written so that the
- * project can still start; tests will then fail at page load because the
- * auth guard will redirect to /auth/login.
+ * Invoked only by the real-api-setup project. Missing configuration fails early.
  */
 
 const AUTH_STATE_PATH = '.playwright-real-auth.json';
 
-export default async function globalSetup(_config: FullConfig): Promise<void> {
+export default async function initializeRealAuth(): Promise<void> {
   const email = process.env['E2E_EMAIL'];
   const password = process.env['E2E_PASSWORD'];
 
   if (!email || !password) {
-    fs.writeFileSync(AUTH_STATE_PATH, JSON.stringify({ cookies: [], origins: [] }));
-    console.warn(
-      '[global-setup] E2E_EMAIL / E2E_PASSWORD are not set.\n' +
-      '              The chromium-real-api project will run without a valid session.\n' +
-      '              Set both env vars to enable real-server testing with auth.',
-    );
-    return;
+    throw new Error('Real-API tests require E2E_EMAIL and E2E_PASSWORD for an isolated test user.');
   }
 
   const apiBaseUrl = process.env['API_BASE_URL'] ?? 'http://localhost:4000';
 
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
+  const context = await request.newContext();
 
-  const response = await context.request.post(`${apiBaseUrl}/api/auth/login`, {
+  try {
+  const response = await context.post(`${apiBaseUrl}/api/auth/login`, {
     data: { email, password },
   });
 
   if (!response.ok()) {
-    await browser.close();
     throw new Error(
       `[global-setup] Login failed (${response.status()}): ${await response.text()}`,
     );
   }
 
   // Persist all cookies (the httpOnly refresh-token cookie is included here)
-  // and any localStorage the app may have written during the login response.
+  // for the subsequent browser session.
   await context.storageState({ path: AUTH_STATE_PATH });
-  await browser.close();
+  } finally {
+    await context.dispose();
+  }
 
   console.log(`[global-setup] Real session saved → ${AUTH_STATE_PATH}`);
 }

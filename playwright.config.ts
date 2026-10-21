@@ -1,26 +1,34 @@
 import { defineConfig, devices } from '@playwright/test';
+import type { TestOptions } from './tests/e2e/helpers/test-fixture';
 
 const REAL_AUTH_STATE = '.playwright-real-auth.json';
 
-export default defineConfig({
+export default defineConfig<TestOptions>({
   testDir: './tests/e2e',
   fullyParallel: true,
   retries: 0,
   reporter: 'list',
-  globalSetup: './tests/e2e/helpers/global-setup.ts',
   use: {
     baseURL: 'http://localhost:4200',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    ...(process.env['PLAYWRIGHT_CHANNEL'] ? { channel: process.env['PLAYWRIGHT_CHANNEL'] } : {}),
   },
   projects: [
     {
       name: 'chromium',
+      testIgnore: ['**/*.real.spec.ts', '**/*.setup.ts'],
       use: { ...devices['Desktop Chrome'] },
     },
     {
+      name: 'real-api-setup',
+      testMatch: '**/auth.setup.ts',
+    },
+    {
       name: 'chromium-real-api',
+      testMatch: '**/*.real.spec.ts',
+      dependencies: ['real-api-setup'],
       use: {
         ...devices['Desktop Chrome'],
         useMocks: false,
@@ -35,7 +43,7 @@ export default defineConfig({
   webServer: {
     command: 'npx ng serve --port 4200 --host 127.0.0.1',
     url: 'http://localhost:4200',
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env['CI'],
     timeout: 180000,
   },
 });
