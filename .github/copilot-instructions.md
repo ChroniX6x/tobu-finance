@@ -2,7 +2,7 @@
 
 ## Projekt-Überblick
 
-ToBu Finance ist eine Haushalts-App mit Angular 21 Frontend (`tobu-finance/`) und Express.js/Mongoose Backend (`tobu-finance-api/`).
+ToBu Finance ist eine Haushalts-App mit Angular 21 Frontend (`apps/web/`) und Express.js/Mongoose Backend (`apps/api/`) im npm-Workspace. Befehle vom Repository-Root ausführen; keine App-eigenen Installationen oder Lockdateien anlegen.
 
 - **Frontend:** Angular 21 (zoneless/signal-basiert), NGXS State, PrimeNG v21, Tailwind CSS
 - **Backend:** Express.js, Mongoose/MongoDB, Zod-Validierung, JWT-Auth
@@ -91,8 +91,8 @@ ToBu Finance ist eine Haushalts-App mit Angular 21 Frontend (`tobu-finance/`) un
 ## Kompilierung & Qualitätssicherung
 
 ### Nach jeder Implementierung prüfen
-1. `npx tsc --noEmit` → muss 0 Fehler zeigen
-2. `npx ng build --configuration development` → muss 0 Fehler zeigen
+1. `npm run typecheck` → muss 0 Fehler zeigen
+2. `npm run build` → muss 0 Fehler zeigen
 3. Bei Template-Fehlern: Angular-Build zeigt mehr als `tsc` allein
 
 ---
@@ -116,7 +116,7 @@ Nach Abschluss einer Phase **muss** ein unabhängiger Sub-Agent-Review stattfind
 
 ## Konzept- & Implementierungsdokumente
 
-- Konzept Planung-Page: `tobu-finance-api/docs/impl_doc/planning/to_bu_planung_page_konzept_v_1.md`
-- Taskliste Planung-Page: `tobu-finance-api/docs/impl_doc/planning/ToBu_Planung_Taskliste_Agent_Ready.md`
-- Referenz-Implementierung Layout: `src/app/accounts/account-management/master-data/master-data-page.component.ts`
-- Referenz-Implementierung State: `src/app/accounts/account-management/master-data/state/master-data-page.state.ts`
+- Konzept Planung-Page: `apps/api/docs/impl_doc/planning/to_bu_planung_page_konzept_v_1.md`
+- Taskliste Planung-Page: `apps/api/docs/impl_doc/planning/ToBu_Planung_Taskliste_Agent_Ready.md`
+- Referenz-Implementierung Layout: `apps/web/src/app/accounts/account-management/master-data/master-data-page.component.ts`
+- Referenz-Implementierung State: `apps/web/src/app/accounts/account-management/master-data/state/master-data-page.state.ts`

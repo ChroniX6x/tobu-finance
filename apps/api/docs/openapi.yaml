@@ -1,0 +1,1774 @@
+openapi: 3.0.3
+info:
+  title: ToBu-Finance API (v2 schema)
+  version: 1.0.1
+  description: |
+    REST API for ToBu-Finance using the v2 data model.
+    Conventions:
+      - ObjectIds are 24-hex strings
+      - Money values are integer minor units (e.g., cents)
+      - Month inputs are ISO 8601 strings in UTC normalized to the month anchor: first day 00:00:00.000Z
+servers:
+  - url: http://localhost:4000
+    description: Local dev
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                required: [ok]
+                example: { ok: true }
+
+  /health/migrations:
+    get:
+      summary: Migration health
+      description: Returns the list of pending migration names from Umzug.
+      responses:
+        '200':
+          description: Pending migrations
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pending]
+                properties:
+                  pending:
+                    type: array
+                    items:
+                      type: string
+
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account and returns an access token. Auto-login on success sets an HttpOnly refresh cookie.
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AuthRegisterRequest' }
+      responses:
+        '201':
+          description: User created and logged in
+          headers:
+            Set-Cookie:
+              description: HttpOnly refresh token cookie (`rt`; path=/api/auth/refresh)
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthValidationError' }
+        '409':
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: 'Email already in use' }
+
+  /api/auth/login:
+    post:
+      summary: Login
+      description: |
+        Authenticates the user with email + password and returns a short-lived access token.
+        Sets an HttpOnly refresh token cookie (`rt`) for subsequent token rotation.
+        This endpoint is rate-limited per IP.
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AuthLoginRequest' }
+      responses:
+        '200':
+          description: Logged in successfully
+          headers:
+            Set-Cookie:
+              description: HttpOnly refresh token cookie (`rt`; path=/api/auth/refresh)
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthValidationError' }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: 'Invalid credentials' }
+        '429':
+          description: Too many login attempts (rate limited)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+
+  /api/auth/refresh:
+    post:
+      summary: Refresh access token
+      description: |
+        Issues a new short-lived access token using the HttpOnly refresh cookie (`rt`).
+        Implements refresh-token rotation: the current session is revoked and a new session + cookie are issued.
+        If a previously revoked token is replayed, **all** sessions for that user are immediately revoked (reuse detection).
+      tags: [Auth]
+      security: []
+      parameters:
+        - in: cookie
+          name: rt
+          required: true
+          schema: { type: string }
+          description: HttpOnly refresh token cookie set by /register or /login
+      responses:
+        '200':
+          description: New access token issued
+          headers:
+            Set-Cookie:
+              description: Rotated HttpOnly refresh token cookie
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthRefreshResponse' }
+        '401':
+          description: Missing, invalid, expired, revoked, or replayed refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+
+  /api/auth/logout:
+    post:
+      summary: Logout
+      description: |
+        Revokes the current session identified by the refresh cookie (`rt`) and clears the cookie.
+        If no cookie is present, the endpoint still responds with 204 (idempotent).
+      tags: [Auth]
+      security: []
+      parameters:
+        - in: cookie
+          name: rt
+          required: false
+          schema: { type: string }
+          description: HttpOnly refresh token cookie. If present, the associated session is revoked.
+      responses:
+        '204':
+          description: Logged out — session revoked and cookie cleared
+
+  /api/members:
+    get:
+      summary: List members
+      parameters:
+        - in: query
+          name: userId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+      responses:
+        '200':
+          description: Members
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Member' }
+    post:
+      summary: Create member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MemberCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Member' }
+
+  /api/members/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    patch:
+      summary: Update member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MemberUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Member' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Delete member
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/accounts:
+    get:
+      summary: List accounts
+      parameters:
+        - in: query
+          name: memberId
+          description: Optional filter to return accounts where this member participates
+          schema: { $ref: '#/components/schemas/ObjectId' }
+      responses:
+        '200':
+          description: Accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Account' }
+    post:
+      summary: Create account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AccountCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+
+  /api/accounts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      summary: Get account by id
+      responses:
+        '200':
+          description: Account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      summary: Update account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AccountUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/accounts/{id}/expanded:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      summary: Get account with resolved dependencies
+      parameters:
+        - in: query
+          name: include
+          description: Comma-separated list of relations to include
+          schema:
+            type: string
+            example: "members,categories,transactions"
+        - in: query
+          name: from
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: to
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: status
+          description: Only applies to include=transactions
+          schema:
+            type: string
+            enum: [booked, pending]
+      responses:
+        '200':
+          description: Expanded account bundle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account: { $ref: '#/components/schemas/Account' }
+                  members:
+                    type: array
+                    items: { $ref: '#/components/schemas/Member' }
+                  categories:
+                    type: array
+                    items: { $ref: '#/components/schemas/Category' }
+                  transactions:
+                    type: array
+                    items: { $ref: '#/components/schemas/Transaction' }
+                  memberIncomes:
+                    type: array
+                    items: { $ref: '#/components/schemas/MemberIncome' }
+                  carryovers:
+                    type: array
+                    items: { $ref: '#/components/schemas/CarryOver' }
+                  accountBalances:
+                    type: array
+                    items: { $ref: '#/components/schemas/AccountBalance' }
+                  categoryBudgets:
+                    type: array
+                    items: { $ref: '#/components/schemas/CategoryBudget' }
+                  recurrences:
+                    type: array
+                    items: { $ref: '#/components/schemas/Recurrence' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/accounts/{id}/members:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    post:
+      summary: Add or update a member's role on the account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AccountMemberAdd' }
+      responses:
+        '200':
+          description: Updated account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+
+  /api/accounts/{id}/members/{memberId}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - name: memberId
+        in: path
+        required: true
+        schema: { $ref: '#/components/schemas/ObjectId' }
+    delete:
+      summary: Remove member from account
+      responses:
+        '200':
+          description: Updated account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/categories:
+    get:
+      summary: List categories
+      parameters:
+        - in: query
+          name: accountId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+      responses:
+        '200':
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Category' }
+    post:
+      summary: Create category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+
+  /api/categories/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    patch:
+      summary: Update category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Delete category
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/transactions:
+    get:
+      summary: List transactions
+      parameters:
+        - in: query
+          name: accountId
+          required: true
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: month
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: monthFrom
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: monthTo
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [booked, pending]
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [bookDateDesc, bookDateAsc, amountDesc, amountAsc]
+            default: bookDateDesc
+        - in: query
+          name: q
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 200
+          description: 'Phase 1: searches title and notes of parent transactions only.'
+        - in: query
+          name: parentTransactionId
+          schema:
+            type: string
+          description: 'Pass "null" (or omit) to list top-level parents only (default). Pass an ObjectId to list children of that parent. The autocomplete usecase uses accountId + q + parentTransactionId=null.'
+      responses:
+        '200':
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/TransactionWithChildren' }
+                  total: { type: integer }
+                  page: { type: integer }
+                  pageSize: { type: integer }
+    post:
+      summary: Create transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransactionCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transaction' }
+
+  /api/transactions/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    patch:
+      summary: Update transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransactionUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transaction' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Delete transaction
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/recurrences:
+    get:
+      summary: List recurrences
+      parameters:
+        - in: query
+          name: accountId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: activeOn
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: nextFrom
+          schema: { type: string, format: date-time }
+        - in: query
+          name: nextTo
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Recurrences
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Recurrence' }
+    post:
+      summary: Create recurrence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecurrenceCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Recurrence' }
+
+  /api/recurrences/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    patch:
+      summary: Update recurrence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecurrenceUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Recurrence' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Delete recurrence
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/member-incomes:
+    get:
+      summary: List member incomes
+      parameters:
+        - in: query
+          name: accountId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: memberId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: from
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: to
+          schema: { $ref: '#/components/schemas/Month' }
+      responses:
+        '200':
+          description: Incomes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MemberIncome' }
+    post:
+      summary: Create member income
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MemberIncomeCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MemberIncome' }
+        '409':
+          description: Income time range overlaps with an existing income for this member
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string, example: INCOME_OVERLAP }
+                  message: { type: string }
+
+  /api/member-incomes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    patch:
+      summary: Update member income
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MemberIncomeUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MemberIncome' }
+        '409':
+          description: Income time range overlaps with an existing income for this member
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string, example: INCOME_OVERLAP }
+                  message: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Delete member income
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/contribution-rules:
+    get:
+      summary: List contribution rules
+      parameters:
+        - in: query
+          name: accountId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: month
+          description: Return rules active on the given month
+          schema: { $ref: '#/components/schemas/Month' }
+      responses:
+        '200':
+          description: Rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ContributionRule' }
+    post:
+      summary: Create rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ContributionRuleCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ContributionRule' }
+
+  /api/contribution-rules/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    patch:
+      summary: Update contribution rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ContributionRuleUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ContributionRule' }
+        '403':
+          description: Base rules cannot be modified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string, example: BASE_RULE_IMMUTABLE }
+                  message: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Delete contribution rule
+      responses:
+        '204': { description: Deleted }
+        '403':
+          description: Base rules cannot be modified or deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string, example: BASE_RULE_IMMUTABLE }
+                  message: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/carryovers:
+    get:
+      summary: List carryovers
+      parameters:
+        - in: query
+          name: accountId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: memberId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: from
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: to
+          schema: { $ref: '#/components/schemas/Month' }
+      responses:
+        '200':
+          description: Carryovers
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CarryOver' }
+    put:
+      summary: Upsert carryover (by accountId+memberId+month)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CarryOverUpsert' }
+      responses:
+        '200':
+          description: Upserted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CarryOver' }
+
+  /api/carryovers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    delete:
+      summary: Delete carryover by id
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/account-balances:
+    get:
+      summary: List account balances
+      parameters:
+        - in: query
+          name: accountId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: from
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: to
+          schema: { $ref: '#/components/schemas/Month' }
+      responses:
+        '200':
+          description: Balances
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AccountBalance' }
+    put:
+      summary: Upsert account balance (by accountId+month)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AccountBalanceUpsert' }
+      responses:
+        '200':
+          description: Upserted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountBalance' }
+
+  /api/account-balances/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    delete:
+      summary: Delete balance by id
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/category-budgets:
+    get:
+      summary: List category budgets
+      parameters:
+        - in: query
+          name: accountId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: categoryId
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: from
+          schema: { $ref: '#/components/schemas/Month' }
+        - in: query
+          name: to
+          schema: { $ref: '#/components/schemas/Month' }
+      responses:
+        '200':
+          description: Budgets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CategoryBudget' }
+    post:
+      summary: Create category budget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryBudgetCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryBudget' }
+        '409':
+          description: Budget time range overlaps with an existing budget for this category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string, example: BUDGET_OVERLAP }
+                  message: { type: string }
+
+  /api/category-budgets/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    patch:
+      summary: Update category budget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryBudgetUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CategoryBudget' }
+        '409':
+          description: Budget time range overlaps with an existing budget for this category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string, example: BUDGET_OVERLAP }
+                  message: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Delete category budget
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/accounts/summary:
+    get:
+      summary: Get accounts summary for a user/member
+      description: Returns a summary view of all accounts where the user participates, including balance history and staleness information.
+      parameters:
+        - in: query
+          name: userId
+          description: Resolve all memberIds of this user and return their accounts
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: memberId
+          description: Return accounts where this memberId participates (alternative to userId)
+          schema: { $ref: '#/components/schemas/ObjectId' }
+        - in: query
+          name: months
+          description: Number of months in balanceHistory (oldest->newest)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+            default: 5
+      responses:
+        '200':
+          description: Accounts summary
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountsSummaryItem'
+  /api/accounts/{id}/overview:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      summary: Account overview (analytics)
+      description: Aggregated KPIs, charts, insights and timeline for the given account.
+      responses:
+        '200':
+          description: Overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOverview'
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/accounts/{accountId}/planning:
+    parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema: { $ref: '#/components/schemas/ObjectId' }
+    get:
+      summary: Planning read-model
+      description: |
+        Returns a fully-calculated planning read-model for an account:
+        - Overview KPIs (active budget sum, contribution block count, proRata status)
+        - All category budgets with active/overlap status
+        - Per-member income with active entry and history
+        - Contribution blocks (base + additional) active in the reference month
+        - Special blocks (topup) active in the reference month
+        - Preview of planned member dues for the reference month
+        - Planning hints (missing income, budget conflicts, etc.)
+        Defaults to the current calendar month when `month` is omitted.
+      tags: [Accounts]
+      parameters:
+        - in: query
+          name: month
+          required: false
+          description: Reference month in YYYY-MM format. Defaults to current month.
+          schema:
+            $ref: '#/components/schemas/Month'
+      responses:
+        '200':
+          description: Planning read-model
+          content:
+            application/json:
+              schema:
+                type: object
+                description: AccountPlanningResponse
+        '400':
+          description: Invalid account ID or month format
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/accounts/{id}/month-view:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      summary: Month view read-model
+      description: |
+        Returns a fully-calculated month read-model:
+        - KPIs (total due, paid, spent, carryover)
+        - Per-member contribution status with open amounts
+        - Category spend vs budget with status
+        - Contribution rule breakdown with per-member distribution
+        - Member incomes with income weights
+        - Carryovers for the month
+        Defaults to the current calendar month when `month` is omitted.
+      tags: [Accounts]
+      parameters:
+        - in: query
+          name: month
+          required: false
+          description: Target month in YYYY-MM format. Defaults to current month.
+          schema:
+            $ref: '#/components/schemas/Month'
+      responses:
+        '200':
+          description: Month view read-model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthViewResponse'
+        '400':
+          description: Invalid account ID or month format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Short-lived RS256 access token. Pass as `Authorization: Bearer <token>`."
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/ObjectId' }
+
+  responses:
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string, example: 'NOT_FOUND' }
+
+  schemas:
+    ObjectId:
+      type: string
+      pattern: "^[a-fA-F\\d]{24}$"
+      example: "60d21b4667d0d8992e610c85"
+    Month:
+      type: string
+      pattern: "^\\d{4}-(0[1-9]|1[0-2])$"
+      example: "2025-08"
+
+    # --- Auth ---
+    AuthUser:
+      type: object
+      required: [id, email, roles]
+      properties:
+        id: { type: string, description: User ObjectId }
+        email: { type: string, format: email }
+        name: { type: string, nullable: true }
+        roles:
+          type: array
+          items: { type: string }
+          example: [user]
+    AuthRegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        name: { type: string, minLength: 2, maxLength: 64, nullable: true }
+        password: { type: string, format: password, minLength: 8, maxLength: 128 }
+    AuthLoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password, minLength: 8, maxLength: 128 }
+    AuthTokenResponse:
+      type: object
+      required: [accessToken, user]
+      properties:
+        accessToken: { type: string, description: Short-lived RS256 JWT access token }
+        user: { $ref: '#/components/schemas/AuthUser' }
+    AuthRefreshResponse:
+      type: object
+      required: [accessToken]
+      properties:
+        accessToken: { type: string, description: New short-lived RS256 JWT access token }
+    AuthValidationError:
+      type: object
+      description: Zod validation error (flatten output)
+      properties:
+        error:
+          type: object
+          properties:
+            formErrors:
+              type: array
+              items: { type: string }
+            fieldErrors:
+              type: object
+              additionalProperties:
+                type: array
+                items: { type: string }
+    Split:
+      type: object
+      required: [memberId, split]
+      properties:
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+        split:
+          type: number
+          minimum: 0
+          maximum: 100
+
+    Member:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        name: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        userId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+    MemberCreate:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        userId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+    MemberUpdate:
+      allOf: [ { $ref: '#/components/schemas/MemberCreate' } ]
+
+    AccountMember:
+      type: object
+      required: [memberId]
+      properties:
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+        role: { type: string, enum: [owner, member], default: member }
+    Account:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        name: { type: string, nullable: true }
+        currency: { type: string, example: EUR }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/AccountMember' }
+        settings:
+          type: object
+          properties:
+            monthGranularity: { type: string, example: "YYYY-MM" }
+    AccountCreate:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        currency: { type: string, example: EUR, default: EUR }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/AccountMember' }
+        settings:
+          type: object
+          properties:
+            monthGranularity: { type: string, example: "YYYY-MM" }
+    AccountUpdate:
+      allOf: [ { $ref: '#/components/schemas/AccountCreate' } ]
+    AccountMemberAdd:
+      type: object
+      required: [memberId]
+      properties:
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+        role: { type: string, enum: [owner, member], default: member }
+
+    Category:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        name: { type: string, nullable: true }
+        customSplit:
+          type: array
+          items: { $ref: '#/components/schemas/Split' }
+    CategoryCreate:
+      type: object
+      required: [accountId]
+      properties:
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        name: { type: string, nullable: true }
+        customSplit:
+          type: array
+          items: { $ref: '#/components/schemas/Split' }
+    CategoryUpdate:
+      allOf: [ { $ref: '#/components/schemas/CategoryCreate' } ]
+
+    Transaction:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        categoryId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        title: { type: string, minLength: 2, maxLength: 80 }
+        notes: { type: string, maxLength: 1000, nullable: true }
+        type: { type: string, enum: [income, expense] }
+        amountMinor: { type: integer, minimum: 0 }
+        month: { type: string, format: date-time, description: 'Derived month anchor (YYYY-MM-01T00:00:00.000Z). Required, never null.' }
+        bookDate: { type: string, format: date-time, nullable: true, description: 'Required when status=booked.' }
+        status: { type: string, enum: [booked, pending], default: pending }
+        isFromSharedAccount: { type: boolean, description: 'Required. true=shared account, false=private (paidByMemberId required).' }
+        paidByMemberId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        parentTransactionId: { $ref: '#/components/schemas/ObjectId', nullable: true, description: 'Set for child (split) transactions. Max depth 1.' }
+        recurrenceId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+    TransactionWithChildren:
+      description: 'Transaction as returned by the list endpoint. Parents include an embedded children array (never null, empty array when no splits). Children are plain Transaction objects (no further nesting).'
+      allOf:
+        - $ref: '#/components/schemas/Transaction'
+        - type: object
+          properties:
+            children:
+              type: array
+              items: { $ref: '#/components/schemas/Transaction' }
+              description: 'Direct child (split) transactions. Always present on parent rows; omitted / empty on child rows.'
+    TransactionCreate:
+      type: object
+      required: [accountId, type, amountMinor, title, isFromSharedAccount]
+      description: |
+        Either bookDate or month must be provided.
+        If status=booked, bookDate is required.
+        If isFromSharedAccount=false, paidByMemberId is required.
+        If parentTransactionId is set (child): type/isFromSharedAccount/paidByMemberId/status/bookDate/month are inherited from parent.
+      properties:
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        categoryId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        title: { type: string, minLength: 2, maxLength: 80 }
+        notes: { type: string, maxLength: 1000, nullable: true }
+        type: { type: string, enum: [income, expense] }
+        amountMinor: { type: integer, minimum: 0 }
+        month: { $ref: '#/components/schemas/Month', description: 'Required when bookDate is absent.' }
+        bookDate: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [booked, pending], default: pending }
+        isFromSharedAccount: { type: boolean }
+        paidByMemberId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        parentTransactionId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        recurrenceId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+    TransactionUpdate:
+      type: object
+      description: |
+        All fields optional (partial update).
+        Cross-field rules from TransactionCreate still apply to the merged (next) state.
+        Children may not update type, isFromSharedAccount, or paidByMemberId.
+      properties:
+        categoryId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        title: { type: string, minLength: 2, maxLength: 80 }
+        notes: { type: string, maxLength: 1000, nullable: true }
+        type: { type: string, enum: [income, expense] }
+        amountMinor: { type: integer, minimum: 0 }
+        month: { $ref: '#/components/schemas/Month' }
+        bookDate: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [booked, pending] }
+        isFromSharedAccount: { type: boolean }
+        paidByMemberId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        recurrenceId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+
+    RecurrenceSchedule:
+      type: object
+      properties:
+        freq: { type: string, enum: [monthly], default: monthly }
+        dayOfMonth: { type: integer, minimum: 1, maximum: 28, default: 1 }
+    Recurrence:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        categoryId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        title: { type: string, nullable: true }
+        type: { type: string, enum: [income, expense] }
+        amountMinor: { type: integer, minimum: 0 }
+        schedule: { $ref: '#/components/schemas/RecurrenceSchedule' }
+        activeFrom: { type: string, format: date-time }
+        activeUntil: { type: string, format: date-time, nullable: true }
+        createdByMemberId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        nextPlanned: { type: string, format: date-time, nullable: true }
+        lastEmitted: { type: string, format: date-time, nullable: true }
+    RecurrenceCreate:
+      type: object
+      required: [accountId, type, amountMinor]
+      properties:
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        categoryId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        title: { type: string, nullable: true }
+        type: { type: string, enum: [income, expense] }
+        amountMinor: { type: integer, minimum: 0 }
+        schedule: { $ref: '#/components/schemas/RecurrenceSchedule' }
+        activeFrom: { $ref: '#/components/schemas/Month' }
+        activeUntil: { $ref: '#/components/schemas/Month' }
+        createdByMemberId: { $ref: '#/components/schemas/ObjectId', nullable: true }
+        nextPlanned: { type: string, format: date-time, nullable: true }
+        lastEmitted: { type: string, format: date-time, nullable: true }
+    RecurrenceUpdate:
+      allOf: [ { $ref: '#/components/schemas/RecurrenceCreate' } ]
+
+    MemberIncome:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+        amountMinor: { type: integer, minimum: 0 }
+        fromMonth: { type: string, format: date-time, nullable: true }
+        toMonth: { type: string, format: date-time, nullable: true }
+        source: { type: string, nullable: true }
+        note: { type: string, nullable: true }
+    MemberIncomeCreate:
+      type: object
+      required: [accountId, memberId, amountMinor]
+      properties:
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+        amountMinor: { type: integer, minimum: 0 }
+        fromMonth: { $ref: '#/components/schemas/Month' }
+        toMonth: { $ref: '#/components/schemas/Month' }
+        source: { type: string, nullable: true }
+        note: { type: string, nullable: true }
+    MemberIncomeUpdate:
+      allOf: [ { $ref: '#/components/schemas/MemberIncomeCreate' } ]
+
+    ContributionDistributionPerMember:
+      type: object
+      required: [mode, memberId]
+      properties:
+        mode: { type: string, enum: [perMember] }
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+    ContributionDistributionCustom:
+      type: object
+      required: [mode, customSplit]
+      properties:
+        mode: { type: string, enum: [customSplit] }
+        customSplit:
+          type: array
+          items: { $ref: '#/components/schemas/Split' }
+    ContributionDistributionProRataIncome:
+      type: object
+      required: [mode]
+      properties:
+        mode: { type: string, enum: [proRataIncome] }
+    ContributionDistribution:
+      oneOf:
+        - $ref: '#/components/schemas/ContributionDistributionPerMember'
+        - $ref: '#/components/schemas/ContributionDistributionCustom'
+        - $ref: '#/components/schemas/ContributionDistributionProRataIncome'
+      discriminator:
+        propertyName: mode
+        mapping:
+          perMember: '#/components/schemas/ContributionDistributionPerMember'
+          customSplit: '#/components/schemas/ContributionDistributionCustom'
+          proRataIncome: '#/components/schemas/ContributionDistributionProRataIncome'
+    ContributionRule:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        type: { type: string, enum: [base, additional, topup] }
+        recurring: { type: boolean }
+        description: { type: string, nullable: true }
+        amountMinor: { type: integer, minimum: 0 }
+        distribution: { $ref: '#/components/schemas/ContributionDistribution' }
+        fromMonth: { type: string, format: date-time, nullable: true }
+        toMonth: { type: string, format: date-time, nullable: true }
+        meta:
+          type: object
+          properties:
+            legacyTopUpDate: { type: string, nullable: true }
+    ContributionRuleCreate:
+      type: object
+      required: [accountId, type, recurring, amountMinor, distribution]
+      properties:
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        type: { type: string, enum: [base, additional, topup] }
+        recurring: { type: boolean }
+        description: { type: string, nullable: true }
+        amountMinor: { type: integer, minimum: 0 }
+        distribution: { $ref: '#/components/schemas/ContributionDistribution' }
+        fromMonth: { $ref: '#/components/schemas/Month' }
+        toMonth: { $ref: '#/components/schemas/Month' }
+        meta:
+          type: object
+          properties:
+            legacyTopUpDate: { type: string, nullable: true }
+    ContributionRuleUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ContributionRuleCreate'
+
+    CarryOver:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+        month: { type: string, format: date-time }
+        amountMinor:
+          type: integer
+          description: May be negative
+        reason: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time, nullable: true }
+
+    CarryOverUpsert:
+      type: object
+      required: [accountId, memberId, month, amountMinor]
+      properties:
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+        month: { $ref: '#/components/schemas/Month' }
+        amountMinor:
+          type: integer
+          description: May be negative
+        reason: { type: string, nullable: true }
+
+    AccountBalance:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        month: { type: string, format: date-time }
+        closingBalanceMinor:
+          type: integer
+          description: May be negative
+    AccountBalanceUpsert:
+      type: object
+      required: [accountId, month, closingBalanceMinor]
+      properties:
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        month: { $ref: '#/components/schemas/Month' }
+        closingBalanceMinor:
+          type: integer
+          description: May be negative
+
+    CategoryBudget:
+      type: object
+      properties:
+        _id: { $ref: '#/components/schemas/ObjectId' }
+        accountId: { $ref: '#/components/schemas/ObjectId' }
+        categoryId: { $ref: '#/components/schemas/ObjectId' }
+        amountMinor: { type: integer, minimum: 0 }
+        fromMonth: { type: string, format: date-time, nullable: true }
+        toMonth: { type: string, format: date-time, nullable: true }
+
+    AccountsSummaryItem:
+      type: object
+      required: [id, name, memberCount, currentBalanceMinor, currentMonth, stalenessDays, isStale, balanceHistoryMinor, missingMonths]
+      properties:
+        id:
+          type: string
+          description: Account ObjectId (string)
+          example: "60d21b4667d0d8992e610c85"
+        name:
+          type: string
+          nullable: true
+        memberCount:
+          type: integer
+          minimum: 0
+        currentBalanceMinor:
+          type: integer
+          description: Closing balance of the latest reliable month in minor units
+          example: 123456
+        currentMonth:
+          type: string
+          format: date-time
+          description: ISO date of the last reliable balance month
+        stalenessDays:
+          type: integer
+          description: Days since the end of the last reliable balance month
+        isStale:
+          type: boolean
+          description: Whether the account data is considered stale
+        balanceHistoryMinor:
+          type: array
+          description: Monthly closing balances in minor units for the requested window (only months with data)
+          items:
+            type: integer
+          example: [100000, 105000, 99000, 120000, 123456]
+        missingMonths:
+          type: array
+          description: ISO dates of months in the requested window that have no balance data
+          items:
+            type: string
+            format: date-time
+
+    AccountOverview:
+      type: object
+      required: [account, members, quickStats, charts, insights, timeline]
+      properties:
+        account:
+          $ref: '#/components/schemas/AccountOverviewAccount'
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountOverviewMember'
+        quickStats:
+          $ref: '#/components/schemas/AccountOverviewQuickStats'
+        charts:
+          $ref: '#/components/schemas/AccountOverviewCharts'
+        insights:
+          type: array
+          description: Insight objects; shape may vary by rule. Keys are not strictly specified.
+          items:
+            $ref: '#/components/schemas/Insight'
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineEvent'
+
+    AccountOverviewAccount:
+      type: object
+      required: [id, currentMonth, currentBalanceMinor, stalenessDays, isStale, missingMonths, balanceChangePct, forecastMinor]
+      properties:
+        id:
+          type: string
+          description: Account ObjectId (string)
+          example: "60d21b4667d0d8992e610c85"
+        name: { type: string, nullable: true }
+        currentMonth: { type: string, format: date-time }
+        currentBalanceMinor: { type: integer }
+        stalenessDays: { type: integer }
+        isStale: { type: boolean }
+        missingMonths:
+          type: array
+          items: { type: string, format: date-time }
+        balanceChangePct: { type: number }
+        forecastMinor: { type: integer }
+        warning: { type: string, nullable: true }
+
+    AccountOverviewMember:
+      type: object
+      required: [id, monthlyDueMinor, paidAmountMinor, paid]
+      properties:
+        id: { $ref: '#/components/schemas/ObjectId' }
+        name: { type: string, nullable: true }
+        role: { type: string, enum: [owner, member], nullable: true }
+        avatar: { type: string, nullable: true }
+        monthlyDueMinor: { type: integer }
+        paidAmountMinor: { type: integer }
+        paid: { type: boolean }
+
+    AccountOverviewQuickStats:
+      type: object
+      required: [openDuesCount, pendingRecurringCount, extraContributionsCount, extraContributionsSumMinor, warningsCount]
+      properties:
+        openDuesCount: { type: integer }
+        pendingRecurringCount: { type: integer }
+        extraContributionsCount: { type: integer }
+        extraContributionsSumMinor: { type: integer }
+        warningsCount: { type: integer }
+
+    AccountOverviewCharts:
+      type: object
+      required: [history, incomeVsExpenseMinor, topCategories]
+      properties:
+        history:
+          $ref: '#/components/schemas/AccountOverviewChartHistory'
+        incomeVsExpenseMinor:
+          $ref: '#/components/schemas/AccountOverviewChartIncomeVsExpenseMinor'
+        topCategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountOverviewTopCategory'
+
+    AccountOverviewChartHistory:
+      type: object
+      required: [labels, data]
+      properties:
+        labels:
+          type: array
+          description: Month anchors (ISO)
+          items: { type: string, format: date-time }
+        data:
+          type: array
+          description: Monthly closing balances in minor units (forward-filled), oldest to newest
+          items: { type: integer }
+
+    AccountOverviewChartIncomeVsExpenseMinor:
+      type: object
+      required: [incomeMinor, expenseMinor]
+      properties:
+        incomeMinor: { type: integer }
+        expenseMinor: { type: integer }
+
+    AccountOverviewTopCategory:
+      type: object
+      required: [sumMinor]
+      properties:
+        name: { type: string, nullable: true }
+        sumMinor: { type: integer }
+
+    Insight:
+      type: object
+      description: Generic insight entry. Exact fields depend on the insight kind.
+      properties:
+        kind: { type: string, description: Severity or category, e.g., info, warning, critical }
+        message: { type: string, nullable: true }
+      additionalProperties: true
+
+    TimelineEvent:
+      type: object
+      required: [id, date, text]
+      properties:
+        id: { $ref: '#/components/schemas/ObjectId' }
+        date: { type: string, format: date-time }
+        user: { type: string, nullable: true }
+        text: { type: string }
+
+    # --- Month View ---
+    MonthViewResponse:
+      type: object
+      required: [account, kpis, members, categories, contributionBreakdown, memberIncomes, carryovers]
+      properties:
+        account:
+          $ref: '#/components/schemas/MonthViewAccount'
+        kpis:
+          $ref: '#/components/schemas/MonthViewKpis'
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthViewMember'
+        categories:
+          type: array
+          description: Categories with spend vs budget status, sorted by spend descending
+          items:
+            $ref: '#/components/schemas/MonthViewCategory'
+        contributionBreakdown:
+          type: array
+          description: Per-rule contribution detail with per-member distribution
+          items:
+            $ref: '#/components/schemas/MonthViewContributionRule'
+        memberIncomes:
+          type: array
+          description: Member incomes active in the month with income weights
+          items:
+            $ref: '#/components/schemas/MonthViewMemberIncome'
+        carryovers:
+          type: array
+          description: Carryover entries for the month
+          items:
+            $ref: '#/components/schemas/MonthViewCarryover'
+
+    MonthViewAccount:
+      type: object
+      required: [id, monthIso]
+      properties:
+        id: { $ref: '#/components/schemas/ObjectId' }
+        name: { type: string, nullable: true }
+        monthIso:
+          type: string
+          description: The resolved target month in YYYY-MM format
+          example: "2025-08"
+
+    MonthViewKpis:
+      type: object
+      required: [totalDueMinor, totalPaidMinor, totalSpentMinor, carryoverTotalMinor]
+      properties:
+        totalDueMinor:
+          type: integer
+          description: Sum of all active contribution rules for this month (minor units)
+        totalPaidMinor:
+          type: integer
+          description: Sum of booked income transactions in this month (minor units)
+        totalSpentMinor:
+          type: integer
+          description: Sum of booked expense transactions in this month (minor units)
+        carryoverTotalMinor:
+          type: integer
+          description: Sum of all member carryovers for this month (can be negative)
+
+    MonthViewMember:
+      type: object
+      required: [id, role, monthlyDueMinor, paidAmountMinor, openAmountMinor, paid, carryoverMinor]
+      properties:
+        id: { $ref: '#/components/schemas/ObjectId' }
+        name: { type: string, nullable: true }
+        avatar: { type: string, nullable: true }
+        role: { type: string, enum: [owner, member] }
+        monthlyDueMinor:
+          type: integer
+          description: Calculated monthly contribution amount for this member (minor units)
+        paidAmountMinor:
+          type: integer
+          description: Sum of booked income transactions by this member (minor units)
+        openAmountMinor:
+          type: integer
+          description: Remaining unpaid amount (max(0, due – paid)) in minor units
+        paid:
+          type: boolean
+          description: True when paidAmountMinor >= monthlyDueMinor (and due > 0)
+        carryoverMinor:
+          type: integer
+          description: Carryover amount for this member in this month (can be negative)
+
+    MonthViewCategory:
+      type: object
+      required: [id, spentMinor, status]
+      properties:
+        id: { $ref: '#/components/schemas/ObjectId' }
+        name: { type: string, nullable: true }
+        spentMinor:
+          type: integer
+          description: Sum of booked expenses in this category for the month
+        budgetMinor:
+          type: integer
+          nullable: true
+          description: Active budget for this category in this month. Null when no budget defined.
+        status:
+          type: string
+          enum: [ok, over, no_budget]
+          description: ok = within budget, over = over budget, no_budget = no budget defined
+
+    MonthViewContributionRule:
+      type: object
+      required: [ruleId, type, amountMinor, distributionMode, perMember]
+      properties:
+        ruleId: { $ref: '#/components/schemas/ObjectId' }
+        description: { type: string, nullable: true }
+        type:
+          type: string
+          enum: [base, additional, topup]
+        amountMinor: { type: integer }
+        distributionMode:
+          type: string
+          enum: [perMember, customSplit, proRataIncome]
+        perMember:
+          type: object
+          description: Map of memberId -> calculated amount in minor units
+          additionalProperties: { type: integer }
+
+    MonthViewMemberIncome:
+      type: object
+      required: [memberId, amountMinor, weight]
+      properties:
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+        amountMinor:
+          type: integer
+          description: Sum of active income records for this member (minor units)
+        weight:
+          type: number
+          format: float
+          description: Proportional income weight (0–1) used for proRataIncome distribution
+
+    MonthViewCarryover:
+      type: object
+      required: [memberId, amountMinor]
+      properties:
+        memberId: { $ref: '#/components/schemas/ObjectId' }
+        amountMinor:
+          type: integer
+          description: Carryover amount in minor units (can be negative)
+        reason: { type: string }
+

@@ -1,0 +1,508 @@
+{
+  "web": {
+    "@angular/animations": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "dependencies"
+    },
+    "@angular/cdk": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "dependencies"
+    },
+    "@angular/common": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "dependencies"
+    },
+    "@angular/compiler": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "dependencies"
+    },
+    "@angular/core": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "dependencies"
+    },
+    "@angular/forms": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "dependencies"
+    },
+    "@angular/platform-browser": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "dependencies"
+    },
+    "@angular/platform-browser-dynamic": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "dependencies"
+    },
+    "@angular/router": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "dependencies"
+    },
+    "@ngxs/devtools-plugin": {
+      "range": "^21.0.0",
+      "version": "21.0.0",
+      "group": "dependencies"
+    },
+    "@ngxs/logger-plugin": {
+      "range": "^21.0.0",
+      "version": "21.0.0",
+      "group": "dependencies"
+    },
+    "@ngxs/router-plugin": {
+      "range": "^21.0.0",
+      "version": "21.0.0",
+      "group": "dependencies"
+    },
+    "@ngxs/store": {
+      "range": "^21.0.0",
+      "version": "21.0.0",
+      "group": "dependencies"
+    },
+    "@primeuix/themes": {
+      "range": "^2.0.0",
+      "version": "2.0.3",
+      "group": "dependencies"
+    },
+    "@tailwindcss/postcss": {
+      "range": "^4.1.11",
+      "version": "4.1.11",
+      "group": "dependencies"
+    },
+    "@types/luxon": {
+      "range": "^3.6.2",
+      "version": "3.6.2",
+      "group": "dependencies"
+    },
+    "chart.js": {
+      "range": "4.4.2",
+      "version": "4.4.2",
+      "group": "dependencies"
+    },
+    "immer": {
+      "range": "10.1.1",
+      "version": "10.1.1",
+      "group": "dependencies"
+    },
+    "lodash": {
+      "range": "^4.17.21",
+      "version": "4.17.21",
+      "group": "dependencies"
+    },
+    "luxon": {
+      "range": "^3.7.1",
+      "version": "3.7.1",
+      "group": "dependencies"
+    },
+    "mongodb": {
+      "range": "^6.17.0",
+      "version": "6.17.0",
+      "group": "dependencies"
+    },
+    "postcss": {
+      "range": "^8.5.6",
+      "version": "8.5.6",
+      "group": "dependencies"
+    },
+    "primeclt": {
+      "range": "^0.1.5",
+      "version": "0.1.5",
+      "group": "dependencies"
+    },
+    "primeicons": {
+      "range": "^7.0.0",
+      "version": "7.0.0",
+      "group": "dependencies"
+    },
+    "primeng": {
+      "range": "^21.0.4",
+      "version": "21.1.1",
+      "group": "dependencies"
+    },
+    "quill": {
+      "range": "^2.0.3",
+      "version": "2.0.3",
+      "group": "dependencies"
+    },
+    "rxjs": {
+      "range": "~7.8.0",
+      "version": "7.8.2",
+      "group": "dependencies"
+    },
+    "tailwindcss-primeui": {
+      "range": "^0.6.1",
+      "version": "0.6.1",
+      "group": "dependencies"
+    },
+    "tslib": {
+      "range": "^2.8.1",
+      "version": "2.8.1",
+      "group": "dependencies"
+    },
+    "uuid": {
+      "range": "^11.1.0",
+      "version": "11.1.0",
+      "group": "dependencies"
+    },
+    "@angular/build": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "devDependencies"
+    },
+    "@angular/cli": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "devDependencies"
+    },
+    "@angular/compiler-cli": {
+      "range": "^21",
+      "version": "21.2.0",
+      "group": "devDependencies"
+    },
+    "@types/jasmine": {
+      "range": "~5.1.0",
+      "version": "5.1.8",
+      "group": "devDependencies"
+    },
+    "@types/lodash": {
+      "range": "^4.17.20",
+      "version": "4.17.20",
+      "group": "devDependencies"
+    },
+    "@playwright/test": {
+      "range": "^1.54.2",
+      "version": "1.58.2",
+      "group": "devDependencies"
+    },
+    "jasmine-core": {
+      "range": "~5.8.0",
+      "version": "5.8.0",
+      "group": "devDependencies"
+    },
+    "karma": {
+      "range": "~6.4.0",
+      "version": "6.4.4",
+      "group": "devDependencies"
+    },
+    "karma-chrome-launcher": {
+      "range": "~3.2.0",
+      "version": "3.2.0",
+      "group": "devDependencies"
+    },
+    "karma-coverage": {
+      "range": "~2.2.0",
+      "version": "2.2.1",
+      "group": "devDependencies"
+    },
+    "karma-jasmine": {
+      "range": "~5.1.0",
+      "version": "5.1.0",
+      "group": "devDependencies"
+    },
+    "karma-jasmine-html-reporter": {
+      "range": "~2.1.0",
+      "version": "2.1.0",
+      "group": "devDependencies"
+    },
+    "tailwindcss": {
+      "range": "^4.1.11",
+      "version": "4.1.11",
+      "group": "devDependencies"
+    },
+    "typescript": {
+      "range": "~5.9.3",
+      "version": "5.9.3",
+      "group": "devDependencies"
+    }
+  },
+  "api": {
+    "argon2": {
+      "range": "^0.44.0",
+      "version": "0.44.0",
+      "group": "dependencies"
+    },
+    "cookie-parser": {
+      "range": "^1.4.7",
+      "version": "1.4.7",
+      "group": "dependencies"
+    },
+    "cors": {
+      "range": "^2.8.5",
+      "version": "2.8.5",
+      "group": "dependencies"
+    },
+    "dotenv": {
+      "range": "^17.2.3",
+      "version": "17.2.3",
+      "group": "dependencies"
+    },
+    "express": {
+      "range": "^5.1.0",
+      "version": "5.1.0",
+      "group": "dependencies"
+    },
+    "express-rate-limit": {
+      "range": "^8.1.0",
+      "version": "8.1.0",
+      "group": "dependencies"
+    },
+    "helmet": {
+      "range": "^8.1.0",
+      "version": "8.1.0",
+      "group": "dependencies"
+    },
+    "jsonwebtoken": {
+      "range": "^9.0.2",
+      "version": "9.0.2",
+      "group": "dependencies"
+    },
+    "luxon": {
+      "range": "^3.7.1",
+      "version": "3.7.1",
+      "group": "dependencies"
+    },
+    "mongodb": {
+      "range": "^6.18.0",
+      "version": "6.20.0",
+      "group": "dependencies"
+    },
+    "mongoose": {
+      "range": "^8.19.1",
+      "version": "8.19.1",
+      "group": "dependencies"
+    },
+    "morgan": {
+      "range": "^1.10.1",
+      "version": "1.10.1",
+      "group": "dependencies"
+    },
+    "swagger-ui-express": {
+      "range": "^5.0.1",
+      "version": "5.0.1",
+      "group": "dependencies"
+    },
+    "umzug": {
+      "range": "^3.8.2",
+      "version": "3.8.2",
+      "group": "dependencies"
+    },
+    "uuid": {
+      "range": "^13.0.0",
+      "version": "13.0.0",
+      "group": "dependencies"
+    },
+    "yaml": {
+      "range": "^2.8.1",
+      "version": "2.8.1",
+      "group": "dependencies"
+    },
+    "zod": {
+      "range": "^4.1.12",
+      "version": "4.1.12",
+      "group": "dependencies"
+    },
+    "@types/cookie-parser": {
+      "range": "^1.4.9",
+      "version": "1.4.9",
+      "group": "devDependencies"
+    },
+    "@types/cors": {
+      "range": "^2.8.19",
+      "version": "2.8.19",
+      "group": "devDependencies"
+    },
+    "@types/express": {
+      "range": "^5.0.3",
+      "version": "5.0.3",
+      "group": "devDependencies"
+    },
+    "@types/jsonwebtoken": {
+      "range": "^9.0.10",
+      "version": "9.0.10",
+      "group": "devDependencies"
+    },
+    "@types/luxon": {
+      "range": "^3.7.1",
+      "version": "3.7.1",
+      "group": "devDependencies"
+    },
+    "@types/morgan": {
+      "range": "^1.9.10",
+      "version": "1.9.10",
+      "group": "devDependencies"
+    },
+    "@types/node": {
+      "range": "^24.7.2",
+      "version": "24.7.2",
+      "group": "devDependencies"
+    },
+    "@types/swagger-ui-express": {
+      "range": "^4.1.8",
+      "version": "4.1.8",
+      "group": "devDependencies"
+    },
+    "ts-node": {
+      "range": "^10.9.2",
+      "version": "10.9.2",
+      "group": "devDependencies"
+    },
+    "ts-node-dev": {
+      "range": "^2.0.0",
+      "version": "2.0.0",
+      "group": "devDependencies"
+    },
+    "tsx": {
+      "range": "^4.20.4",
+      "version": "4.20.4",
+      "group": "devDependencies"
+    },
+    "typescript": {
+      "range": "^5.9.3",
+      "version": "5.9.3",
+      "group": "devDependencies"
+    }
+  },
+  "selectorConflicts": [
+    {
+      "selector": "@types/node@*",
+      "web": "24.0.13",
+      "api": "24.7.2"
+    },
+    {
+      "selector": "@types/node@*",
+      "web": "24.0.13",
+      "api": "24.7.2"
+    },
+    {
+      "selector": "@types/node@*",
+      "web": "24.0.13",
+      "api": "24.7.2"
+    },
+    {
+      "selector": "@types/node@*",
+      "web": "24.0.13",
+      "api": "24.7.2"
+    },
+    {
+      "selector": "@types/node@*",
+      "web": "24.0.13",
+      "api": "24.7.2"
+    },
+    {
+      "selector": "@types/node@*",
+      "web": "24.0.13",
+      "api": "24.7.2"
+    },
+    {
+      "selector": "@types/node@*",
+      "web": "24.0.13",
+      "api": "24.7.2"
+    },
+    {
+      "selector": "@types/node@*",
+      "web": "24.0.13",
+      "api": "24.7.2"
+    },
+    {
+      "selector": "mime-types@^3.0.0",
+      "web": "3.0.2",
+      "api": "3.0.1"
+    },
+    {
+      "selector": "ajv@^8.0.0",
+      "web": "8.18.0",
+      "api": "8.13.0"
+    },
+    {
+      "selector": "debug@^4.4.0",
+      "web": "4.4.3",
+      "api": "4.4.1"
+    },
+    {
+      "selector": "qs@^6.14.0",
+      "web": "6.15.0",
+      "api": "6.14.0"
+    },
+    {
+      "selector": "raw-body@^3.0.0",
+      "web": "3.0.2",
+      "api": "3.0.0"
+    },
+    {
+      "selector": "content-disposition@^1.0.0",
+      "web": "1.0.1",
+      "api": "1.0.0"
+    },
+    {
+      "selector": "debug@^4.4.0",
+      "web": "4.4.3",
+      "api": "4.4.1"
+    },
+    {
+      "selector": "finalhandler@^2.1.0",
+      "web": "2.1.1",
+      "api": "2.1.0"
+    },
+    {
+      "selector": "mime-types@^3.0.0",
+      "web": "3.0.2",
+      "api": "3.0.1"
+    },
+    {
+      "selector": "qs@^6.14.0",
+      "web": "6.15.0",
+      "api": "6.14.0"
+    },
+    {
+      "selector": "send@^1.1.0",
+      "web": "1.2.1",
+      "api": "1.2.0"
+    },
+    {
+      "selector": "serve-static@^2.2.0",
+      "web": "2.2.1",
+      "api": "2.2.0"
+    },
+    {
+      "selector": "debug@^4.4.0",
+      "web": "4.4.3",
+      "api": "4.4.1"
+    },
+    {
+      "selector": "semver@^7.5.4",
+      "web": "7.7.4",
+      "api": "7.5.4"
+    },
+    {
+      "selector": "debug@^4.4.0",
+      "web": "4.4.3",
+      "api": "4.4.1"
+    },
+    {
+      "selector": "path-to-regexp@^8.0.0",
+      "web": "8.3.0",
+      "api": "8.2.0"
+    },
+    {
+      "selector": "send@^1.2.0",
+      "web": "1.2.1",
+      "api": "1.2.0"
+    },
+    {
+      "selector": "esbuild@~0.25.0",
+      "web": "0.25.6",
+      "api": "0.25.8"
+    },
+    {
+      "selector": "mime-types@^3.0.0",
+      "web": "3.0.2",
+      "api": "3.0.1"
+    }
+  ]
+}

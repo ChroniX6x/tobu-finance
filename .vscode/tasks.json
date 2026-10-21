@@ -1,42 +1,64 @@
 {
-  // For more information, visit: https://go.microsoft.com/fwlink/?LinkId=733558
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "ToBu: Web",
       "type": "npm",
-      "script": "start",
+      "script": "dev:web",
       "isBackground": true,
       "problemMatcher": {
         "owner": "typescript",
         "pattern": "$tsc",
         "background": {
           "activeOnStart": true,
-          "beginsPattern": {
-            "regexp": "(.*?)"
-          },
-          "endsPattern": {
-            "regexp": "bundle generation complete"
-          }
+          "beginsPattern": ".*",
+          "endsPattern": "Local:.*http://localhost:4200|Application bundle generation complete"
         }
       }
     },
     {
+      "label": "ToBu: API",
+      "type": "npm",
+      "script": "dev:api",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: API-Konfiguration",
+      "type": "npm",
+      "script": "init:api",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: Build",
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "ToBu: Typecheck",
+      "type": "npm",
+      "script": "typecheck",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: Unit-Tests",
       "type": "npm",
       "script": "test",
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "typescript",
-        "pattern": "$tsc",
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": {
-            "regexp": "(.*?)"
-          },
-          "endsPattern": {
-            "regexp": "bundle generation complete"
-          }
-        }
-      }
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "ToBu: API-Integration",
+      "type": "npm",
+      "script": "test:integration",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: E2E (Mocks)",
+      "type": "npm",
+      "script": "e2e",
+      "problemMatcher": []
     }
   ]
 }
