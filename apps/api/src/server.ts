@@ -1,13 +1,12 @@
 // src/server.ts
 import "dotenv/config";
-import { migrationGlob } from "./migration-path.js";
+import { schemaStatus } from "./database/baseline.js";
+import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import { MongoClient } from "mongodb";
-import { MongoDBStorage, Umzug } from "umzug";
 
 import { connectDB } from "./db.js";
 import errorHandler from "./middleware/error.js";
@@ -35,13 +34,6 @@ import monthViewRouter from "./routes/month-view.js";
 import masterDataRouter from "./routes/master-data.js";
 import planningRouter from "./routes/planning.js";
 
-// --- Umzug-Logger ---
-const umzugLogger = {
-  debug: (...a: any[]) => console.debug("[umzug]", ...a),
-  info:  (...a: any[]) => console.info("[umzug]", ...a),
-  warn:  (...a: any[]) => console.warn("[umzug]", ...a),
-  error: (...a: any[]) => console.error("[umzug]", ...a),
-};
 
 async function bootstrap() {
   const app = express();
@@ -62,6 +54,10 @@ async function bootstrap() {
 
   // Öffentliche Endpunkte (außerhalb /api) zuerst:
   app.get("/health", (_req, res) => res.json({ ok: true }));
+  app.get("/ready", async (_req, res) => {
+    try { const status = await schemaStatus(); res.status(status.ready ? 200 : 503).json(status); }
+    catch { res.status(503).json({ ready: false, status: "database-unavailable" }); }
+  });
   app.use(docsRouter); // /docs & /openapi.json bleiben öffentlich
 
   // /api/auth bleibt öffentlich (Login/Refresh/Logout)
@@ -98,22 +94,10 @@ async function bootstrap() {
   app.use("/api/account-balances", balances);
   app.use("/api/category-budgets", budgets);
 
-  // Umzug-Health: zeigt ausstehende Migrationen an (öffentlich lassen)
+  // Compatibility endpoint for the active baseline; archived Umzug scripts never run.
   app.get("/health/migrations", async (_req, res) => {
-    const client = new MongoClient(process.env.MONGODB_URI!);
-    await client.connect();
-    const db = client.db();
-
-    const umzug = new Umzug({
-      migrations: { glob: migrationGlob },
-      context: { db, client },
-      storage: new MongoDBStorage({ connection: db, collectionName: "_migrations" }),
-      logger: umzugLogger,
-    });
-
-    const pending = await umzug.pending();
-    await client.close();
-    res.json({ pending: pending.map((m) => m.name) });
+    const status = await schemaStatus();
+    res.status(status.ready ? 200 : 503).json(status);
   });
 
   // Error-Handler (immer zuletzt)
@@ -122,7 +106,16 @@ async function bootstrap() {
   // DB + Start
   const port = Number(process.env.PORT || 4000);
   await connectDB(process.env.MONGODB_URI || "");
-  app.listen(port, () => console.log(`API on :${port}`));
+  const server = app.listen(port, process.env.HOST || "127.0.0.1", () => console.log(`API on :${port}`));
+  let closing = false;
+  const close = () => {
+    if (closing) return;
+    closing = true;
+    server.close(() => { void mongoose.disconnect().then(() => process.exit(0)); });
+    setTimeout(() => process.exit(1), 5000).unref();
+  };
+  process.on("SIGINT", close);
+  process.on("SIGTERM", close);
 }
 
 // Starten

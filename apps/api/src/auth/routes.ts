@@ -23,6 +23,7 @@ const loginSchema = z.object({
 
 // --- Cookie Helpers ---
 function setRefreshCookie(res: any, token: string) {
+  res.clearCookie(refreshCookieName, { path: "/api/auth/refresh" });
   res.cookie(refreshCookieName, token, {
     httpOnly: true,
     secure: isProd,
@@ -32,6 +33,7 @@ function setRefreshCookie(res: any, token: string) {
 }
 function clearRefreshCookie(res: any) {
   res.clearCookie(refreshCookieName, { path: refreshCookiePath });
+  res.clearCookie(refreshCookieName, { path: "/api/auth/refresh" });
 }
 
 // --- Revoke all sessions for a user ---

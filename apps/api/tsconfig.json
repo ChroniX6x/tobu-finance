@@ -47,5 +47,5 @@
       "@/*": ["src/*"]                  // Alias wie im FE (dort src/app/*), hier sinnvoller: src/*
     },
   },
-  "include": ["src", "scripts", "src/migrations/**/*.ts"]
+  "include": ["src", "scripts"]
 }

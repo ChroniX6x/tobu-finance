@@ -68,7 +68,7 @@ r.get("/:accountId/planning", validateQuery(QueryPlanning), async (req, res) => 
     ContributionRule.find({
       accountId: accId,
       $and: [
-        { $or: [{ fromMonth: null }, { fromMonth: { $lte: monthEnd } }] },
+        { $or: [{ fromMonth: null }, { fromMonth: { $lt: monthEnd } }] },
         { $or: [{ toMonth: null }, { toMonth: { $gte: monthStart } }] },
       ],
     }).lean(),

@@ -47,7 +47,7 @@ export const appConfig: ApplicationConfig = {
     providePrimeNG({
       theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } }
     }),
-    { provide: API_BASE_URL, useValue: 'http://localhost:4000' }, // z.B. 'https://api.example.com'
+    { provide: API_BASE_URL, useValue: '' }, // same-origin /api via dev or deployment proxy
     provideAppInitializer(() => {
       const authService = inject(AuthService);
       return initializeAuth(authService);

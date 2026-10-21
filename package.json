@@ -15,7 +15,7 @@
     "dev:web": "npm run start --workspace=@tobu/web",
     "dev:api": "npm run dev --workspace=@tobu/api",
     "dev:api:debug": "npm run dev:debug --workspace=@tobu/api",
-    "init:api": "npm run init:env --workspace=@tobu/api",
+    "init:api": "node scripts/workspace.mjs init",
     "start:api": "npm run start --workspace=@tobu/api",
     "build": "npm run build:api && npm run build:web",
     "build:api": "npm run build --workspace=@tobu/api",
@@ -24,9 +24,19 @@
     "test": "npm run test:api && npm run test:web",
     "test:api": "npm run test --workspace=@tobu/api",
     "test:web": "npm run test:unit --workspace=@tobu/web",
-    "test:integration": "npm run test:integration --workspace=@tobu/api",
+    "test:integration": "npm run build:api && node scripts/test-stack.mjs integration",
     "e2e": "npm run e2e --workspace=@tobu/web",
-    "e2e:real": "npm run e2e:real --workspace=@tobu/web",
-    "check:workspace": "node scripts/check-workspace.mjs"
+    "e2e:real": "npm run build:api && node scripts/test-stack.mjs browser",
+    "check:workspace": "node scripts/check-workspace.mjs",
+    "setup": "node scripts/workspace.mjs setup",
+    "dev": "node scripts/workspace.mjs dev",
+    "dev:debug": "node scripts/workspace.mjs debug",
+    "dev:down": "node scripts/workspace.mjs down",
+    "db:init": "node scripts/workspace.mjs init-db",
+    "db:seed": "node scripts/workspace.mjs seed",
+    "db:migrate": "node scripts/workspace.mjs migrate",
+    "db:reset": "node scripts/workspace.mjs reset",
+    "test:tooling": "node --test scripts/tests/*.test.mjs",
+    "verify:phase3": "node scripts/verify-phase3.mjs"
   }
 }

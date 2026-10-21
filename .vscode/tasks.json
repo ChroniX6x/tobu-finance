@@ -2,30 +2,36 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "ToBu: Web",
+      "label": "ToBu: Setup",
       "type": "npm",
-      "script": "dev:web",
-      "isBackground": true,
+      "script": "setup",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: Start",
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: Debug-Stack",
+      "type": "npm",
+      "script": "dev:debug",
       "problemMatcher": {
         "owner": "typescript",
         "pattern": "$tsc",
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".*",
-          "endsPattern": "Local:.*http://localhost:4200|Application bundle generation complete"
+          "endsPattern": "ToBu ready:.*"
         }
-      }
+      },
+      "isBackground": true
     },
     {
-      "label": "ToBu: API",
+      "label": "ToBu: Datenbank stoppen (Daten behalten)",
       "type": "npm",
-      "script": "dev:api",
-      "problemMatcher": []
-    },
-    {
-      "label": "ToBu: API-Konfiguration",
-      "type": "npm",
-      "script": "init:api",
+      "script": "dev:down",
       "problemMatcher": []
     },
     {
@@ -58,6 +64,12 @@
       "label": "ToBu: E2E (Mocks)",
       "type": "npm",
       "script": "e2e",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: E2E (echte API)",
+      "type": "npm",
+      "script": "e2e:real",
       "problemMatcher": []
     }
   ]

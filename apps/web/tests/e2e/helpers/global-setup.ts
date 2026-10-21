@@ -15,7 +15,7 @@ import { resolve } from 'node:path';
  *   E2E_PASSWORD  — the password of that test account
  *
  * Optional:
- *   API_BASE_URL  — defaults to http://localhost:4000
+ *   WEB_PORT      — defaults to 4200; login uses the same-origin web proxy
  *
  * Invoked only by the real-api-setup project. Missing configuration fails early.
  */
@@ -30,7 +30,7 @@ export default async function initializeRealAuth(): Promise<void> {
     throw new Error('Real-API tests require E2E_EMAIL and E2E_PASSWORD for an isolated test user.');
   }
 
-  const apiBaseUrl = process.env['API_BASE_URL'] ?? 'http://localhost:4000';
+  const apiBaseUrl = `http://localhost:${process.env['WEB_PORT'] || 4200}`;
 
   const context = await request.newContext();
 

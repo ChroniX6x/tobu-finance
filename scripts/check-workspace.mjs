@@ -37,15 +37,22 @@ for (const app of ['web', 'api']) {
 }
 assert.equal(existsSync(resolve(root, 'yarn.lock')), false, 'Remove the one-time Yarn conversion input');
 for (const excluded of manifest.excluded) assert.equal(existsSync(resolve(root, `apps/api/${excluded.path}`)), false);
-// Only these source files require workspace-specific modifications. Everything
-// else, including historical migrations, fixtures, and OpenAPI, stays byte-identical.
-const adapted = new Set(['package.json', 'package-lock.json', 'tsconfig.json', 'scripts/new-migration.ts', 'src/new-migration.ts']);
+// Phase 3 archives retain original bytes. Reviewed active files implement the new runtime.
+const adapted = new Set(['package.json', 'package-lock.json', 'tsconfig.json', 'scripts/new-migration.ts', 'src/new-migration.ts',
+  '.env.example', 'src/auth/config.ts', 'src/auth/routes.ts', 'src/db.ts', 'src/server.ts', 'src/routes/month-view.ts', 'src/routes/planning.ts', 'tests/integration/api.test.mjs']);
 for (const item of manifest.files) {
   if (adapted.has(item.path)) continue;
-  const bytes = readFileSync(resolve(root, `apps/api/${item.path}`));
+  const archived = resolve(root, 'docs/database/legacy-migrations', item.path);
+  // Prefer an active original when present (the archive has its own new README).
+  const active = resolve(root, `apps/api/${item.path}`);
+  const source = item.path === 'scripts/ensure-env.ts' ? archived : existsSync(active) ? active : archived;
+  const bytes = readFileSync(source);
   assert.ok(matchesSource(bytes, item.sha256), `API import drift: ${item.path}`);
 }
 const assets = json('docs/migration/evidence/web-assets-manifest.json');
+const image = read('scripts/lib/docker.mjs').match(/MONGO_IMAGE = '([^']+)'/)[1];
+assert.ok(read('infra/compose.yaml').replaceAll('\r\n', '\n').includes(`image: ${image}\n`), 'Development and test MongoDB images must match');
+assert.match(image, /^mongo:\d+\.\d+\.\d+$/, 'Pin a concrete MongoDB version');
 for (const item of assets.files) {
   const bytes = readFileSync(resolve(root, 'apps/web', item.path));
   assert.ok(matchesSource(bytes, item.sha256), `Web asset drift: ${item.path}`);

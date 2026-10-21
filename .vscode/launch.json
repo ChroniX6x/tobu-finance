@@ -2,29 +2,24 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "ToBu: Web",
-      "type": "chrome",
-      "request": "launch",
-      "preLaunchTask": "ToBu: Web",
-      "url": "http://localhost:4200/",
-      "webRoot": "${workspaceFolder}/apps/web"
-    },
-    {
-      "name": "ToBu: API (Datenbank separat starten)",
+      "name": "ToBu: API + Stack",
       "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/apps/api/src/server.ts",
-      "runtimeArgs": [
-        "--import",
-        "tsx/esm"
-      ],
-      "cwd": "${workspaceFolder}/apps/api",
-      "envFile": "${workspaceFolder}/apps/api/.env",
-      "preLaunchTask": "ToBu: API-Konfiguration",
+      "request": "attach",
+      "address": "127.0.0.1",
+      "port": 9229,
+      "restart": true,
+      "preLaunchTask": "ToBu: Debug-Stack",
       "skipFiles": [
         "<node_internals>/**"
       ],
       "sourceMaps": true
+    },
+    {
+      "name": "ToBu: Browser (laufender Stack)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:4200/",
+      "webRoot": "${workspaceFolder}/apps/web"
     }
   ]
 }

@@ -76,6 +76,11 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
   }
   assert.ok(ready, 'Isolated MongoDB did not become ready');
 
+  const init = spawn(process.execPath, [join(root, 'dist/src/database/cli.js'), 'init'], {
+    cwd: scratch, env: { ...process.env, NODE_ENV: 'test', MONGODB_URI: uri }, windowsHide: true, stdio: 'inherit',
+  });
+  assert.equal((await once(init, 'exit'))[0], 0, 'Baseline initialization');
+
   const env = { ...process.env, NODE_ENV: 'test', MONGODB_URI: uri, PORT: String(await freePort()), CORS_ORIGIN: 'http://localhost:4200' };
   for (const kind of ['ACCESS', 'REFRESH']) {
     const keys = generateKeyPairSync('rsa', { modulusLength: 2048,
@@ -106,14 +111,21 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
   const credentials = { email: 'phase1@example.test', password: 'Phase1-test-password', name: 'Phase One' };
   let token, refresh, userId, accountId;
 
-  await t.test('artifact serves OpenAPI and discovers compiled migrations from another cwd', async () => {
+  await t.test('artifact serves OpenAPI and reports baseline without archived migrations from another cwd', async () => {
     const spec = await (await request('GET', '/openapi.json')).json();
     assert.ok(Object.keys(spec.paths).length > 0);
     const migrations = await request('GET', '/health/migrations');
     assert.equal(migrations.status, 200);
     const { pending } = await migrations.json();
-    assert.equal(pending.length, 5);
-    assert.ok(pending.every(name => name.endsWith('.js')));
+    assert.equal(pending.length, 0);
+    assert.equal((await request('GET', '/ready')).status, 200);
+    await client.db(dbName).collection('_tobu_schema').updateOne({ _id: 'baseline' }, { $set: { status: 'initializing' } });
+    try {
+      assert.equal((await request('GET', '/health')).status, 200, 'Liveness stays independent of schema readiness');
+      assert.equal((await request('GET', '/ready')).status, 503, 'Incomplete baseline must not be ready');
+    } finally {
+      await client.db(dbName).collection('_tobu_schema').updateOne({ _id: 'baseline' }, { $set: { status: 'ready' } });
+    }
   });
   await t.test('protected resources reject missing and invalid tokens', async () => {
     assert.equal((await request('GET', '/api/accounts')).status, 401);
@@ -129,7 +141,7 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
     const login = await request('POST', '/api/auth/login', credentials);
     assert.equal(login.status, 200);
     assert.match(login.headers.get('set-cookie'), /HttpOnly/i);
-    refresh = login.headers.getSetCookie()[0].split(';')[0];
+    refresh = login.headers.getSetCookie().find(value => /^rt=[^;]/.test(value)).split(';')[0];
     token = (await login.json()).accessToken;
   });
   await t.test('member and account create/read/update', async () => {
@@ -170,11 +182,43 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
   await t.test('refresh rotates the cookie and logout invalidates it', async () => {
     const response = await request('POST', '/api/auth/refresh', undefined, undefined, refresh);
     assert.equal(response.status, 200);
-    const rotated = response.headers.getSetCookie()[0].split(';')[0];
+    const rotated = response.headers.getSetCookie().find(value => /^rt=[^;]/.test(value)).split(';')[0];
     assert.notEqual(rotated, refresh);
     const logout = await request('POST', '/api/auth/logout', undefined, undefined, rotated);
     assert.equal(logout.status, 204);
     assert.equal((await request('POST', '/api/auth/refresh', undefined, undefined, rotated)).status, 401);
+  });
+  await t.test('demo read models expose the documented independent contribution totals', async () => {
+    const seed = spawn(process.execPath, [join(root, 'dist/src/database/cli.js'), 'seed'], {
+      cwd: scratch, env: { ...process.env, NODE_ENV: 'test', MONGODB_URI: uri, SEED_MONTH: '2026-04' }, windowsHide: true, stdio: 'inherit',
+    });
+    assert.equal((await once(seed, 'exit'))[0], 0);
+    const login = await request('POST', '/api/auth/login', { email: 'alice@demo.tobu.test', password: 'Tobu-Demo-2026!' });
+    assert.equal(login.status, 200);
+    const demoToken = (await login.json()).accessToken;
+    const household = await client.db(dbName).collection('accounts').findOne({ name: /^03/ });
+    for (const endpoint of ['overview', 'planning', 'month-view']) {
+      const response = await request('GET', `/api/accounts/${household._id}/${endpoint}?month=2026-04`, undefined, demoToken);
+      assert.equal(response.status, 200, `${endpoint}: ${await response.text()}`);
+    }
+    const view = await (await request('GET', `/api/accounts/${household._id}/month-view?month=2026-04`, undefined, demoToken)).json();
+    assert.equal(view.kpis.totalDueMinor, 30000);
+    assert.equal(view.kpis.totalPaidMinor, 25000);
+    assert.equal(view.kpis.carryoverTotalMinor, 2500);
+    assert.equal(view.members.find(member => member.name === 'Demo alice').openAmountMinor, 0);
+    assert.equal(view.members.find(member => member.name === 'Demo bob').openAmountMinor, 5000);
+    const next = await (await request('GET', `/api/accounts/${household._id}/month-view?month=2026-05`, undefined, demoToken)).json();
+    assert.equal(next.kpis.totalDueMinor, 42500, 'The additional contribution starts in May, not April');
+    for (const [month, expectedBlocks] of [['2026-04', 1], ['2026-05', 2]]) {
+      const planning = await (await request('GET', `/api/accounts/${household._id}/planning?month=${month}`, undefined, demoToken)).json();
+      assert.equal(planning.overview.activeContributionBlockCount, expectedBlocks, 'Planning uses the same exclusive month boundary');
+    }
+    for (const [prefix, expected] of [['04', [3334, 3333, 3333]], ['05', [6001, 4000]]]) {
+      const account = await client.db(dbName).collection('accounts').findOne({ name: new RegExp(`^${prefix}`) });
+      const response = await request('GET', `/api/accounts/${account._id}/month-view?month=2026-04`, undefined, demoToken);
+      assert.equal(response.status, 200);
+      assert.deepEqual((await response.json()).members.map(member => member.monthlyDueMinor), expected);
+    }
   });
   await t.test('inactive users cannot log in', async () => {
     await client.db(dbName).collection('users').updateOne({ emailNormalized: credentials.email }, { $set: { isActive: false } });

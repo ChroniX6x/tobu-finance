@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 
 const webRoot = __dirname;
 const REAL_AUTH_STATE = resolve(webRoot, '.playwright-real-auth.json');
+const webPort = Number(process.env['WEB_PORT'] || 4200);
+const baseURL = `http://localhost:${webPort}`;
 
 export default defineConfig<TestOptions>({
   testDir: './tests/e2e',
@@ -11,7 +13,7 @@ export default defineConfig<TestOptions>({
   retries: 0,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -43,10 +45,10 @@ export default defineConfig<TestOptions>({
     },
   ],
   webServer: {
-    command: `"${process.execPath}" "${require.resolve('@angular/cli/bin/ng.js')}" serve --port 4200 --host 127.0.0.1`,
+    command: `"${process.execPath}" "${require.resolve('@angular/cli/bin/ng.js')}" serve --port ${webPort} --host 127.0.0.1`,
     cwd: webRoot,
-    url: 'http://localhost:4200',
-    reuseExistingServer: !process.env['CI'],
+    url: baseURL,
+    reuseExistingServer: false,
     timeout: 180000,
   },
 });

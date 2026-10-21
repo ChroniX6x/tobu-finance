@@ -336,6 +336,8 @@ Lokale Demo-Zugangsdaten werden in der Entwicklungsanleitung klar als Testzugän
 
 ### Phase 3 – Gemeinsamen Start und Umgebungen herstellen
 
+Aktueller Umsetzungsstand und Gate-Nachweise: [Phase-3-Prüfung](phase-3-verification.md). Auf Nutzerwunsch wird die neueste veröffentlichte MongoDB-Version verwendet: am 21.10.2026 `mongo:9.0.4`, konkret für Entwicklung und Tests gepinnt. Die Kombination mit dem vorhandenen Treiber wird in Gate 3 geprüft; die ältere native Diagnoseversion ersetzt diesen Nachweis nicht.
+
 - Compose, Setup, Orchestrierung, Readiness, Proxy und Shutdown implementieren.
 - Bestehende lokale Datenbank als Alternative dokumentieren und Portkonflikte behandeln.
 - Entwicklungs-, Test- und Produktionskonfiguration voneinander trennen.

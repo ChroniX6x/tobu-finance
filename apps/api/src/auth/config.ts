@@ -32,7 +32,7 @@ export const authEnv = parsed.data;
 export const isProd = authEnv.NODE_ENV === "production";
 
 export const refreshCookieName = "rt";
-export const refreshCookiePath = "/api/auth/refresh";
+export const refreshCookiePath = "/api/auth";
 export const refreshTtlMs = authEnv.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
 
 /**

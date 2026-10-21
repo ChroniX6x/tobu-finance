@@ -81,7 +81,7 @@ r.get("/:id/month-view", validateQuery(QueryMonthView), async (req, res) => {
       ContributionRule.find({
         accountId,
         $and: [
-          { $or: [{ fromMonth: null }, { fromMonth: { $lte: monthEnd } }] },
+          { $or: [{ fromMonth: null }, { fromMonth: { $lt: monthEnd } }] },
           { $or: [{ toMonth: null }, { toMonth: { $gte: monthStart } }] },
         ],
       }).lean(),
@@ -91,7 +91,7 @@ r.get("/:id/month-view", validateQuery(QueryMonthView), async (req, res) => {
         {
           accountId,
           $and: [
-            { $or: [{ fromMonth: null }, { fromMonth: { $lte: monthEnd } }] },
+            { $or: [{ fromMonth: null }, { fromMonth: { $lt: monthEnd } }] },
             { $or: [{ toMonth: null }, { toMonth: { $gte: monthStart } }] },
           ],
         },
@@ -118,7 +118,7 @@ r.get("/:id/month-view", validateQuery(QueryMonthView), async (req, res) => {
         {
           accountId,
           $and: [
-            { $or: [{ fromMonth: null }, { fromMonth: { $lte: monthEnd } }] },
+            { $or: [{ fromMonth: null }, { fromMonth: { $lt: monthEnd } }] },
             { $or: [{ toMonth: null }, { toMonth: { $gte: monthStart } }] },
           ],
         },
