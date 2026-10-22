@@ -26,6 +26,8 @@ Die Sicherheitsbewertung steht in [phase-5-security.md](phase-5-security.md). Da
 
 ## Lokale Nachweise
 
+Nachtrag zur Gate-5-Abnahme: Der erste Phase-5-Commit enthielt einen formatabhängigen Fehler im Vertragscheck. Dessen Regex erkannte nur doppelt zitierte Routenpfade; nach der Prettier-Formatierung fehlten deshalb die vier Transaktionsrouten in der erkannten Liste. Die Routen und Verträge selbst waren vorhanden. Der Check verwendet nun den vorhandenen TypeScript-Parser und erkennt alle 50 Routen unabhängig von Anführungszeichen und Zeilenumbrüchen. Zwei Regressionstests prüfen außerdem Kommentare, fremde Router, Duplikate und die ausdrückliche Ablehnung dynamischer Pfade. `check:contracts` wurde nach dieser Korrektur erneut erfolgreich ausgeführt. Gate 5 muss auf dem Docker-Rechner mit dem korrigierten Stand erneut gestartet werden.
+
 | Prüfung | Ergebnis / Grenze |
 | --- | --- |
 | ESLint, Prettier | erfolgreich; dokumentierte Altbestandsausnahmen |
