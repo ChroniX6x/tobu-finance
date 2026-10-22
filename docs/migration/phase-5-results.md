@@ -26,6 +26,8 @@ Die Sicherheitsbewertung steht in [phase-5-security.md](phase-5-security.md). Da
 
 ## Lokale Nachweise
 
+Weiterer Nutzerbefund: Drei Mock-E2E-Assertions auf Titel, Betrag und Kategorie liefen nach fünf Sekunden ab; der anschließend erfasste Fehlerkontext enthielt die erwartete Buchungszeile vollständig. Das spricht für verspätetes initiales Rendern. Die Transaktionsseiten-Suite wartet jetzt vor den Einzelprüfungen ausdrücklich auf die GET-Antwort für das richtige Konto, deren vollständigen Empfang und die sichtbare Fixture-Zeile (maximal 15 Sekunden). Die Einzelassertions behalten ihr bisheriges Zeitlimit; keine Sleeps, automatischen Retries oder global erhöhten Timeouts. Die Bestätigung auf dem betroffenen Rechner steht noch aus.
+
 Nachtrag zur Gate-5-Abnahme: Der erste Phase-5-Commit enthielt einen formatabhängigen Fehler im Vertragscheck. Dessen Regex erkannte nur doppelt zitierte Routenpfade; nach der Prettier-Formatierung fehlten deshalb die vier Transaktionsrouten in der erkannten Liste. Die Routen und Verträge selbst waren vorhanden. Der Check verwendet nun den vorhandenen TypeScript-Parser und erkennt alle 50 Routen unabhängig von Anführungszeichen und Zeilenumbrüchen. Zwei Regressionstests prüfen außerdem Kommentare, fremde Router, Duplikate und die ausdrückliche Ablehnung dynamischer Pfade. `check:contracts` wurde nach dieser Korrektur erneut erfolgreich ausgeführt. Gate 5 muss auf dem Docker-Rechner mit dem korrigierten Stand erneut gestartet werden.
 
 | Prüfung | Ergebnis / Grenze |
