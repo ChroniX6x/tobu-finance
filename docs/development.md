@@ -101,3 +101,7 @@ Salden sind bewusst eigene Snapshot-Beispiele, keine aus sämtlichen Beispielbuc
 VS Code am Repository-Root öffnen. Task „ToBu: Setup“ einmalig; „ToBu: Start“ täglich. „ToBu: API + Stack“ startet denselben Stack mit Inspector an 127.0.0.1:9229 und hängt den Debugger an. Das Beenden des angehängten Debuggers beendet nicht automatisch den Task: im Task-Terminal `Ctrl+C` verwenden. Browser-Debug verwendet standardmäßig Port 4200; bei abweichendem WEB_PORT die URL anpassen.
 
 `npm run build` erstellt API- und Web-Artefakte. Produktiv werden Umgebungsvariablen und Schlüssel vom Deployment bereitgestellt, insbesondere MONGODB_URI, NODE_ENV=production, CORS_ORIGIN und gegebenenfalls HOST=0.0.0.0. `npm run start:api` startet das gebaute JavaScript. Web-Hosting muss `/api` an die API weiterleiten; der Angular-Dev-Proxy wird nicht mitgebaut. Docker-Compose dieser Phase ist eine lokale Entwicklungsumgebung, kein Produktionsdeployment. Baseline-/Migrationsausführung im Deployment benötigt einen eigenen, geprüften administrativen Ablauf; die Entwicklungs-CLI bleibt dort absichtlich gesperrt.
+
+## Gemeinsame API-Verträge
+
+Siehe [Vertragsarchitektur](architecture/contracts.md). `npm run dev` baut und überwacht auch `@tobu/contracts`. Nach Schemaänderungen `npm run contracts:generate` und `npm run check:contracts` ausführen. Die vollständige Phase-4-Prüfung lautet `npm run verify:phase4`.

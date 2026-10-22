@@ -28,7 +28,7 @@ export class AccountOverviewDataService {
       currentBalanceMinor: api.account.currentBalanceMinor,
       balanceChangePct: api.account.balanceChangePct ?? 0,
       forecastMinor: api.account.forecastMinor,
-      warning: api.account.warning,
+      warning: api.account.warning ?? undefined,
       stalenessDays: api.account.stalenessDays,
       isStale: api.account.isStale,
       missingMonthsIso: api.account.missingMonths,
@@ -39,8 +39,8 @@ export class AccountOverviewDataService {
       name: m.name ?? '—',
       role: m.role,
       avatar: m.avatar ?? null,
-      monthlyDueMinor: m.monthlyDue,
-      paidAmountMinor: m.paidAmount,
+      monthlyDueMinor: m.monthlyDueMinor,
+      paidAmountMinor: m.paidAmountMinor,
       paid: !!m.paid,
     }));
 
@@ -75,7 +75,7 @@ export class AccountOverviewDataService {
     const pieChartDataMinor = {
       labels: (api.charts.topCategories ?? []).map(c => c.name ?? '—'),
       datasets: [{
-        dataMinor: (api.charts.topCategories ?? []).map(c => c.sum ?? 0),
+        dataMinor: (api.charts.topCategories ?? []).map(c => c.sumMinor ?? 0),
       }],
     };
 
@@ -87,7 +87,7 @@ export class AccountOverviewDataService {
       doughnutDataMinor,
       pieChartDataMinor,
       insights: api.insights ?? [],
-      timeline: api.timeline ?? [],
+      timeline: (api.timeline ?? []).map(event => ({...event, user: event.user ?? undefined})),
     };
   }
 }

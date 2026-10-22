@@ -10,6 +10,8 @@ Nutzerentscheidung nach Abschluss von Phase 2. Diese Entscheidung ersetzt die fr
 
 Ein globaler Admin kann gleichzeitig Eigentümer oder Mitglied eines Kontos sein. Finanzdatenzugriff entsteht ausschließlich aus dieser Kontozuordnung und ihren Berechtigungen. Die globale Benutzerverwaltung darf keinen Weg bieten, diese Grenze durch selbst erteilte Kontozugriffe zu umgehen.
 
+Ergänzung vom 22.10.2026 (Phase 4): Bei der Kontoerstellung soll der angemeldete Nutzer Owner werden. Die derzeit unklare Zuordnung dieses Nutzers zur erfassten Wizard-Mitgliederliste wird auf ausdrücklichen Nutzerwunsch separat nach der Zusammenlegung behandelt. Keine Vergabe nach Listenposition. Umsetzung und erforderliche Fälle sind als [AUTH-002](open-issues.md) erfasst; dieses Ziel ist noch nicht als implementiert zu betrachten.
+
 ## Sperren und Löschen
 
 Für den Anfang sind Sperren und Entsperren vorgesehen. Ein gesperrter Nutzer verliert seinen Zugang; bestehende Buchungen, Mitgliedschaften und Referenzen bleiben erhalten. Das Ziel gilt auch für bereits bestehende Sitzungen, nicht nur für neue Logins.

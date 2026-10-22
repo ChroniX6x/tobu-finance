@@ -10,7 +10,10 @@
     "typecheck": "tsc --noEmit -p .",
     "test": "npm run build && node --test tests/unit/*.test.mjs",
     "test:integration": "npm run build && node --test tests/integration/*.test.mjs",
-    "start": "node scripts/start.mjs"
+    "start": "node scripts/start.mjs",
+    "prebuild": "npm run build --workspace=@tobu/contracts",
+    "pretypecheck": "npm run build --workspace=@tobu/contracts",
+    "predev": "npm run build --workspace=@tobu/contracts"
   },
   "keywords": [],
   "author": "",
@@ -32,7 +35,8 @@
     "umzug": "3.8.2",
     "uuid": "13.0.0",
     "yaml": "2.8.1",
-    "zod": "4.1.12"
+    "zod": "4.1.12",
+    "@tobu/contracts": "0.0.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "1.4.9",

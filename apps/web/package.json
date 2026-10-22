@@ -11,7 +11,10 @@
     "e2e:real": "playwright test --project=chromium-real-api",
     "e2e:ui": "playwright test --ui",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.spec.json && tsc --noEmit -p tsconfig.e2e.json",
-    "test:unit": "ng test --watch=false --browsers=ChromeHeadless"
+    "test:unit": "ng test --watch=false --browsers=ChromeHeadless",
+    "prebuild": "npm run build --workspace=@tobu/contracts",
+    "pretypecheck": "npm run build --workspace=@tobu/contracts",
+    "prestart": "npm run build --workspace=@tobu/contracts"
   },
   "prettier": {
     "overrides": [
@@ -54,7 +57,9 @@
     "rxjs": "7.8.2",
     "tailwindcss-primeui": "0.6.1",
     "tslib": "2.8.1",
-    "uuid": "11.1.0"
+    "uuid": "11.1.0",
+    "@tobu/contracts": "0.0.0",
+    "zod": "4.1.12"
   },
   "devDependencies": {
     "@angular/build": "21.2.0",

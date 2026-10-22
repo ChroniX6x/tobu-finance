@@ -1,3 +1,4 @@
+import {QueryMemberIncomes} from '@tobu/contracts/read-queries';
 import { Router } from "express";
 import { Types } from "mongoose";
 import { DateTime } from "luxon";
@@ -5,7 +6,7 @@ import { DateTime } from "luxon";
 import MemberIncome from "../models/MemberIncome.js";
 import Event from "../models/Event.js";
 import { toMonthDate } from "../lib/month.js";
-import { validateBody } from "../middleware/validate.js";
+import { validateBody, validateQuery } from "../middleware/validate.js";
 import {
   CreateMemberIncome,
   UpdateMemberIncome,
@@ -15,7 +16,7 @@ import { monthRangesOverlap } from "../utils/month-overlap.js";
 const r = Router();
 
 /** GET /api/member-incomes?accountId=...&memberId=... */
-r.get("/", async (req, res) => {
+r.get("/", validateQuery(QueryMemberIncomes), async (req, res) => {
   const { accountId, memberId } = (req.query ?? {}) as { accountId?: string; memberId?: string };
   const q: Record<string, unknown> = {};
   if (accountId && /^[a-f\d]{24}$/i.test(accountId)) q.accountId = new Types.ObjectId(accountId);

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
+import type {ApiCategory} from '@tobu/contracts/resources';
 import { CategoryModel } from '@/shared/models/category.model';
 import { API_BASE_URL } from '@/core/api-base-url.token';
 
@@ -11,6 +12,6 @@ export class CategoriesDataService {
   private readonly url = this.baseUrl + '/api/categories';
 
   getCategoriesForAccountId(accountId: string): Observable<CategoryModel[]> {
-    return this.http.get<CategoryModel[]>(`${this.url}?accountId=${accountId}`);
+    return this.http.get<ApiCategory[]>(`${this.url}?accountId=${accountId}`).pipe(map(items => items.map(c => ({...c, name:c.name ?? '—'}))));
   }
 }

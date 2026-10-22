@@ -1,4 +1,5 @@
 import { test as base, expect } from '@playwright/test';
+import { assertResponse, findEndpoint } from '@tobu/contracts/endpoints';
 export type { Page } from '@playwright/test';
 
 export type TestOptions = {
@@ -17,6 +18,27 @@ export type TestOptions = {
 
 export const test = base.extend<TestOptions>({
   useMocks: [true, { option: true }],
+  page: async ({ page }, use) => {
+    const pending: Promise<void>[] = [];
+    const errors: string[] = [];
+    page.on('response', response => {
+      const request = response.request();
+      const path = new URL(response.url()).pathname;
+      // Proxy/network failures remain separately tracked; every successful API JSON response is checked.
+      if (!response.ok() || !findEndpoint(request.method(), path)) return;
+      pending.push((async () => {
+        try {
+          const body = response.status() === 204 ? undefined : await response.json();
+          assertResponse(request.method(), path, response.status(), body);
+          const endpoint = findEndpoint(request.method(), path)!;
+          if (endpoint.body) endpoint.body.parse(request.postDataJSON());
+        } catch (error) { errors.push(`${request.method()} ${path}: ${String(error)}`); }
+      })());
+    });
+    await use(page);
+    await Promise.all(pending);
+    expect(errors, 'HTTP contract violations (including test mocks)').toEqual([]);
+  },
 });
 
 export { expect };

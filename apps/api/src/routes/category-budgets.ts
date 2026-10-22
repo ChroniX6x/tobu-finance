@@ -1,3 +1,4 @@
+import {QueryCategoryBudgets} from '@tobu/contracts/read-queries';
 import { Router } from "express";
 import { Types } from "mongoose";
 import { DateTime } from "luxon";
@@ -5,7 +6,7 @@ import { DateTime } from "luxon";
 import CategoryBudget from "../models/CategoryBudget.js";
 import Event from "../models/Event.js";
 import { toMonthDate } from "../lib/month.js";
-import { validateBody } from "../middleware/validate.js";
+import { validateBody, validateQuery } from "../middleware/validate.js";
 import {
   CreateCategoryBudget,
   UpdateCategoryBudget,
@@ -16,7 +17,7 @@ import { regenerateBaseRules } from "../services/contribution-rule-generator.js"
 const r = Router();
 
 /** GET /api/category-budgets?accountId=...&categoryId=... */
-r.get("/", async (req, res) => {
+r.get("/", validateQuery(QueryCategoryBudgets), async (req, res) => {
   const { accountId, categoryId } = (req.query ?? {}) as { accountId?: string; categoryId?: string };
   const q: Record<string, unknown> = {};
   if (accountId && /^[a-f\d]{24}$/i.test(accountId)) q.accountId = new Types.ObjectId(accountId);

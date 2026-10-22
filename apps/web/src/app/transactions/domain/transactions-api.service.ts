@@ -1,13 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable } from 'rxjs';
 import {
   CreateTransactionDto,
   PatchTransactionDto,
   TransactionModel,
   TransactionsFilters,
   TransactionsPagedResponse,
-  TransactionWithChildren,
 } from './transaction.model';
 import { API_BASE_URL } from '@/core/api-base-url.token';
 
@@ -51,7 +50,4 @@ export class TransactionsApiService {
     return this.http.delete<void>(`${this.url}/${id}`);
   }
 
-  getTransaction(id: string): Observable<TransactionWithChildren> {
-    return this.http.get<TransactionWithChildren>(`${this.url}/${id}`);
-  }
 }

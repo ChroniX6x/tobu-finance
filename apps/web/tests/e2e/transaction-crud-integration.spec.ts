@@ -87,7 +87,7 @@ test.describe('Transaction CRUD – API contract', () => {
           await route.fulfill({
             status: 201,
             contentType: 'application/json',
-            body: JSON.stringify({ ...mockTransaction, _id: 'created-1', title: postedBody['title'] }),
+            body: JSON.stringify({ ...mockTransaction, _id: '400000000000000000000004', title: postedBody['title'] }),
           });
         } else {
           await route.fallback();
@@ -126,7 +126,7 @@ test.describe('Transaction CRUD – API contract', () => {
           await route.fulfill({
             status: 201,
             contentType: 'application/json',
-            body: JSON.stringify({ ...mockTransaction, _id: 'created-date', title: 'Datumstest' }),
+            body: JSON.stringify({ ...mockTransaction, _id: '400000000000000000000005', title: 'Datumstest' }),
           });
         } else {
           await route.fallback();
@@ -153,7 +153,7 @@ test.describe('Transaction CRUD – API contract', () => {
     });
 
     test('after successful create the editor switches to edit mode for the new transaction', async ({ page, useMocks }) => {
-      const newId = 'created-switch';
+      const newId = '400000000000000000000006';
 
       await setupRoutes(page, useMocks);
       await page.route('**/api/transactions', async (route) => {
@@ -284,7 +284,7 @@ test.describe('Transaction CRUD – API contract', () => {
           await route.fulfill({
             status: 201,
             contentType: 'application/json',
-            body: JSON.stringify({ ...mockTransaction, _id: 'tx-queue-1', title: 'Queue Test' }),
+            body: JSON.stringify({ ...mockTransaction, _id: '400000000000000000000007', title: 'Queue Test' }),
           });
         } else {
           await route.fallback();
@@ -316,7 +316,7 @@ test.describe('Transaction CRUD – API contract', () => {
       expect(postFired).toBe(true);
     });
 
-    test('"Direkt speichern" in dock POSTs bookDate in YYYY-MM-DD format', async ({ page, useMocks }) => {
+    test('"Direkt speichern" in dock POSTs bookDate as ISO datetime', async ({ page, useMocks }) => {
       let capturedBody: Record<string, unknown> | null = null;
 
       await setupRoutes(page, useMocks);
@@ -326,7 +326,7 @@ test.describe('Transaction CRUD – API contract', () => {
           await route.fulfill({
             status: 201,
             contentType: 'application/json',
-            body: JSON.stringify({ ...mockTransaction, _id: 'dock-date-test' }),
+            body: JSON.stringify({ ...mockTransaction, _id: '400000000000000000000008' }),
           });
         } else {
           await route.fallback();
@@ -349,7 +349,7 @@ test.describe('Transaction CRUD – API contract', () => {
       expect(response.status()).toBe(201);
 
       expect(capturedBody).not.toBeNull();
-      expect(capturedBody!['bookDate']).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(capturedBody!['bookDate']).toMatch(/^\d{4}-\d{2}-\d{2}T00:00:00\.000Z$/);
     });
   });
 });

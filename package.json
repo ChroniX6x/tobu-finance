@@ -20,7 +20,7 @@
     "build": "npm run build:api && npm run build:web",
     "build:api": "npm run build --workspace=@tobu/api",
     "build:web": "npm run build --workspace=@tobu/web",
-    "typecheck": "npm run typecheck --workspace=@tobu/api && npm run typecheck --workspace=@tobu/web",
+    "typecheck": "npm run build:contracts && npm run typecheck --workspace=@tobu/api && npm run typecheck --workspace=@tobu/web",
     "test": "npm run test:api && npm run test:web",
     "test:api": "npm run test --workspace=@tobu/api",
     "test:web": "npm run test:unit --workspace=@tobu/web",
@@ -37,6 +37,11 @@
     "db:migrate": "node scripts/workspace.mjs migrate",
     "db:reset": "node scripts/workspace.mjs reset",
     "test:tooling": "node --test scripts/tests/*.test.mjs",
-    "verify:phase3": "node scripts/verify-phase3.mjs"
+    "verify:phase3": "node scripts/verify-phase3.mjs",
+    "build:contracts": "npm run build --workspace=@tobu/contracts",
+    "test:contracts": "npm run build:contracts && npm run test --workspace=@tobu/contracts",
+    "contracts:generate": "npm run build:contracts && node scripts/generate-openapi.mjs",
+    "check:contracts": "npm run build:contracts && node scripts/generate-openapi.mjs --check && node scripts/check-contracts.mjs",
+    "verify:phase4": "node scripts/verify-phase4.mjs"
   }
 }

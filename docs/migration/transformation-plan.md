@@ -1,7 +1,7 @@
 # ToBu Finance – Plan zur gemeinsamen Projektstruktur
 
 Stand: 21.10.2026
-Status: Planungsdokument; keine Umsetzung oder Repository-Änderung beauftragt.
+Status: Phasen 0–3 umgesetzt; automatisiertes Gate 3 vom Nutzer bestätigt. Phase 4 beauftragt und in Umsetzung, vollständiger Docker-Nachweis noch offen.
 
 ## 1. Ziel und Entscheidung
 
@@ -348,6 +348,8 @@ Aktueller Umsetzungsstand und Gate-Nachweise: [Phase-3-Prüfung](phase-3-verific
 
 ### Phase 4 – API-Verträge konsolidieren
 
+Umsetzung und Nachweise: [Phase-4-Ergebnis](phase-4-results.md). Bekannte Proxyfehler und weitere ausstehende Prüfungen: [Offene Punkte](open-issues.md).
+
 - Vertragspaket und Buchungspilot einführen, dann weitere Endpunktgruppen umstellen.
 - Eingabe-/Ausgabetypen, JSON-Serialisierung und Defaults prüfen.
 - OpenAPI-Abgleich beziehungsweise Generierung integrieren.
@@ -432,4 +434,4 @@ Priorität: erst reproduzierbarer Ausgangszustand, dann struktureller Umzug, dan
 - GitHub-Ziele laut lokaler Remote-Konfiguration: <https://github.com/ChroniX6x/tobu-finance> und <https://github.com/ChroniX6x/tobu-finance-api>.
 - npm-Workspace-Dokumentation: <https://docs.npmjs.com/cli/using-npm/workspaces/>. Workspace-Befehle können im jeweiligen Paketkontext ausgeführt werden; konkrete Skripte und Werkzeugversionen werden bei Umsetzung verifiziert.
 
-Dieses Dokument beschreibt ausschließlich die geplante Transformation. Es wurden dafür keine Projektdateien geändert, Repositories zusammengeführt, GitHub-Einstellungen verändert oder Datenmigrationen ausgeführt.
+Dieses Dokument beschreibt die geplante Transformation; die tatsächlich beauftragten und umgesetzten Phasen sowie ihre Prüfgrenzen sind in den verlinkten Phasenprotokollen dokumentiert.

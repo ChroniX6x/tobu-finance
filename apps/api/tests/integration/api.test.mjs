@@ -10,6 +10,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { MongoClient } from 'mongodb';
+import { assertResponse, findEndpoint } from '@tobu/contracts/endpoints';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 async function freePort() {
@@ -103,10 +104,15 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
   }
   assert.ok(healthy, `API not ready: ${apiOutput}`);
   async function request(method, path, body, token, cookie) {
-    return fetch(base + path, { method, signal: AbortSignal.timeout(10000), headers: {
+    const response = await fetch(base + path, { method, signal: AbortSignal.timeout(10000), headers: {
       ...(body ? { 'content-type': 'application/json' } : {}),
       ...(token ? { authorization: `Bearer ${token}` } : {}), ...(cookie ? { cookie } : {}),
     }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    const pathname = new URL(base + path).pathname;
+    if (findEndpoint(method, pathname) && response.headers.get('content-type')?.includes('application/json')) {
+      assertResponse(method, pathname, response.status, await response.clone().json());
+    }
+    return response;
   }
   const credentials = { email: 'phase1@example.test', password: 'Phase1-test-password', name: 'Phase One' };
   let token, refresh, userId, accountId;
@@ -172,6 +178,24 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
     assert.equal((await request('DELETE', `/api/transactions/${created._id}`, undefined, token)).status, 204);
     assert.equal((await request('GET', `/api/transactions/${created._id}`, undefined, token)).status, 404);
   });
+  await t.test('split inheritance, sums, merged patch rules and query normalization', async () => {
+    const members = await (await request('GET','/api/members',undefined,token)).json();
+    const body = {accountId,title:'Private parent',type:'expense',amountMinor:1000,month:'2026-04',isFromSharedAccount:false,paidByMemberId:members[0]._id};
+    const parent = await (await request('POST','/api/transactions',body,token)).json();
+    const childResponse = await request('POST','/api/transactions',{...body,title:'Split',type:'income',amountMinor:400,isFromSharedAccount:true,paidByMemberId:null,parentTransactionId:parent._id},token);
+    assert.equal(childResponse.status,201);
+    const child=await childResponse.json();
+    assert.equal(child.type,'expense');assert.equal(child.isFromSharedAccount,false);assert.equal(child.paidByMemberId,members[0]._id);
+    assert.equal((await request('POST','/api/transactions',{...body,parentTransactionId:parent._id,amountMinor:601},token)).status,422);
+    assert.equal((await request('PATCH',`/api/transactions/${parent._id}`,{amountMinor:399},token)).status,422);
+    assert.equal((await request('PATCH',`/api/transactions/${child._id}`,{type:'income'},token)).status,422);
+    assert.equal((await request('PATCH',`/api/transactions/${parent._id}`,{status:'booked'},token)).status,422);
+    assert.equal((await request('GET',`/api/transactions?accountId=${accountId}&categoryIds[]=bad`,undefined,token)).status,400);
+    const listed=await (await request('GET',`/api/transactions?accountId=${accountId}&parentTransactionId=${parent._id}&sort=amountAsc&pageSize=1`,undefined,token)).json();
+    assert.equal(listed.items[0]._id,child._id);assert.equal(listed.total,1);
+    assert.equal((await request('DELETE',`/api/transactions/${parent._id}`,undefined,token)).status,204);
+    assert.equal(await client.db(dbName).collection('transactions').countDocuments(),0);
+  });
   await t.test('summary, overview, month and planning endpoints remain reachable', async () => {
     for (const path of ['/api/accounts/summary', `/api/accounts/${accountId}/overview`,
       `/api/accounts/${accountId}/month-view?month=2026-04`, `/api/accounts/${accountId}/planning?month=2026-04`]) {
@@ -197,7 +221,7 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
     assert.equal(login.status, 200);
     const demoToken = (await login.json()).accessToken;
     const household = await client.db(dbName).collection('accounts').findOne({ name: /^03/ });
-    for (const endpoint of ['overview', 'planning', 'month-view']) {
+    for (const endpoint of ['overview', 'planning', 'month-view', 'master-data']) {
       const response = await request('GET', `/api/accounts/${household._id}/${endpoint}?month=2026-04`, undefined, demoToken);
       assert.equal(response.status, 200, `${endpoint}: ${await response.text()}`);
     }
@@ -219,6 +243,12 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
       assert.equal(response.status, 200);
       assert.deepEqual((await response.json()).members.map(member => member.monthlyDueMinor), expected);
     }
+    for (const resource of ['accounts','members','categories','member-incomes','category-budgets','contribution-rules','account-balances','carryovers','recurrences']) {
+      const response=await request('GET',`/api/${resource}?accountId=${household._id}`,undefined,demoToken);
+      assert.equal(response.status,200,`${resource}: ${await response.text()}`);
+    }
+    const expanded=await request('GET',`/api/accounts/${household._id}/expanded?include=members,categories,transactions,memberIncomes,carryovers,accountBalances,categoryBudgets,recurrences`,undefined,demoToken);
+    assert.equal(expanded.status,200,await expanded.text());
   });
   await t.test('inactive users cannot log in', async () => {
     await client.db(dbName).collection('users').updateOne({ emailNormalized: credentials.email }, { $set: { isActive: false } });

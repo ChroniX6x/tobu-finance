@@ -1,3 +1,4 @@
+import {QueryContributionRules} from '@tobu/contracts/read-queries';
 import { Router } from "express";
 import { Types } from "mongoose";
 import { DateTime } from "luxon";
@@ -7,7 +8,7 @@ import Event from "../models/Event.js";
 import { toMonthDate } from "../lib/month.js";
 
 // Falls vorhanden, Validierung anhängen (ansonsten diese zwei Imports + Middlewares entfernen)
-import { validateBody } from "../middleware/validate.js";
+import { validateBody, validateQuery } from "../middleware/validate.js";
 import {
   CreateContributionRule,
   UpdateContributionRule,
@@ -16,7 +17,7 @@ import {
 const r = Router();
 
 /** GET /api/contribution-rules?accountId=...  (optional Filter) */
-r.get("/", async (req, res) => {
+r.get("/", validateQuery(QueryContributionRules), async (req, res) => {
   const { accountId } = (req.query ?? {}) as { accountId?: string };
   const q: Record<string, unknown> = {};
   if (accountId && /^[a-f\d]{24}$/i.test(accountId)) {

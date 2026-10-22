@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { z } from "zod";
+import { registerSchema, loginSchema } from "@tobu/contracts/auth";
 import { v4 as uuid } from "uuid";
 import { User, AuthSession } from "./models.js";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "./jwt.js";
@@ -10,17 +10,6 @@ import { makeLoginLimiter } from "./rateLimit.js";
 export const router = Router();
 
 // --- Validation ---
-const registerSchema = z.object({
-  email: z.string().email(),
-  name: z.string().min(2).max(64).optional(),
-  password: z.string().min(8).max(128),
-});
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8).max(128),
-});
-
 // --- Cookie Helpers ---
 function setRefreshCookie(res: any, token: string) {
   res.clearCookie(refreshCookieName, { path: "/api/auth/refresh" });

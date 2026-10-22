@@ -30,6 +30,7 @@ try {
       await run(process.execPath, ['--import', tsx, resolve(apiRoot, 'scripts/ensure-env.ts')], { cwd: apiRoot });
     }
     if (command !== 'init') {
+      await run(process.execPath, [apiRequire.resolve('typescript/bin/tsc'), '-p', resolve(root, 'packages/contracts/tsconfig.json')], {cwd:root});
       if (['dev', 'debug'].includes(command)) { await assertPortFree(config.apiPort); await assertPortFree(config.webPort); }
       if (command === 'debug') await assertPortFree(9229);
       if (closing) throw new Error('Startup interrupted');
@@ -46,6 +47,7 @@ try {
         await dbCommand(command === 'init-db' ? 'init' : command, config, confirm ? { TOBU_RESET_CONFIRM: confirm } : {});
       } else if (['dev', 'debug'].includes(command)) {
         await dbCommand('check', config);
+        children.push(start(process.execPath, [apiRequire.resolve('typescript/bin/tsc'), '-p', resolve(root, 'packages/contracts/tsconfig.json'), '--watch', '--preserveWatchOutput'], {cwd:root, detached:process.platform !== 'win32'}));
         if (closing) throw new Error('Startup interrupted');
         const api = start(process.execPath, [...(command === 'debug' ? ['--inspect=127.0.0.1:9229'] : []), '--watch', '--import', tsx, resolve(apiRoot, 'src/server.ts')], {
           cwd: apiRoot, env: apiEnvironment(config), detached: process.platform !== 'win32',

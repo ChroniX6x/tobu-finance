@@ -39,7 +39,8 @@ assert.equal(existsSync(resolve(root, 'yarn.lock')), false, 'Remove the one-time
 for (const excluded of manifest.excluded) assert.equal(existsSync(resolve(root, `apps/api/${excluded.path}`)), false);
 // Phase 3 archives retain original bytes. Reviewed active files implement the new runtime.
 const adapted = new Set(['package.json', 'package-lock.json', 'tsconfig.json', 'scripts/new-migration.ts', 'src/new-migration.ts',
-  '.env.example', 'src/auth/config.ts', 'src/auth/routes.ts', 'src/db.ts', 'src/server.ts', 'src/routes/month-view.ts', 'src/routes/planning.ts', 'tests/integration/api.test.mjs']);
+  '.env.example', 'src/auth/config.ts', 'src/auth/routes.ts', 'src/db.ts', 'src/server.ts', 'src/routes/month-view.ts', 'src/routes/planning.ts', 'tests/integration/api.test.mjs', 'src/docs/swagger.ts', 'docs/openapi.yaml', 'src/routes/member-incomes.ts', 'src/routes/category-budgets.ts', 'src/routes/contribution-rules.ts',
+  ...['account-balances','accounts-summary','accounts','carryovers','categories','category-budgets','common','contribution-rules','member-incomes','members','recurrences','transactions'].map(name => `src/validation/${name}.ts`)]);
 for (const item of manifest.files) {
   if (adapted.has(item.path)) continue;
   const archived = resolve(root, 'docs/database/legacy-migrations', item.path);

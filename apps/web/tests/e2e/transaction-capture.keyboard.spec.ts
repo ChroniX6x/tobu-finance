@@ -1,6 +1,7 @@
+import {mockTransactionsPageRoutes} from './helpers/mocks';
 import { expect, test } from './helpers/test-fixture';
 
-const accountId = 'acc-e2e';
+const accountId = '100000000000000000000001';
 
 test.beforeEach(async ({ page, useMocks }) => {
   if (useMocks) {
@@ -12,50 +13,14 @@ test.beforeEach(async ({ page, useMocks }) => {
       });
     });
 
-    await page.route(`**/api/accounts/${accountId}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: accountId,
-          name: 'E2E Account',
-          memberIds: ['m1', 'm2'],
-          balances: [],
-          monthlyIncomes: [],
-          monthlyPlannedContributions: [],
-          carryOverBalances: [],
-        }),
-      });
-    });
-
-    await page.route('**/api/members**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([
-          { id: 'm1', name: 'Caro', email: 'caro@example.com' },
-          { id: 'm2', name: 'Tobi', email: 'tobi@example.com' },
-        ]),
-      });
-    });
-
-    await page.route(`**/api/categories?accountId=${accountId}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([
-          { _id: 'cat1', accountId, name: 'Lebensmittel' },
-          { _id: 'cat2', accountId, name: 'Getraenke' },
-        ]),
-      });
-    });
+    await mockTransactionsPageRoutes(page);
 
     await page.route('**/api/transactions?**', async (route) => {
       const url = new URL(route.request().url());
       const query = (url.searchParams.get('q') ?? '').toLowerCase();
 
       const parentItem = {
-        _id: 'parent-1',
+        _id: '400000000000000000000002',
         accountId,
         type: 'expense',
         amountMinor: 12000,
@@ -64,13 +29,13 @@ test.beforeEach(async ({ page, useMocks }) => {
         month: '2026-02-01T00:00:00.000Z',
         title: 'Aldi Einkauf',
         notes: null,
-        categoryId: 'cat1',
+        categoryId: '300000000000000000000001',
         isFromSharedAccount: false,
-        paidByMemberId: 'm1',
+        paidByMemberId: '200000000000000000000001',
         parentTransactionId: null,
         children: [
           {
-            _id: 'child-1',
+            _id: '400000000000000000000003',
             accountId,
             type: 'expense',
             amountMinor: 3000,
@@ -79,10 +44,10 @@ test.beforeEach(async ({ page, useMocks }) => {
             month: '2026-02-01T00:00:00.000Z',
             title: 'Bier',
             notes: null,
-            categoryId: 'cat2',
+            categoryId: '300000000000000000000002',
             isFromSharedAccount: false,
-            paidByMemberId: 'm1',
-            parentTransactionId: 'parent-1',
+            paidByMemberId: '200000000000000000000001',
+            parentTransactionId: '400000000000000000000002',
           },
         ],
       };
@@ -109,10 +74,10 @@ test.beforeEach(async ({ page, useMocks }) => {
 
       const payload = route.request().postDataJSON() as Record<string, unknown>;
       await route.fulfill({
-        status: 200,
+        status: 201,
         contentType: 'application/json',
         body: JSON.stringify({
-          _id: `created-${Date.now()}`,
+          _id: '400000000000000000000009',
           accountId,
           type: payload.type ?? 'expense',
           amountMinor: payload.amountMinor ?? 0,

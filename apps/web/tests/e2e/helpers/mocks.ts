@@ -1,31 +1,26 @@
 import type { Page } from '@playwright/test';
 
 // ─── Shared mock IDs ────────────────────────────────────────────────────────
-export const ACCOUNT_ID = 'acc-e2e';
-export const MEMBER_1_ID = 'm1';
-export const MEMBER_2_ID = 'm2';
-export const CAT_1_ID = 'cat-food';
-export const CAT_2_ID = 'cat-leisure';
+export const ACCOUNT_ID = '100000000000000000000001';
+export const MEMBER_1_ID = '200000000000000000000001';
+export const MEMBER_2_ID = '200000000000000000000002';
+export const CAT_1_ID = '300000000000000000000001';
+export const CAT_2_ID = '300000000000000000000002';
 
 // ─── Shared mock data ────────────────────────────────────────────────────────
 export const mockMembers = [
-  { id: MEMBER_1_ID, name: 'Caro', email: 'caro@example.com' },
-  { id: MEMBER_2_ID, name: 'Tobi', email: 'tobi@example.com' },
+  { _id: MEMBER_1_ID, name: 'Caro', email: 'caro@example.com', userId:null, avatar:null },
+  { _id: MEMBER_2_ID, name: 'Tobi', email: 'tobi@example.com', userId:null, avatar:null },
 ];
 
 export const mockCategories = [
-  { _id: CAT_1_ID, accountId: ACCOUNT_ID, name: 'Lebensmittel' },
-  { _id: CAT_2_ID, accountId: ACCOUNT_ID, name: 'Freizeit' },
+  { _id: CAT_1_ID, accountId: ACCOUNT_ID, name: 'Lebensmittel', customSplit:[] },
+  { _id: CAT_2_ID, accountId: ACCOUNT_ID, name: 'Freizeit', customSplit:[] },
 ];
 
 export const mockAccount = {
-  id: ACCOUNT_ID,
-  name: 'E2E Konto',
-  memberIds: [MEMBER_1_ID, MEMBER_2_ID],
-  balances: [{ month: '2026-02', balanceMinor: 250000 }],
-  monthlyIncomes: [],
-  monthlyPlannedContributions: [],
-  carryOverBalances: [],
+ _id: ACCOUNT_ID, name:'E2E Konto',currency:'EUR',settings:{},
+ members:[{memberId:MEMBER_1_ID,role:'owner'},{memberId:MEMBER_2_ID,role:'member'}],
 };
 
 export const mockAccountsSummary = [
@@ -56,8 +51,8 @@ export const mockAccountOverview = {
     missingMonths: [],
   },
   members: [
-    { id: MEMBER_1_ID, name: 'Caro', role: 'member', avatar: null, monthlyDue: 50000, paidAmount: 50000, paid: true },
-    { id: MEMBER_2_ID, name: 'Tobi', role: 'member', avatar: null, monthlyDue: 50000, paidAmount: 0, paid: false },
+    { id: MEMBER_1_ID, name: 'Caro', role: 'member', avatar: null, monthlyDueMinor: 50000, paidAmountMinor: 50000, paid: true },
+    { id: MEMBER_2_ID, name: 'Tobi', role: 'member', avatar: null, monthlyDueMinor: 50000, paidAmountMinor: 0, paid: false },
   ],
   quickStats: {
     openDuesCount: 1,
@@ -69,7 +64,7 @@ export const mockAccountOverview = {
   charts: {
     history: { labels: ['2025-12', '2026-01', '2026-02'], data: [200000, 220000, 250000] },
     incomeVsExpenseMinor: { incomeMinor: 150000, expenseMinor: 80000 },
-    topCategories: [{ name: 'Lebensmittel', sum: 50000 }],
+    topCategories: [{ name: 'Lebensmittel', sumMinor: 50000 }],
   },
   insights: [],
   timeline: [
@@ -78,7 +73,7 @@ export const mockAccountOverview = {
 };
 
 export const mockTransaction = {
-  _id: 'tx-1',
+  _id: '400000000000000000000001',
   accountId: ACCOUNT_ID,
   type: 'expense',
   amountMinor: 4500,
@@ -192,7 +187,7 @@ export async function mockTransactionsPageRoutes(page: Page, useMocks = true): P
     return route.fulfill({
       status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ ...mockTransaction, _id: `created-${Date.now()}`, title: payload['title'] ?? 'created' }),
+      body: JSON.stringify({ ...mockTransaction, _id: '400000000000000000000009', title: payload['title'] ?? 'created' }),
     });
   });
 }
@@ -201,21 +196,23 @@ export async function mockTransactionsPageRoutes(page: Page, useMocks = true): P
 export async function mockWizardRoutes(page: Page, useMocks = true): Promise<void> {
   await mockAuth(page, useMocks);
   if (!useMocks) return;
+  await mockWizardBaseline(page);
   let memberCounter = 0;
   await page.route('**/api/members', (route) => {
     if (route.request().method() !== 'POST') return route.fallback();
     return route.fulfill({
       status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ id: `wiz-member-${++memberCounter}` }),
+      body: JSON.stringify({_id:(++memberCounter).toString(16).padStart(24,'0'),name:null,email:null,userId:null,avatar:null,...route.request().postDataJSON()}),
     });
   });
   await page.route('**/api/accounts', (route) => {
     if (route.request().method() !== 'POST') return route.fallback();
+    const payload = route.request().postDataJSON();
     return route.fulfill({
       status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ id: 'wiz-acc-1' }),
+      body: JSON.stringify({...mockAccount,...payload,members:(payload.members ?? []).map((member: {memberId:string;role?:string}) => ({...member,role:member.role ?? 'member'}))}),
     });
   });
   let catCounter = 0;
@@ -224,7 +221,7 @@ export async function mockWizardRoutes(page: Page, useMocks = true): Promise<voi
     return route.fulfill({
       status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ id: `wiz-cat-${++catCounter}` }),
+      body: JSON.stringify({_id:(100+ ++catCounter).toString(16).padStart(24,'0'),customSplit:[],...route.request().postDataJSON()}),
     });
   });
   await page.route('**/api/categories/**', (route) => {
@@ -234,6 +231,15 @@ export async function mockWizardRoutes(page: Page, useMocks = true): Promise<voi
   // PATCH /api/accounts/:id for monthly planned contributions
   await page.route('**/api/accounts/**', (route) => {
     if (route.request().method() !== 'PATCH') return route.fallback();
-    return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(mockAccount) });
   });
+}
+
+export async function mockWizardBaseline(page: Page): Promise<void> {
+ for (const resource of ['member-incomes','category-budgets','account-balances']) {
+  await page.route('**/api/'+resource, route => {
+   const body=route.request().postDataJSON();
+   return route.fulfill({status:resource === 'account-balances'?200:201,contentType:'application/json',body:JSON.stringify({_id:'500000000000000000000001',fromMonth:null,toMonth:null,...body,month:body.month?body.month+'-01T00:00:00.000Z':undefined})});
+  });
+ }
 }

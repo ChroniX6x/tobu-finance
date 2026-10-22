@@ -16,7 +16,7 @@ export default defineConfig<TestOptions>({
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: process.env['PLAYWRIGHT_VIDEO'] === 'off' ? 'off' : 'retain-on-failure',
     ...(process.env['PLAYWRIGHT_CHANNEL'] ? { channel: process.env['PLAYWRIGHT_CHANNEL'] } : {}),
   },
   projects: [

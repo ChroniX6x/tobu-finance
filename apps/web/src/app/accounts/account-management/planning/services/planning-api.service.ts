@@ -57,11 +57,13 @@ export class PlanningApiService {
   // ---- Contribution Rule CRUD ----
 
   createContributionRule(payload: CreateContributionRulePayload): Observable<unknown> {
-    return this.http.post(`${this.baseUrl}/api/contribution-rules`, payload);
+    const {title, ...body} = payload;
+    return this.http.post(`${this.baseUrl}/api/contribution-rules`, {...body, description: body.description ?? title});
   }
 
   updateContributionRule(ruleId: string, payload: UpdateContributionRulePayload): Observable<unknown> {
-    return this.http.patch(`${this.baseUrl}/api/contribution-rules/${ruleId}`, payload);
+    const {title, ...body} = payload;
+    return this.http.patch(`${this.baseUrl}/api/contribution-rules/${ruleId}`, {...body, ...(body.description !== undefined || title !== undefined ? {description: body.description ?? title} : {})});
   }
 
   deleteContributionRule(ruleId: string): Observable<unknown> {

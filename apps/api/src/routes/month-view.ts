@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { Types } from "mongoose";
 import { DateTime } from "luxon";
-import { z } from "zod";
+import { QueryMonthView } from '@tobu/contracts/read-queries';
 
 import Account from "../models/Account.js";
 import Member from "../models/Member.js";
@@ -18,13 +18,6 @@ import { monthRangeFromISO, toMonthAnchorISO } from "../utils/date.js";
 import { incomeWeights, distribute, type Dist } from "../utils/contrib.js";
 
 // ---- Validation ----
-const QueryMonthView = z.object({
-  month: z
-    .string()
-    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Invalid month format. Expected YYYY-MM")
-    .optional(),
-});
-
 const r = Router();
 
 /**

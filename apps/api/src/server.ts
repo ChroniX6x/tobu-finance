@@ -1,5 +1,6 @@
 // src/server.ts
 import "dotenv/config";
+import { contractResponses } from "./middleware/contracts.js";
 import { schemaStatus } from "./database/baseline.js";
 import mongoose from "mongoose";
 import express from "express";
@@ -42,6 +43,7 @@ async function bootstrap() {
   app.use(helmet({ contentSecurityPolicy: false })); // CSP bei Bedarf später feinjustieren
   app.use(express.json());
   app.use(cookieParser());
+  if (process.env.NODE_ENV === "test" || process.env.TOBU_VALIDATE_RESPONSES === "1") app.use(contractResponses);
   app.use(morgan("dev"));
 
   // CORS – zentral über Auth-ENV (Frontend-URL)

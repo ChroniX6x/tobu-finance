@@ -1,3 +1,4 @@
+import type {CreateTransactionDto} from '@tobu/contracts/transactions';
 import { Injectable, inject } from '@angular/core';
 import { State, Selector, Action, StateContext, Store } from '@ngxs/store';
 import { tap, catchError, concatMap } from 'rxjs/operators';
@@ -186,12 +187,12 @@ export class TransactionCaptureState {
       if (d) d.draftStatus = 'saving';
     }));
 
-    const dto = {
+    const dto: CreateTransactionDto = {
       accountId: draft.accountId!,
       type: draft.type!,
       amountMinor: draft.amountMinor!,
       status: 'booked' as const,
-      bookDate: draft.bookDate!,
+      bookDate: draft.bookDate!.length === 10 ? draft.bookDate + 'T00:00:00.000Z' : draft.bookDate!,
       title: draft.title,
       notes: draft.notes,
       categoryId: draft.categoryId,

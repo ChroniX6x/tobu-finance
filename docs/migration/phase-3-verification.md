@@ -4,6 +4,8 @@ Branch: `chore/monorepo-phase-3`. Ausgangspunkt: `86c14cb` nach Gate 2 und Rolle
 
 ## Status
 
+**Aktualisierung vom 22.10.2026:** Der Nutzer bestätigt auf dem anderen Rechner `npm run verify:phase3` mit `GATE 3 AUTOMATED VERIFICATION PASSED`, einschließlich der 50 Mock-Playwright-Tests. Der automatisierte Gate-3-Nachweis liegt damit als Nutzerbericht vor. Die zusätzlich gemeldeten Proxyfehler und noch ausstehenden manuellen Prüfungen sind in [open-issues.md](open-issues.md) erfasst. Phase 4 wurde anschließend ausdrücklich freigegeben. Die folgenden Blocker und Fehlversuche beschreiben den früheren Diagnoseverlauf auf Shadow.
+
 **Neueste Einordnung:** Der Nutzer hat klargestellt, dass dieser Rechner ein Shadow-Cloud-PC ist. Fehlende freigegebene Nested Virtualization ist damit die naheliegende Ursache des unten dokumentierten VM-Startfehlers; HypervisorPresent=True beweist diese Freigabe nicht. [Shadow-Einschränkungen](https://support.shadow.tech/hc/en-us/articles/32731830348305-Rules-and-Restrictions-on-Shadow). Keine weiteren Windows-Reparaturen empfohlen. Entscheidung angefragt: native Entwicklung auf Shadow mit separatem Docker-Testhost oder vollständiger Docker-Betrieb auf anderem Rechner. Die bisherige Docker-Pflicht wurde noch nicht eigenmächtig geändert.
 
 **Gate 3 ist noch offen.** MongoDB 9.0.4 wurde konfiguriert; Docker Desktop meldet beim Nutzer aktuell ein Hypervisor-/Engine-Startproblem. WSL 2 ist eingerichtet, VirtualMachinePlatform aktiviert, HypervisorPresent=True und hypervisorlaunchtype=Auto. Docker-Neustart mit WSL-2-Backend wird geprüft. Diese Voraussetzungen und die ausstehenden Docker-/Browsernachweise dürfen nicht als bestanden gelten.
