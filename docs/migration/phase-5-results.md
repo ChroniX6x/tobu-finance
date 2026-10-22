@@ -1,6 +1,12 @@
 # Phase 5 – Gesamtabnahme und CI
 
-Stand: 22.10.2026. Branch: `chore/monorepo-phase-5`, Ausgangscommit `0166768`. Umsetzung lokal vorbereitet; **Gate 5 noch nicht vollständig abgenommen**. Kein Push, Merge, Deployment oder Archivieren des API-Repositories. Phase 6 wartet auf eine weitere Freigabe.
+Stand: 22.10.2026. Branch: `chore/monorepo-phase-5`. Automatisiertes Gate 5 laut Nutzer erfolgreich. Manuelle Abnahme und GitHub-CI bleiben offen. Phase 6 wartet auf Freigabe.
+
+## Best?tigte automatisierte Abnahme
+
+Der Nutzer meldete nach den Phase-5-Korrekturen zuletzt ?Gate 5 automated verification passed?. Damit ist der vollst?ndige automatisierte Pr?flauf einschlie?lich Real-API-Browser, Docker-Lifecycle und isolierter Produktionsinstallation laut Nutzer erfolgreich. Letzter bereitgestellter Implementierungscommit: b3feab5; der Bericht test-results/quality.json wurde hier nicht eingelesen und die genaue Commit-ID auf dem Testrechner nicht unabh?ngig gepr?ft.
+
+Die weiter unten aufgef?hrten lokalen Einschr?nkungen und vorherigen Fehlversuche dokumentieren den Verlauf; die dort noch angeforderten automatisierten Wiederholungen sind durch diese Nutzerbest?tigung erledigt. Weiter offen bleiben ein frischer Checkout mit manueller Einrichtung, Terminal-Ctrl+C, VS-Code-Debugging und die Persistenz einer ?ber die UI angelegten Buchung sowie der GitHub-Actions-Lauf. AUTH-001/AUTH-002 und SECURITY-001 bleiben eigenst?ndige offene Punkte. Keine Freigabe oder Umsetzung von Phase 6.
 
 ## Umsetzung
 

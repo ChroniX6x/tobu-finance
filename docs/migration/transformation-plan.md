@@ -1,7 +1,7 @@
 # ToBu Finance – Plan zur gemeinsamen Projektstruktur
 
 Stand: 21.10.2026
-Status: Phasen 0–4 umgesetzt; automatisiertes Gate 3 vom Nutzer bestätigt. Gate 4 einschließlich Docker-Prüflauf und anschließender manueller Hot-Reload-Prüfung vom Nutzer am 22.10.2026 als erfolgreich bestätigt. Phase 5 freigegeben und lokal umgesetzt; vollständiger Docker-/Frischinstallations-/CI-Nachweis sowie bestehende Sicherheitsbefunde (SECURITY-001) noch offen.
+Status: Phasen 0-5 umgesetzt. Automatisiertes Gate 5 am 22.10.2026 laut Nutzer erfolgreich, inklusive Docker-Lifecycle und isolierter Produktionsinstallation. Manueller Frisch-Checkout, weitere manuelle Abnahmen, GitHub-CI und SECURITY-001 bleiben offen. Phase 6 wartet auf Freigabe.
 
 ## 1. Ziel und Entscheidung
 
