@@ -1,7 +1,7 @@
 # ToBu Finance – Plan zur gemeinsamen Projektstruktur
 
 Stand: 21.10.2026
-Status: Phasen 0-5 umgesetzt; automatisiertes Gate 5 laut Nutzer erfolgreich. Phase 6 freigegeben und lokal vorbereitet. GitHub-Uebergang und manuelle Gesamtabnahme stehen aus; Gate 6 bleibt offen. Siehe phase-6-handover.md.
+Status: Phasen 0-5 umgesetzt. Phase 6 lokal automatisch und manuell erfolgreich abgenommen (Nutzerbericht fuer Commit 3dc359a). GitHub-CI, Integration und API-Archivierung stehen aus; Gate 6 bleibt offen. Siehe phase-6-handover.md.
 
 ## 1. Ziel und Entscheidung
 

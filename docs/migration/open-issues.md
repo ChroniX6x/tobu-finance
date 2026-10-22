@@ -23,9 +23,9 @@ Phase 4 vergibt deshalb keine Owner-Rolle anhand der Listenposition. Die Wizard-
 
 Spätere Umsetzung: die Nutzeridentität serverseitig aus der authentifizierten Sitzung bestimmen, eine eindeutige Member-Zuordnung herstellen oder die benötigte Auswahl in der UI anbieten, dann den Ersteller als Owner eintragen. Nicht anhand von Reihenfolge, Namen oder ungeprüfter E-Mail gleichsetzen. Tests: Ersteller nicht an erster Listenposition, noch kein verknüpftes Mitglied, wiederholte Erstellung, fremde User-ID im Request, globale Adminrolle ohne zusätzliche Kontorechte. Bereits erzeugte Konten ohne Owner gesondert behandeln.
 
-## DEV-001: Manuelle Phase-3-Abnahme
+## DEV-001: Manuelle Abnahme
 
-Der Nutzer bestätigte am 22.10.2026 den automatisierten Gate-3-Erfolg auf dem anderen Rechner sowie später Gate 4 einschließlich Hot Reload und `min(5)`-Änderung. Für Ctrl+C im Terminal, VS-Code-Debugging und den Erhalt einer über die UI angelegten Buchung liegt noch kein separater manueller Nachweis vor. Siehe [Phase-3-Prüfung](phase-3-verification.md). Diese Punkte bleiben für die Gesamtabnahme sichtbar.
+Status: erledigt laut Nutzerbestaetigung vom 22.10.2026. Die angeleiteten manuellen Tests im frischen Acceptance-Checkout waren erfolgreich; der komplette automatisierte Lauf auf Commit 3dc359a ebenfalls. Nachweis: [Phase-6-Abnahme](phase-6-handover.md).
 
 ## UI-001: Vorgemerkte Buchung ohne Datum in der Detailmaske
 
@@ -41,4 +41,4 @@ Der Audit vom 22.10.2026 meldete 82 betroffene Paketeintraege (4 kritisch, 47 ho
 
 ## TRANSITION-001: GitHub und manuelle Gesamtabnahme
 
-Automatisiertes Gate 5 laut Nutzer erfolgreich. Phase 6 ist freigegeben; die [lokale Uebergabe](phase-6-handover.md) und [GitHub-Einweisung](github-transition.md) sind vorbereitet. CI-Nachweis, frischer Checkout, weitere manuelle Abnahmen, Integration und Archivierung bleiben offen. Gate 6 ist noch nicht abgeschlossen.
+Automatisiertes Gate 5 laut Nutzer erfolgreich. Phase 6 ist freigegeben; die [lokale Uebergabe](phase-6-handover.md) und [GitHub-Einweisung](github-transition.md) sind vorbereitet. Frischer Checkout und manuelle Abnahme sind vom Nutzer erfolgreich bestaetigt. GitHub-CI, Integration und Archivierung bleiben offen. Gate 6 ist noch nicht abgeschlossen.

@@ -1,6 +1,6 @@
 # Phase 6: Übergabe und Betriebswechsel
 
-Stand: 22.10.2026. Branch `chore/monorepo-phase-6`, Ausgangspunkt `a0ed30e`. Phase 6 ist freigegeben; der lokale Übergabestand ist vorbereitet. **Gate 6 ist noch offen.** Es wurde in dieser Phase nichts gepusht, gemergt oder archiviert.
+Stand: 22.10.2026. Branch `chore/monorepo-phase-6`. Lokale automatische und manuelle Abnahme vom Nutzer erfolgreich bestaetigt. **Gate 6 bleibt bis zum GitHub-Uebergang offen.** Kein Merge und keine Archivierung bestaetigt.
 
 ## Ziel und vorbereitete Änderungen
 
@@ -10,14 +10,16 @@ Die Root-README beschreibt den gemeinsamen Start und die heutigen Quality-Befehl
 
 ## Abnahmestand
 
-Nachtrag aus dem frischen Nutzer-Checkout: Der Tab-Wechsel zur Buchungsseite überschritt die bisherige URL-Assertion von fünf Sekunden; der Fehler-Snapshot zeigte bereits „Buchungen“ im Navigationspfad. Der Test synchronisiert jetzt explizit auf die Transaktionsantwort des Zielkontos und prüft danach URL, aktiven Tab und Buchungszeile. Ein zusätzlicher Fall verzögert die erste Resolver-Antwort gezielt um sechs Sekunden. Keine Produktivcode-Änderung, kein Retry und keine globale Timeout-Erhöhung. Der erneute vollständige Lauf im Nutzer-Checkout steht aus.
+Der Nutzer hat die manuellen Tests als erfolgreich bestaetigt und den vollstaendigen [Quality-Bericht](evidence/phase-6-quality.json) bereitgestellt. Geprueft wurde 3dc359a302f37181a97b51b78fe0cd4c75fcc7df mit dirty=false und full=true, von 20:16:23 bis 20:23:13 UTC. Alle 16 Checks bestanden. Der Bericht wurde aus der Nutzernachricht uebernommen; dies ist kein lokal erneut ausgefuehrter Lauf.
+
+Nachtrag aus dem frischen Nutzer-Checkout: Der Tab-Wechsel zur Buchungsseite überschritt die bisherige URL-Assertion von fünf Sekunden; der Fehler-Snapshot zeigte bereits „Buchungen“ im Navigationspfad. Der Test synchronisiert jetzt explizit auf die Transaktionsantwort des Zielkontos und prüft danach URL, aktiven Tab und Buchungszeile. Ein zusätzlicher Fall verzögert die erste Resolver-Antwort gezielt um sechs Sekunden. Keine Produktivcode-Änderung, kein Retry und keine globale Timeout-Erhöhung. Der erneute komplette Lauf auf Commit 3dc359a war erfolgreich.
 
 | Nachweis | Stand |
 | --- | --- |
-| Automatisiertes Gate 5 inklusive Real-API, Docker-Lifecycle und Artefaktinstallation | Vom Nutzer erfolgreich bestätigt; Bericht vom Testrechner nicht lokal eingelesen |
+| Vollstaendiger automatisierter Lauf | Alle 16 Checks erfolgreich; sauberer Commit 3dc359a, Node v24.13.1; Nutzerbericht archiviert |
 | Lokaler Übergabestand, README, GitHub-Anleitung und PR-Entwurf | Vorbereitet |
-| Frischer Checkout mit Installation, Setup und Start | Noch manuell zu bestätigen |
-| Terminal-Ctrl+C, VS-Code-Debugger, persistente UI-Buchung | Noch manuell zu bestätigen |
+| Frischer Checkout mit Installation, Setup und Start | Vom Nutzer am 22.10.2026 als erfolgreich bestaetigt |
+| Terminal-Ctrl+C, VS-Code-Debugger, persistente UI-Buchung | Manuelle Tests vom Nutzer am 22.10.2026 als erfolgreich bestaetigt |
 | GitHub Linux-/Docker- und Windows-Checks | Nach Veröffentlichung auszuführen |
 | PR integriert, API-Repository archiviert, einzige aktive Quelle | Noch nicht erfolgt |
 | Rollen/Owner und Sicherheitsbereinigung | Separat offen; keine Livebetriebsfreigabe |
