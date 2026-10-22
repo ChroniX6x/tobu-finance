@@ -24,11 +24,9 @@ Die weiter unten aufgef?hrten lokalen Einschr?nkungen und vorherigen Fehlversuch
 
 ## Umfang von Format und Lint
 
-ESLint 9.39.1 mit den empfohlenen JavaScript- und TypeScript-Regeln (typescript-eslint 8.72.0) sowie Prettier 3.6.2 sind als exakte Entwicklungsabh?ngigkeiten installiert. Die vorhandene Prettier-Konfiguration wird verwendet. Zus?tzlich pr?ft scripts/check-source.mjs Syntax, Konfliktmarker, debugger, fokussierte/?bersprungene Tests und Serverimporte im Browsercode.
+ESLint 9.39.1 mit empfohlenen JavaScript-/TypeScript-Regeln (typescript-eslint 8.72.0) und Prettier 3.6.2 sind als exakte Entwicklungsabhaengigkeiten installiert. check-source.mjs ergaenzt Syntax-, Konfliktmarker-, Testdisziplin- und Browserimportregeln.
 
-Der Altbestand aus Commit 0166768 ist in evidence/lint-baseline.json und evidence/format-baseline.json ausdr?cklich erfasst: Lint-Ausnahmen gelten nur f?r vorhandene Regel-/Meldungs-/Codekombinationen und deren Anzahl; Format-Ausnahmen nur f?r unver?nderte Dateiinhalte. Neue Lint-Verst??e scheitern, neue oder ge?nderte Dateien m?ssen vollst?ndig formatiert sein. Windows-Zeilenenden werden f?r den Formatvergleich normalisiert. CI erweitert die Baselines nicht automatisch. Historische Migrationen und importierte Assets bleiben ?ber bestehende Hash-Pr?fungen gesch?tzt. Die Bereinigung verbleibender Altbefunde erfolgt separat.
-
-Die Sicherheitsbewertung steht in [phase-5-security.md](phase-5-security.md). Das Werkzeugupdate beseitigt die sechs zun?chst zus?tzlich eingef?hrten Meldungen; die verbleibenden 82 betroffenen Paketeintr?ge betreffen bereits zuvor vorhandene Versionen. Ein gr?nes Funktionsgate ist keine Sicherheitsfreigabe.
+Altbefunde aus Commit 0166768 stehen in evidence/lint-baseline.json und evidence/format-baseline.json. Lint-Ausnahmen gelten nur fuer bestehende Regel-/Meldungs-/Codekombinationen samt Anzahl; Format-Ausnahmen nur fuer unveraenderte Inhalte. Neue/geaenderte Dateien muessen formatiert sein. CI erweitert die Baselines nicht automatisch. QUALITY-001 ist umgesetzt; SECURITY-001 bleibt offen.
 
 ## Lokale Nachweise
 

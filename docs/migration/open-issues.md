@@ -31,10 +31,14 @@ Der Nutzer bestätigte am 22.10.2026 den automatisierten Gate-3-Erfolg auf dem a
 
 Status: in Phase 5 behoben. Die Detailmaske bietet bei leerem Datum eine explizite Monatsauswahl; ein Browser-Test prüft Pflichtfeld und Request. Die API berücksichtigt den Monat beim Leeren des Datums und hält Monatsänderungen bei Parent/Splits konsistent; Integrationstests prüfen dies. Kein unsichtbares Ausweichen auf den aktuellen Monat.
 
-## QUALITY-001: Vollständige Format-/Lint-Regeln
+## QUALITY-001: Format und Lint
 
-Phase 5 führt verpflichtende Syntax-, Testdisziplin-, Browserimport- und Whitespace-Prüfungen ein. Ein vollständiges ESLint-/Prettier-Regelwerk ist noch nicht installiert: Paketdownloads wurden mit EACCES abgelehnt. Die bestehende Prettier-Konfiguration ist damit nicht vollständig automatisiert durchgesetzt. Umfang und Altbestand der aktuellen Prüfungen stehen im [Phase-5-Bericht](phase-5-results.md). Vor uneingeschränkter Gesamtabnahme die zusätzlichen Werkzeuge installieren, deren Regeln und vorhandene Befunde prüfen und die Qualitätsbefehle ergänzen.Status: in Phase 5 umgesetzt. ESLint und Prettier sind installiert und in den verpflichtenden Quality-Lauf eingebunden. Bestehende Befunde sind pr?zise gegen Commit 0166768 erfasst; neue Verst??e scheitern. Keine automatische Erweiterung der Ausnahmen in CI. Details im [Phase-5-Bericht](phase-5-results.md).
+Status: in Phase 5 umgesetzt. ESLint und Prettier sind installiert und verpflichtend. Altbefunde sind gegen Commit 0166768 dokumentiert; neue Regelverletzungen scheitern. Keine automatische Erweiterung der Baselines in CI. Details: [Phase-5-Bericht](phase-5-results.md).
 
-## SECURITY-001: Bestehende Schwachstellen in Abh?ngigkeiten
+## SECURITY-001: Dependency-Sicherheitsbefunde
 
-Der npm-Audit vom 22.10.2026 meldet 82 betroffene Paketeintr?ge: 4 kritisch, 47 hoch, 26 mittel, 5 niedrig. Die gemeldeten installierten Versionen bestanden bereits vor Phase 5. Die sechs zun?chst durch die Lint-Werkzeuge hinzugekommenen Meldungen entfallen mit typescript-eslint 8.72.0. Bestehende Meldungen bleiben offen und ben?tigen gezielte Updates samt Regressionstests; kein pauschales audit fix --force. Siehe [Bewertung und Ma?nahmen](phase-5-security.md). Ein erfolgreiches Gate 5 ersetzt diese Arbeit nicht.
+Der Audit vom 22.10.2026 meldete 82 betroffene Paketeintraege (4 kritisch, 47 hoch, 26 mittel, 5 niedrig). Die gemeldeten Versionen waren bereits vor Phase 5 vorhanden. Sechs voruebergehend durch die Lint-Werkzeuge hinzugekommene Meldungen entfielen mit typescript-eslint 8.72.0. Die anschliessende Verschiebung von primeclt nach devDependencies entfernt diese Kette aus der Produktionsinstallation, beseitigt aber nicht ihre Sicherheitsbefunde in der Entwicklungsumgebung. Der Audit ist eine historische Momentaufnahme, kein neuer Scan nach der Verschiebung. Siehe [Bewertung](phase-5-security.md).
+
+## TRANSITION-001: GitHub und manuelle Gesamtabnahme
+
+Automatisiertes Gate 5 laut Nutzer erfolgreich. Phase 6 ist freigegeben; die [lokale Uebergabe](phase-6-handover.md) und [GitHub-Einweisung](github-transition.md) sind vorbereitet. CI-Nachweis, frischer Checkout, weitere manuelle Abnahmen, Integration und Archivierung bleiben offen. Gate 6 ist noch nicht abgeschlossen.

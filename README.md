@@ -1,45 +1,59 @@
 # ToBu Finance
 
-Angular-Frontend und Express/MongoDB-API in einem privaten npm-Workspace.
+Angular-Frontend und Express/MongoDB-API in einem gemeinsamen npm-Workspace.
 
-- `apps/web`: Angular-Anwendung und Browsertests.
-- `apps/api`: Express-API, OpenAPI und API-Tests.
-- `packages`: gemeinsame Vertr?ge ab Phase 4.
-- `infra`: lokale Docker-Datenbank.
-- `docs/database/legacy-migrations`: historische Migrationen, au?erhalb von Build und Runner.
+| Pfad | Inhalt |
+| --- | --- |
+| `apps/web` | Angular und Browsertests |
+| `apps/api` | Express, Datenbanklogik und API-Tests |
+| `packages/contracts` | Gemeinsame Zod-Verträge und OpenAPI-Grundlage |
+| `infra` | Lokale Docker-Datenbank |
+| `docs/database/legacy-migrations` | Historischer Schemaweg, außerhalb aktiver Runner |
 
-## Start
+## Einrichten und starten
 
-Node **24.13.1**, npm **11.8.0**, Docker mit laufender Linux-Engine. Im Repository-Root:
+Voraussetzungen: Node **24.13.1**, npm **11.8.0**, Docker mit laufender Linux-Engine. Im Repository-Root einmalig:
 
 ```powershell
 npm ci
-docker pull mongo:9.0.4
 npm run setup
+```
+
+Täglich reicht:
+
+```powershell
 npm run dev
 ```
 
-Web: <http://localhost:4200>, OpenAPI: <http://127.0.0.1:4000/docs>. `Ctrl+C` beendet API und Web. `npm run dev:down` stoppt die Datenbank; das persistente Volume und manuelle Testdaten bleiben erhalten. Keine native MongoDB erforderlich.
+Web: <http://localhost:4200>, OpenAPI: <http://127.0.0.1:4000/docs>. API, Web und gemeinsame Verträge werden überwacht. `Ctrl+C` beendet die Entwicklungsprozesse. `npm run dev:down` stoppt die Docker-Datenbank und erhält das Volume einschließlich manuell erstellter Testdaten. Eine native MongoDB wird nicht benötigt. Das Projekt verwendet MongoDB **9.0.4**.
 
-Setup erzeugt fehlende lokale Konfiguration/Schl?ssel und initialisiert Baseline und Demo einmalig. Wiederholtes Setup ?berschreibt keine bestehenden Daten. Demo-Login: `alice@demo.tobu.test`, Passwort `Tobu-Demo-2026!`. Rollenfixtures sind vorbereitet; vollst?ndige Kontozugriffskontrolle ist ein gesonderter Umsetzungspunkt.
+Setup erzeugt fehlende lokale Konfiguration und Schlüssel sowie einmalig Baseline und Demo. Wiederholtes Setup überschreibt keine vorhandenen Daten. Demo-Login: `alice@demo.tobu.test`, Passwort `Tobu-Demo-2026!`. Diese Zugangsdaten sind ausschließlich für die lokale Entwicklung vorgesehen.
 
-Konfiguration, externer DB-Modus, Seed-Szenarien, Reset und VS Code: [Entwicklungsanleitung](docs/development.md).
+Details zu VS Code, Datenbankszenarien, externem DB-Modus und bewusstem Reset: [Entwicklungsanleitung](docs/development.md).
 
-## Qualit?t
+## Prüfen und bauen
+
+Chromium einmalig installieren und für Karma verfügbar machen (PowerShell):
 
 ```powershell
-npm run check:workspace
-npm run typecheck
-npm run build
-npm run test:tooling
-npm test
-npm run e2e
-npm run test:integration
-npm run e2e:real
+npm exec --workspace=@tobu/web -- playwright install chromium
+$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")
+npm run quality:full
 ```
 
-F?r Karma Chrome installieren. Playwright einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` vorbereiten. Integration und echte Browser-E2E erstellen ihre eigene Docker-Datenbank, API, Testnutzer und Schl?ssel. Kein manueller Testserver und keine Zugangsdaten n?tig.
+`quality` enthält die Prüfungen ohne Docker; `quality:full` beziehungsweise `verify:phase5` ergänzt isolierte API-/Browser-Integration, Lifecycle und eine saubere Produktionsinstallation. Ergebnisbericht: `test-results/quality.json`. Tests benötigen keine manuell gestartete API und verändern keine Entwicklungsdatenbank.
 
-`npm run verify:phase3` b?ndelt die automatisierte Abnahme einschlie?lich Neustart/Persistenz und Fehlerf?llen in einem eigenen, anschlie?end entfernten Docker-Stack. [Gate-3-Anleitung und Pr?fstatus](docs/migration/phase-3-verification.md).
+```powershell
+npm run build
+npm run package:artifact
+```
 
-Nur die Root-Datei `package-lock.json` ist aktiv. Keine Installationen in einzelnen Apps. Build-Ausgaben: `apps/api/dist` und `apps/web/dist/tobu-finance`. Produktionshosting muss relative `/api`-Aufrufe an die API weiterleiten; Entwicklungs-Compose und Demo-Seed sind kein Produktionsdeployment.
+Das Ergebnis liegt unter `dist/release`. Installation und Start des gebauten Pakets: [Artefaktanleitung](docs/production-artifact.md). Das ist noch kein eingerichtetes produktives Hosting.
+
+Nur `package-lock.json` im Root ist aktiv; Installationen erfolgen im Root. Die gemeinsame Schnittstelle ist in [Vertragsarchitektur](docs/architecture/contracts.md) beschrieben.
+
+## Übergang und offene Arbeiten
+
+Der Nutzer hat das automatisierte Gate 5 als erfolgreich bestätigt. [Phase 6](docs/migration/phase-6-handover.md) beschreibt den noch ausstehenden Übergang auf GitHub, die manuelle Abnahme und den Rückfallweg. Für Push, PR, CI, Merge und die spätere Archivierung gibt es eine separate [GitHub-Einweisung](docs/migration/github-transition.md).
+
+Die vollständige Rollenprüfung, die automatische Owner-Zuordnung bei Kontoerstellung und bestehende Sicherheitsbefunde bleiben [offene Arbeiten](docs/migration/open-issues.md). Ein grüner Migrationscheck bedeutet keine Freigabe für den Livebetrieb.

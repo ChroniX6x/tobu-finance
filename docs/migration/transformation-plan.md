@@ -1,7 +1,7 @@
 # ToBu Finance – Plan zur gemeinsamen Projektstruktur
 
 Stand: 21.10.2026
-Status: Phasen 0-5 umgesetzt. Automatisiertes Gate 5 am 22.10.2026 laut Nutzer erfolgreich, inklusive Docker-Lifecycle und isolierter Produktionsinstallation. Manueller Frisch-Checkout, weitere manuelle Abnahmen, GitHub-CI und SECURITY-001 bleiben offen. Phase 6 wartet auf Freigabe.
+Status: Phasen 0-5 umgesetzt; automatisiertes Gate 5 laut Nutzer erfolgreich. Phase 6 freigegeben und lokal vorbereitet. GitHub-Uebergang und manuelle Gesamtabnahme stehen aus; Gate 6 bleibt offen. Siehe phase-6-handover.md.
 
 ## 1. Ziel und Entscheidung
 
@@ -358,7 +358,7 @@ Umsetzung und Nachweise: [Phase-4-Ergebnis](phase-4-results.md). Bekannte Proxyf
 
 ### Phase 5 – Gesamtabnahme und CI
 
-Umsetzung, Prüfgrenzen und verbleibende Schritte: [Phase-5-Ergebnis](phase-5-results.md). Phase 6 bleibt bis zur weiteren Freigabe ausgesetzt.
+Umsetzung, Prüfgrenzen und verbleibende Schritte: [Phase-5-Ergebnis](phase-5-results.md). Phase 6 ist freigegeben; siehe [Uebergabe](phase-6-handover.md).
 
 - Root-Qualitätsbefehle und GitHub-Actions-Checks verbindlich einrichten.
 - Produktionsartefakte in sauberer Umgebung ohne TS-Dev-Runner starten; OpenAPI und benötigte Migrationsdateien mitliefern.
