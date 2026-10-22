@@ -19,6 +19,9 @@ const baseline = json('docs/migration/evidence/phase-2-dependency-baseline.json'
 const lock = json('package-lock.json');
 assert.equal(lock.lockfileVersion, 3);
 assert.equal(json('package.json').private, true);
+for (const tool of ['tsx', 'typescript', 'primeclt']) {
+    assert.equal(lock.packages[`node_modules/${tool}`]?.dev, true, `${tool} must remain development-only in the dependency graph`);
+}
 for (const app of ['web', 'api']) {
     const pkg = json(`apps/${app}/package.json`);
     assert.equal(pkg.name, `@tobu/${app}`);
@@ -28,8 +31,11 @@ for (const app of ['web', 'api']) {
         assert.equal(existsSync(resolve(root, `apps/${app}/${filename}`)), false, `Nested ${filename}`);
     }
     for (const [name, previous] of Object.entries(baseline[app])) {
-        assert.equal(pkg[previous.group][name], previous.version, `${app}: direct dependency drift ${name}`);
-        assert.equal(lock.packages[`apps/${app}`][previous.group][name], previous.version);
+        // Phase 5: primeclt is a CLI, not part of the compiled web runtime.
+        const group = app === 'web' && name === 'primeclt' ? 'devDependencies' : previous.group;
+        assert.equal(pkg[group][name], previous.version, `${app}: direct dependency drift ${name}`);
+        assert.equal(lock.packages[`apps/${app}`][group][name], previous.version);
+        if (group !== previous.group) assert.equal(pkg[previous.group][name], undefined, `${app}: development tool in production dependencies`);
         const installed = lock.packages[`apps/${app}/node_modules/${name}`] ?? lock.packages[`node_modules/${name}`];
         assert.equal(installed?.version, previous.version, `${app}: lockfile drift ${name}`);
     }
