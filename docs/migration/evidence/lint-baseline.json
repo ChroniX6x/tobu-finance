@@ -1,0 +1,201 @@
+{
+  "apps/api/src/auth/models.ts": {
+    "@typescript-eslint/ban-ts-comment|Use \"@ts-expect-error\" instead of \"@ts-ignore\", as \"@ts-ignore\" will do nothing if the following line is error-free.|// @ts-ignore": 1
+  },
+  "apps/api/src/auth/routes.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 2
+  },
+  "apps/api/src/docs/swagger.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/api/src/middleware/error.ts": {
+    "@typescript-eslint/no-unused-vars|'_next' is defined but never used.|_next": 1
+  },
+  "apps/api/src/middleware/validate.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 3
+  },
+  "apps/api/src/models/ContributionRule.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 3
+  },
+  "apps/api/src/routes/account-balances.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 3
+  },
+  "apps/api/src/routes/account-overview.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 2
+  },
+  "apps/api/src/routes/accounts-summary.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 5
+  },
+  "apps/api/src/routes/accounts.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 24
+  },
+  "apps/api/src/routes/carryovers.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 4
+  },
+  "apps/api/src/routes/categories.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 8
+  },
+  "apps/api/src/routes/master-data.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 21
+  },
+  "apps/api/src/routes/members.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 5
+  },
+  "apps/api/src/routes/month-view.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/api/src/routes/planning.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/api/src/routes/recurrences.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 6
+  },
+  "apps/api/src/routes/transactions.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 3
+  },
+  "apps/api/tests/integration/api.test.mjs": {
+    "no-unsafe-finally|Unsafe usage of ThrowStatement.|throw new Error('Unexpected test scratch path');": 1
+  },
+  "apps/web/src/app/accounts/account-management/master-data/account-master-data.models.ts": {
+    "@typescript-eslint/no-unused-vars|'AccountMasterDataResponse' is defined but never used.|AccountMasterDataResponse": 1,
+    "@typescript-eslint/no-unused-vars|'AccountMasterVm' is defined but never used.|AccountMasterVm": 1,
+    "@typescript-eslint/no-unused-vars|'MemberMasterItemVm' is defined but never used.|MemberMasterItemVm": 1,
+    "@typescript-eslint/no-unused-vars|'CategoryMasterItemVm' is defined but never used.|CategoryMasterItemVm": 1,
+    "@typescript-eslint/no-unused-vars|'MasterDataMetaVm' is defined but never used.|MasterDataMetaVm": 1
+  },
+  "apps/web/src/app/accounts/account-management/master-data/account-master-section.component.ts": {
+    "@typescript-eslint/no-unused-vars|'effect' is defined but never used.|effect": 1
+  },
+  "apps/web/src/app/accounts/account-management/planning/contribution-rules-section.component.ts": {
+    "@typescript-eslint/no-unused-expressions|Expected an assignment or function call and instead saw an expression.|next.has(id) ? next.delete(id) : next.add(id);": 1
+  },
+  "apps/web/src/app/accounts/account-management/planning/income-planning-section.component.ts": {
+    "@typescript-eslint/no-unused-expressions|Expected an assignment or function call and instead saw an expression.|next.has(memberId) ? next.delete(memberId) : next.add(memberId);": 1
+  },
+  "apps/web/src/app/accounts/account-management/planning/planning-preview-card.component.ts": {
+    "@typescript-eslint/no-unused-expressions|Expected an assignment or function call and instead saw an expression.|next.has(memberId) ? next.delete(memberId) : next.add(memberId);": 1
+  },
+  "apps/web/src/app/accounts/account-management/planning/planning.models.ts": {
+    "@typescript-eslint/no-unused-vars|'AccountPlanningResponse' is defined but never used.|AccountPlanningResponse": 1,
+    "@typescript-eslint/no-unused-vars|'PlanningOverviewVm' is defined but never used.|PlanningOverviewVm": 1,
+    "@typescript-eslint/no-unused-vars|'BudgetPlanningItemVm' is defined but never used.|BudgetPlanningItemVm": 1,
+    "@typescript-eslint/no-unused-vars|'IncomePlanningMemberVm' is defined but never used.|IncomePlanningMemberVm": 1,
+    "@typescript-eslint/no-unused-vars|'ContributionBlockVm' is defined but never used.|ContributionBlockVm": 1,
+    "@typescript-eslint/no-unused-vars|'PlanningPreviewVm' is defined but never used.|PlanningPreviewVm": 1,
+    "@typescript-eslint/no-unused-vars|'PlanningHintVm' is defined but never used.|PlanningHintVm": 1
+  },
+  "apps/web/src/app/accounts/account-management/planning/special-blocks-section.component.ts": {
+    "@typescript-eslint/no-unused-expressions|Expected an assignment or function call and instead saw an expression.|next.has(id) ? next.delete(id) : next.add(id);": 1
+  },
+  "apps/web/src/app/accounts/account-overview/account-overview.ts": {
+    "@typescript-eslint/no-unused-vars|'effect' is defined but never used.|effect": 1
+  },
+  "apps/web/src/app/accounts/domain/account-overview.ui-model.ts": {
+    "@typescript-eslint/no-empty-object-type|An interface declaring no members is equivalent to its supertype.|ChartPieData": 1,
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/web/src/app/accounts/services/account-dashboard-statistik.service.ts": {
+    "@typescript-eslint/no-unused-vars|'members' is defined but never used.|members": 1,
+    "@typescript-eslint/no-unused-vars|'currentMonth' is defined but never used.|currentMonth": 1
+  },
+  "apps/web/src/app/calculation/calculation-data.service.ts": {
+    "@typescript-eslint/no-unused-vars|'lastValueFrom' is defined but never used.|lastValueFrom": 1,
+    "prefer-const|'filname' is never reassigned. Use 'const' instead.|filname": 1,
+    "@typescript-eslint/no-unused-vars|'_' is defined but never used.|_": 1
+  },
+  "apps/web/src/app/calculation/calculation-table/calculation-table.ts": {
+    "@typescript-eslint/no-unused-vars|'dt1' is defined but never used.|dt1": 1,
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 2,
+    "@typescript-eslint/no-unused-vars|'$event' is defined but never used.|$event": 1
+  },
+  "apps/web/src/app/calculation/domain/calculation-position.ts": {
+    "@typescript-eslint/no-unused-vars|'DateTime' is defined but never used.|DateTime": 1
+  },
+  "apps/web/src/app/calculation/state/calculation.state.ts": {
+    "@typescript-eslint/no-unused-vars|'action' is defined but never used.|action": 1
+  },
+  "apps/web/src/app/core/auth/models/auth.models.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/web/src/app/core/auth/services/auth.service.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/web/src/app/shared/ng-as-pipe.ts": {
+    "@typescript-eslint/no-unused-vars|'_baseItem' is defined but never used.|_baseItem": 1
+  },
+  "apps/web/src/app/shared/state/route-initializer.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 2
+  },
+  "apps/web/src/app/shell/components/app.breadcrumb.ts": {
+    "@typescript-eslint/no-unused-vars|'event' is defined but never used.|event": 1
+  },
+  "apps/web/src/app/shell/components/app.configurator.ts": {
+    "@typescript-eslint/no-unused-vars|'preset' is assigned a value but never used.|preset": 1,
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 4
+  },
+  "apps/web/src/app/shell/components/app.menu.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 2
+  },
+  "apps/web/src/app/shell/components/app.menuitem.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/web/src/app/shell/components/app.profilemenu.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/web/src/app/shell/components/app.sidebar.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/web/src/app/shell/components/app.topbar.ts": {
+    "@typescript-eslint/no-unused-vars|'el' is assigned a value but never used.|el": 1
+  },
+  "apps/web/src/app/shell/service/layout.service.ts": {
+    "@typescript-eslint/no-explicit-any|Unexpected any. Specify a different type.|any": 1
+  },
+  "apps/web/src/app/transactions/state/transaction-capture.state.ts": {
+    "@typescript-eslint/no-unused-vars|'DraftStatus' is defined but never used.|DraftStatus": 1
+  },
+  "apps/web/src/app/transactions/transactions-page/detail-editor/transaction-detail-editor.ts": {
+    "@typescript-eslint/no-unused-vars|'EMPTY_TX_MODEL' is assigned a value but never used.|EMPTY_TX_MODEL": 1
+  },
+  "apps/web/src/app/transactions/transactions-page/toolbar/transaction-toolbar.ts": {
+    "@typescript-eslint/no-unused-vars|'TransactionCaptureState' is defined but never used.|TransactionCaptureState": 1
+  },
+  "apps/web/src/app/transactions/transactions-page/transaction-list/transaction-list.ts": {
+    "@typescript-eslint/no-unused-vars|'_' is defined but never used.|_": 1,
+    "@typescript-eslint/no-unused-vars|'TransactionCaptureState' is defined but never used.|TransactionCaptureState": 1
+  },
+  "apps/web/src/app/transactions/transactions-page/transactions-page.ts": {
+    "@typescript-eslint/no-unused-vars|'LoadTransactions' is defined but never used.|LoadTransactions": 1
+  },
+  "apps/web/src/app/wizard/domain/custom-split.model.ts": {
+    "@typescript-eslint/no-unused-vars|'WizardMemberModel' is defined but never used.|WizardMemberModel": 1
+  },
+  "apps/web/src/app/wizard/state/wizard.actions.ts": {
+    "@typescript-eslint/no-unused-vars|'WizardModel' is defined but never used.|WizardModel": 1
+  },
+  "apps/web/src/app/wizard/state/wizard.state.ts": {
+    "@typescript-eslint/no-unused-vars|'action' is defined but never used.|action": 2,
+    "prefer-const|'tmp' is never reassigned. Use 'const' instead.|tmp": 1,
+    "no-empty-pattern|Unexpected empty object pattern.|{}: SaveWizardData": 1,
+    "prefer-const|'accountId' is never reassigned. Use 'const' instead.|accountId": 1
+  },
+  "apps/web/src/app/wizard/wizard.ts": {
+    "@typescript-eslint/no-unused-vars|'signal' is defined but never used.|signal": 1
+  },
+  "apps/web/tests/e2e/transactions-page.spec.ts": {
+    "no-useless-escape|Unnecessary escape character: \\..|\\": 1
+  },
+  "scripts/lib/processes.mjs": {
+    "no-empty|Empty block statement.|{}": 1
+  },
+  "scripts/test-stack.mjs": {
+    "@typescript-eslint/no-unused-vars|'root' is defined but never used.|root": 1,
+    "no-unsafe-finally|Unsafe usage of ThrowStatement.|throw new Error('Invalid scratch path');": 1
+  },
+  "scripts/tests/tooling.test.mjs": {
+    "no-unsafe-finally|Unsafe usage of ThrowStatement.|throw new Error('Unsafe scratch path');": 1
+  },
+  "scripts/verify-phase3.mjs": {
+    "no-unsafe-finally|Unsafe usage of ThrowStatement.|throw new Error('Unsafe cleanup project');": 1
+  }
+}

@@ -42,6 +42,20 @@
     "test:contracts": "npm run build:contracts && npm run test --workspace=@tobu/contracts",
     "contracts:generate": "npm run build:contracts && node scripts/generate-openapi.mjs",
     "check:contracts": "npm run build:contracts && node scripts/generate-openapi.mjs --check && node scripts/check-contracts.mjs",
-    "verify:phase4": "node scripts/verify-phase4.mjs"
+    "verify:phase4": "node scripts/verify-phase4.mjs",
+    "lint": "node scripts/check-source.mjs lint && node scripts/check-style.mjs lint",
+    "format:check": "node scripts/check-style.mjs format",
+    "quality": "node scripts/quality.mjs",
+    "quality:full": "node scripts/quality.mjs --full",
+    "verify:phase5": "npm run quality:full",
+    "package:artifact": "node scripts/package-artifact.mjs",
+    "test:artifact": "node scripts/test-artifact.mjs",
+    "test:lifecycle": "node scripts/verify-phase3.mjs --runtime-only"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "eslint": "9.39.1",
+    "prettier": "3.6.2",
+    "typescript-eslint": "8.72.0"
   }
 }

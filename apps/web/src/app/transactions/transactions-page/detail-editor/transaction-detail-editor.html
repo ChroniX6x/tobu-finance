@@ -2,7 +2,6 @@
 
 @if (selectedTx() || isNew()) {
   <form [formRoot]="txForm" class="detail-editor flex flex-col gap-4">
-
     <!-- New transaction heading -->
     @if (isNew()) {
       <div class="flex items-center gap-2">
@@ -13,15 +12,25 @@
 
     <!-- Child: "Teil von" info bar -->
     @if (isChild()) {
-      <div class="child-info-bar flex items-center gap-2 p-2 rounded-lg bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700">
+      <div
+        class="child-info-bar flex items-center gap-2 p-2 rounded-lg bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700"
+      >
         <i class="pi pi-info-circle text-blue-500 dark:text-blue-400"></i>
-        <span class="text-sm text-surface-600 dark:text-surface-300">Teil von:</span>
+        <span class="text-sm text-surface-600 dark:text-surface-300"
+          >Teil von:</span
+        >
         @if (parentTx(); as parent) {
-          <button type="button" class="text-sm text-primary-600 underline hover:text-primary-800 font-medium" (click)="goToParent()">
+          <button
+            type="button"
+            class="text-sm text-primary-600 underline hover:text-primary-800 font-medium"
+            (click)="goToParent()"
+          >
             {{ parent.title }}
           </button>
         }
-        <span class="ml-auto text-xs text-surface-400 dark:text-surface-500">Felder geerbt vom Parent</span>
+        <span class="ml-auto text-xs text-surface-400 dark:text-surface-500"
+          >Felder geerbt vom Parent</span
+        >
       </div>
     }
 
@@ -40,11 +49,15 @@
           required
         />
         @if (isChild()) {
-          <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
+          <span class="text-xs text-surface-400 dark:text-surface-500"
+            >Geerbt (nicht änderbar)</span
+          >
         }
         @if (txForm.type().touched() && txForm.type().invalid()) {
           @for (e of txForm.type().errors(); track e) {
-            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+            <small class="text-red-500 dark:text-red-400">{{
+              e.message
+            }}</small>
           }
         }
       </div>
@@ -59,12 +72,16 @@
           [maxFractionDigits]="2"
           [min]="0"
           placeholder="0,00"
-          [class.p-invalid]="txForm.amountMinor().touched() && txForm.amountMinor().invalid()"
+          [class.p-invalid]="
+            txForm.amountMinor().touched() && txForm.amountMinor().invalid()
+          "
           required
         />
         @if (txForm.amountMinor().touched() && txForm.amountMinor().invalid()) {
           @for (e of txForm.amountMinor().errors(); track e) {
-            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+            <small class="text-red-500 dark:text-red-400">{{
+              e.message
+            }}</small>
           }
         }
       </div>
@@ -100,7 +117,9 @@
           appendTo="body"
         />
         @if (isChild()) {
-          <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
+          <span class="text-xs text-surface-400 dark:text-surface-500"
+            >Geerbt (nicht änderbar)</span
+          >
         }
       </div>
 
@@ -109,19 +128,39 @@
         <p-select
           inputId="status"
           [formField]="$any(txForm.status)"
-          [options]="[{label:'Ausstehend', value:'pending'},{label:'Gebucht',value:'booked'}]"
+          [options]="[
+            { label: 'Ausstehend', value: 'pending' },
+            { label: 'Gebucht', value: 'booked' },
+          ]"
           optionLabel="label"
           optionValue="value"
-          [class.p-invalid]="txForm.status().touched() && txForm.status().invalid()"
+          [class.p-invalid]="
+            txForm.status().touched() && txForm.status().invalid()
+          "
           required
         />
         @if (txForm.status().touched() && txForm.status().invalid()) {
           @for (e of txForm.status().errors(); track e) {
-            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
+            <small class="text-red-500 dark:text-red-400">{{
+              e.message
+            }}</small>
           }
         }
       </div>
     </div>
+
+    @if (!txForm.bookDate().value()) {
+      <div class="flex flex-col gap-1">
+        <label for="transactionMonth">Monat *</label>
+        <input id="transactionMonth" type="month" [formField]="txForm.month" />
+        @for (e of txForm.month().errors(); track e) {
+          <small class="text-red-500">{{ e.message }}</small>
+        }
+        @for (e of txForm.bookDate().errors(); track e) {
+          <small class="text-red-500">{{ e.message }}</small>
+        }
+      </div>
+    }
 
     <!-- Category -->
     <div class="flex flex-col gap-1">
@@ -143,40 +182,54 @@
       <label class="label-sm">Zahlungsquelle *</label>
       <p-select
         [formField]="$any(txForm.isFromSharedAccount)"
-        [options]="[{label:'Gemeinschaftskonto', value:true},{label:'Privat', value:false}]"
+        [options]="[
+          { label: 'Gemeinschaftskonto', value: true },
+          { label: 'Privat', value: false },
+        ]"
         optionLabel="label"
         optionValue="value"
-        [class.p-invalid]="txForm.isFromSharedAccount().touched() && txForm.isFromSharedAccount().invalid()"
+        [class.p-invalid]="
+          txForm.isFromSharedAccount().touched() &&
+          txForm.isFromSharedAccount().invalid()
+        "
         required
       />
       @if (isChild()) {
-        <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
+        <span class="text-xs text-surface-400 dark:text-surface-500"
+          >Geerbt (nicht änderbar)</span
+        >
       }
     </div>
 
     <!-- Bezahlt von -->
     <div class="flex flex-col gap-1">
-        <label class="label-sm" for="paidBy">Bezahlt von *</label>
-        <p-select
-          inputId="paidBy"
-          [formField]="$any(txForm.paidByMemberId)"
-          [options]="memberOptions()"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Member auswählen"
-          appendTo="body"
-          [class.p-invalid]="txForm.paidByMemberId().touched() && txForm.paidByMemberId().invalid()"
-          [required]="!txForm.isFromSharedAccount().value()"
-        />
-        @if (isChild()) {
-          <span class="text-xs text-surface-400 dark:text-surface-500">Geerbt (nicht änderbar)</span>
+      <label class="label-sm" for="paidBy">Bezahlt von *</label>
+      <p-select
+        inputId="paidBy"
+        [formField]="$any(txForm.paidByMemberId)"
+        [options]="memberOptions()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Member auswählen"
+        appendTo="body"
+        [class.p-invalid]="
+          txForm.paidByMemberId().touched() && txForm.paidByMemberId().invalid()
+        "
+        [required]="!txForm.isFromSharedAccount().value()"
+      />
+      @if (isChild()) {
+        <span class="text-xs text-surface-400 dark:text-surface-500"
+          >Geerbt (nicht änderbar)</span
+        >
+      }
+      @if (
+        txForm.paidByMemberId().touched() && txForm.paidByMemberId().invalid()
+      ) {
+        @for (e of txForm.paidByMemberId().errors(); track e) {
+          <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
         }
-        @if (txForm.paidByMemberId().touched() && txForm.paidByMemberId().invalid()) {
-          @for (e of txForm.paidByMemberId().errors(); track e) {
-            <small class="text-red-500 dark:text-red-400">{{ e.message }}</small>
-          }
-        }
-      </div>
+      }
+    </div>
 
     <!-- Notes -->
     <!-- NOTE: [formField] is intentionally NOT used here. PrimeNG's pTextarea
@@ -207,15 +260,26 @@
         <div class="split-summary grid grid-cols-3 gap-2 mb-3">
           <div class="stat-card">
             <span class="label">Gesamt</span>
-            <span class="value">{{ formatAmount(selectedTx()?.amountMinor ?? 0) }} €</span>
+            <span class="value"
+              >{{ formatAmount(selectedTx()?.amountMinor ?? 0) }} €</span
+            >
           </div>
           <div class="stat-card">
             <span class="label">Zugewiesen</span>
-            <span class="value text-blue-600 dark:text-blue-400">{{ formatAmount(meta.assignedMinor) }} €</span>
+            <span class="value text-blue-600 dark:text-blue-400"
+              >{{ formatAmount(meta.assignedMinor) }} €</span
+            >
           </div>
           <div class="stat-card" [class.rest-zero]="meta.restMinor === 0">
             <span class="label">Rest</span>
-            <span class="value" [class]="meta.restMinor === 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
+            <span
+              class="value"
+              [class]="
+                meta.restMinor === 0
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-orange-600 dark:text-orange-400'
+              "
+            >
               {{ formatAmount(meta.restMinor) }} €
             </span>
           </div>
@@ -236,15 +300,25 @@
             >
               <i class="pi pi-subdirectory-right text-surface-300 text-xs"></i>
               <span class="flex-1 text-sm">{{ child.title }}</span>
-              <span class="text-sm font-medium" [class]="child.type === 'expense' ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
-                {{ child.type === 'expense' ? '−' : '+' }} {{ formatAmount(child.amountMinor) }} €
+              <span
+                class="text-sm font-medium"
+                [class]="
+                  child.type === 'expense'
+                    ? 'text-red-500 dark:text-red-400'
+                    : 'text-green-600 dark:text-green-400'
+                "
+              >
+                {{ child.type === "expense" ? "−" : "+" }}
+                {{ formatAmount(child.amountMinor) }} €
               </span>
             </div>
           }
         </div>
 
         @if (meta.restMinor === 0) {
-          <div class="container-badge text-center text-xs py-1 px-2 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+          <div
+            class="container-badge text-center text-xs py-1 px-2 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+          >
             Container-only (Rest = 0, zählt nicht in Charts)
           </div>
         }
@@ -252,7 +326,9 @@
     }
 
     <!-- Save button -->
-    <div class="flex justify-end gap-2 pt-2 border-t border-surface-100 dark:border-surface-700">
+    <div
+      class="flex justify-end gap-2 pt-2 border-t border-surface-100 dark:border-surface-700"
+    >
       @if (isNew()) {
         <p-button
           type="submit"
@@ -273,7 +349,9 @@
     </div>
   </form>
 } @else {
-  <div class="flex items-center justify-center h-24 text-surface-400 dark:text-surface-500 text-sm">
+  <div
+    class="flex items-center justify-center h-24 text-surface-400 dark:text-surface-500 text-sm"
+  >
     Keine Buchung ausgewählt
   </div>
 }

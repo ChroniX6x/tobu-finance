@@ -1,7 +1,7 @@
 # ToBu Finance – Plan zur gemeinsamen Projektstruktur
 
 Stand: 21.10.2026
-Status: Phasen 0–4 umgesetzt; automatisiertes Gate 3 vom Nutzer bestätigt. Gate 4 einschließlich Docker-Prüflauf und anschließender manueller Hot-Reload-Prüfung vom Nutzer am 22.10.2026 als erfolgreich bestätigt. Phase 5 wartet auf Freigabe.
+Status: Phasen 0–4 umgesetzt; automatisiertes Gate 3 vom Nutzer bestätigt. Gate 4 einschließlich Docker-Prüflauf und anschließender manueller Hot-Reload-Prüfung vom Nutzer am 22.10.2026 als erfolgreich bestätigt. Phase 5 freigegeben und lokal umgesetzt; vollständiger Docker-/Frischinstallations-/CI-Nachweis sowie bestehende Sicherheitsbefunde (SECURITY-001) noch offen.
 
 ## 1. Ziel und Entscheidung
 
@@ -357,6 +357,8 @@ Umsetzung und Nachweise: [Phase-4-Ergebnis](phase-4-results.md). Bekannte Proxyf
 **Gate 4:** Frontend, Backend und Mocks verwenden gemeinsame Verträge. Positive und negative Vertragsfälle bestehen. Eine absichtliche inkompatible Vertragsänderung wird durch Checks erkannt. Datenbank- und Servermodule gelangen nicht ins Browserpaket.
 
 ### Phase 5 – Gesamtabnahme und CI
+
+Umsetzung, Prüfgrenzen und verbleibende Schritte: [Phase-5-Ergebnis](phase-5-results.md). Phase 6 bleibt bis zur weiteren Freigabe ausgesetzt.
 
 - Root-Qualitätsbefehle und GitHub-Actions-Checks verbindlich einrichten.
 - Produktionsartefakte in sauberer Umgebung ohne TS-Dev-Runner starten; OpenAPI und benötigte Migrationsdateien mitliefern.

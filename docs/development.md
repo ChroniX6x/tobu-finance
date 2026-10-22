@@ -105,3 +105,11 @@ VS Code am Repository-Root öffnen. Task „ToBu: Setup“ einmalig; „ToBu: St
 ## Gemeinsame API-Verträge
 
 Siehe [Vertragsarchitektur](architecture/contracts.md). `npm run dev` baut und überwacht auch `@tobu/contracts`. Nach Schemaänderungen `npm run contracts:generate` und `npm run check:contracts` ausführen. Die vollständige Phase-4-Prüfung lautet `npm run verify:phase4`.
+
+## Qualitätsprüfung und Artefakte
+
+`npm run quality` prüft Quellen, Typen, Verträge, Builds, Units und Mock-E2E. `npm run quality:full` (Alias `npm run verify:phase5`) ergänzt Docker-Integration, echte Browserabläufe, Start/Stop/Persistenz und eine saubere Produktionsinstallation. Docker und Paketdownloads müssen dafür verfügbar sein. Fehlende Voraussetzungen führen zu einem Fehler; der Bericht liegt in `test-results/quality.json`.
+
+Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren. Für Karma in PowerShell bei fehlendem lokalen Chrome: `$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")`. Unter Linux/Bash entsprechend `export CHROME_BIN="$(node -p "require('@playwright/test').chromium.executablePath()")"`; in Linux-CI installiert Playwright außerdem die Systemabhängigkeiten mit `--with-deps`.
+
+Der Umfang der Quellcode-/Formatprüfungen sowie offene Punkte stehen im [Phase-5-Bericht](migration/phase-5-results.md). Gebaute Pakete: `npm run build`, `npm run package:artifact`; siehe [Artefaktanleitung](production-artifact.md). Der dortige lokale Webserver liefert die gebauten Angular-Dateien mit API-Proxy aus; er ersetzt kein produktives Hosting.
