@@ -10,6 +10,8 @@ Die Root-README beschreibt den gemeinsamen Start und die heutigen Quality-Befehl
 
 ## Abnahmestand
 
+Nachtrag aus dem frischen Nutzer-Checkout: Der Tab-Wechsel zur Buchungsseite überschritt die bisherige URL-Assertion von fünf Sekunden; der Fehler-Snapshot zeigte bereits „Buchungen“ im Navigationspfad. Der Test synchronisiert jetzt explizit auf die Transaktionsantwort des Zielkontos und prüft danach URL, aktiven Tab und Buchungszeile. Ein zusätzlicher Fall verzögert die erste Resolver-Antwort gezielt um sechs Sekunden. Keine Produktivcode-Änderung, kein Retry und keine globale Timeout-Erhöhung. Der erneute vollständige Lauf im Nutzer-Checkout steht aus.
+
 | Nachweis | Stand |
 | --- | --- |
 | Automatisiertes Gate 5 inklusive Real-API, Docker-Lifecycle und Artefaktinstallation | Vom Nutzer erfolgreich bestätigt; Bericht vom Testrechner nicht lokal eingelesen |
