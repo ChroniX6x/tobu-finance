@@ -2,6 +2,8 @@
 
 Stand: 22.10.2026. Branch: `chore/monorepo-phase-4`, aufbauend auf `757e669` (Phase 3). Phase 4 wurde ausdrücklich freigegeben. Kein Merge nach develop und kein Push im Rahmen dieser Phase.
 
+Abnahme: Gate 4 bestanden. Der Nutzer bestätigte am 22.10.2026 den erfolgreichen Lauf von `npm run verify:phase4` sowie die anschließenden manuellen Tests einschließlich Hot Reload und wirksamer Änderung auf `min(5)` in `transactions.ts`. Dies ist der vom Nutzer gemeldete Nachweis auf dem Testrechner; die unten beschriebenen Einschränkungen der lokalen Agent-Umgebung bleiben als historischer Prüfkontext erhalten.
+
 ## Umsetzung
 
 - Privates Workspace-Paket `@tobu/contracts` mit echten ESM-Exports, Deklarationen, browsergeeigneten Zod-Schemas und gemeinsamer Build-Reihenfolge.
@@ -39,14 +41,14 @@ Details: [Vertragsarchitektur](../architecture/contracts.md), [Inventar](../arch
 | Web-Unit | 4 erfolgreich mit separat über Playwright gestartetem Chrome; regulärer Karma-Launcher scheitert hier an GPU-/Sandboxfehlern, auch mit disable-gpu |
 | Mock-Playwright | 50 erfolgreich, mit lokalem Chrome, Video aus und separat verwaltetem Angular-Testserver auf Port 4214; beim regulären Playwright-Webserver-Shutdown hängt diese Umgebung |
 | API-Integration | 11 Tests inkl. Obertest erfolgreich mit isolierter nativer MongoDB 8.2; echte HTTP-/JSON-Antworten, Splitregeln und Datenbank geprüft |
-| Vollständiges Gate mit Docker MongoDB 9.0.4 | noch offen: Docker-Pipe und lokale Docker-Konfiguration sind in dieser Sitzung nicht zugreifbar |
-| Gemeinsames Hot Reload / Real-API-Browser unter Docker | noch auf dem Docker-Rechner zu bestätigen |
+| Vollständiges Gate mit Docker MongoDB 9.0.4 | erfolgreich laut Nutzerbestätigung vom 22.10.2026; Docker war in der Agent-Sitzung nicht zugreifbar |
+| Gemeinsames Hot Reload / Real-API-Browser unter Docker | bestätigt: Real-API-Browser im erfolgreichen Gate; manuelle Tests einschließlich Hot Reload und `min(5)`-Änderung laut Nutzer erfolgreich |
 
 Die native Diagnose ersetzt den Nachweis mit `mongo:9.0.4` nicht. Testdaten wurden in separaten, zufällig benannten Datenbanken angelegt und wieder entfernt. Keine Entwicklungsdatenbank wurde zurückgesetzt.
 
 Nach der abschließenden Owner-Entscheidung wurden alle 13 Wizard-Tests erneut erfolgreich ausgeführt; ebenso die Typechecks, sieben Vertragstests und Workspace-/OpenAPI-Prüfungen.
 
-## Gesammelte Schritte auf dem Docker-Rechner
+## Schritte zur Wiederholung auf dem Docker-Rechner
 
 Zuerst den Phase-4-Stand auf diesen Rechner übertragen bzw. nach einem gesondert beauftragten Push den Branch auschecken. Phase 4 wird durch diesen Auftrag nicht automatisch gepusht.
 
@@ -63,4 +65,4 @@ Erwartung: `GATE 4 AUTOMATED VERIFICATION PASSED`. Der Befehl umfasst Workspace,
 
 Danach `npm run dev` starten und Contracts-Hot-Reload prüfen: vorübergehend beispielsweise die minimale Titellänge in `packages/contracts/src/transactions.ts` ändern, die automatische Übersetzung beobachten und eine passende Buchung über die API prüfen. Die Änderung wieder zurücknehmen. API-Neustart und Wiederherstellung der ursprünglichen Validierung kontrollieren; danach mit Ctrl+C beenden. Dies ist ein lokaler Test, keine zu commitende fachliche Änderung.
 
-Die noch nicht bestätigten manuellen Phase-3-Fälle und die Proxyfehler sind in [open-issues.md](open-issues.md) zusammengefasst. Gate 4 wird erst nach dem fehlenden Docker-/Browsernachweis vollständig als bestanden markiert. Nach dieser Phase auf weitere Nutzeranweisung warten; Phase 5 beginnt nicht automatisch.
+Die gesonderten manuellen Phase-3-Fälle und die Proxyfehler bleiben in [open-issues.md](open-issues.md) erfasst. Die Gate-4-Abnahme schließt diese unabhängigen Punkte nicht pauschal. Phase 4 ist abgeschlossen; auf weitere Nutzeranweisung warten. Phase 5 beginnt nicht automatisch.
