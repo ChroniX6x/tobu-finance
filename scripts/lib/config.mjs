@@ -16,8 +16,8 @@ export function initializeConfig() {
     const path = resolve(root, '.env');
     if (!existsSync(path)) writeFileSync(path, readFileSync(resolve(root, '.env.example')), { flag: 'wx' });
 }
-export function loadConfig() {
-    const values = { ...readEnv(resolve(root, '.env.example')), ...readEnv(resolve(root, '.env')), ...process.env };
+export function loadConfig(environment = process.env) {
+    const values = { ...readEnv(resolve(root, '.env.example')), ...readEnv(resolve(root, '.env')), ...environment };
     if (!['docker', 'external'].includes(values.DB_MODE)) throw new Error('DB_MODE must be docker or external');
     const port = (key) => {
         const n = Number(values[key]);

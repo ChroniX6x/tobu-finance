@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { once } from 'node:events';
 import { resolve } from 'node:path';
-import { root, apiRoot, apiRequire } from './lib/config.mjs';
+import { root, apiRoot, apiRequire, loadConfig } from './lib/config.mjs';
 import { requireDocker, pingDatabase } from './lib/docker.mjs';
 import { start, stop, run, capture, waitHttp, assertPortFree } from './lib/processes.mjs';
 
@@ -21,7 +21,8 @@ const ports = new Set();
 while (ports.size < 3) ports.add(await freePort());
 const [dbPort, apiPort, webPort] = [...ports];
 const env = { ...process.env, DB_MODE: 'docker', DB_PORT: String(dbPort), API_PORT: String(apiPort), WEB_PORT: String(webPort), COMPOSE_PROJECT: project, DEV_DB_NAME: 'tobu_finance_dev', SEED_MONTH: '2026-04', NODE_ENV: 'development' };
-const uri = `mongodb://127.0.0.1:${dbPort}/tobu_finance_dev`;
+// Use the same host-facing replica-set URI as the workspace child processes.
+const uri = loadConfig(env).uri;
 const workspace = resolve(root, 'scripts/workspace.mjs');
 const command = (name, extra = {}) => capture(process.execPath, [workspace, name], { cwd: root, env: { ...env, ...extra } });
 let dev,

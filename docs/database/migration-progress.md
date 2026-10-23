@@ -51,6 +51,8 @@ Ein Pending-Marker ist kein Schutz gegen direkte Fremdzugriffe. Die Bestätigung
 
 ## Nächste Abschnitte nach Abnahme/Anweisung
 
+Nachtrag 24.10.2026: Der Nutzer bestätigt beide Docker-Tests aus `test:replica` als erfolgreich. `quality:full` scheiterte anschließend beim Lifecycle-Test: Dessen separat zusammengesetzte URI enthielt noch keine direkte Host-Verbindung und folgte der Replica-Set-Adresse `mongo:27017`, die außerhalb des Docker-Netzes nicht auflösbar ist. Der Test verwendet jetzt denselben Konfigurationsloader mit seiner isolierten Prozessumgebung wie der Workspace. Die Tooling-Prüfung deckt die übergebene Umgebung, den abweichenden Port und die lokalen Replica-Set-Optionen ab. Lifecycle und vollständiges Gate müssen mit dieser Korrektur erneut ausgeführt werden; keine Datenbank-Neuinitialisierung nötig.
+
 2. Aktiver Umzug-Runner, atomare Historie, Metadaten, Zielschutz, Sperren, Up/Down und Generator.
 3. Allgemeine strukturelle Migrationen mit Wartung, Backup, Journal, Resume und Restore.
 4. Vollständige Agent-/Betriebsanleitung, Produktionsartefakt und Gesamtabnahme.

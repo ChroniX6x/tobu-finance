@@ -18,6 +18,14 @@ test('configuration chooses an explicit database, rejects invalid ports and neve
         assert.equal(loadConfig().uri, process.env.MONGODB_URI);
         process.env.MONGODB_URI = 'mongodb+srv://example.test/tobu_external?tls=true&retryWrites=true';
         assert.equal(loadConfig().uri, process.env.MONGODB_URI, 'External SRV/TLS options must not be rewritten');
+        const lifecycle = loadConfig({ ...process.env, DB_MODE: 'docker', DB_PORT: '54758', DEV_DB_NAME: 'tobu_test_lifecycle' });
+        const lifecycleUri = new URL(lifecycle.uri);
+        assert.equal(lifecycleUri.hostname, '127.0.0.1');
+        assert.equal(lifecycleUri.port, '54758');
+        assert.equal(lifecycleUri.pathname, '/tobu_test_lifecycle');
+        assert.equal(lifecycleUri.searchParams.get('directConnection'), 'true');
+        assert.equal(lifecycleUri.searchParams.get('replicaSet'), 'tobu-local');
+        assert.equal(loadConfig().uri, process.env.MONGODB_URI, 'Explicit child environment must not mutate the parent configuration');
         process.env.MONGODB_URI = '';
         assert.throws(loadConfig, /explicit/);
         process.env.MONGODB_URI = 'mongodb://localhost/admin';
