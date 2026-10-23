@@ -10,6 +10,8 @@ Die Root-README beschreibt den gemeinsamen Start und die heutigen Quality-Befehl
 
 ## Abnahmestand
 
+CI-Bestätigung vom 23.10.2026: Nach der Linux-Chrome-Korrektur meldet der Nutzer beide PR-Checks erfolgreich: **Full quality (Linux, Docker)** und **Windows checks**. Letzter bereitgestellter Implementierungscommit ist `1bd7b24`. PR-URL, Run-IDs und der tatsächlich auf GitHub geprüfte SHA wurden nicht separat eingelesen. Der zuvor offene CI-Nachweis ist damit laut Nutzer erbracht; die folgende Beschreibung des Sandbox-Fehlers dokumentiert den früheren Verlauf. Merge, Default-Branch-Übergang und API-Archivierung sind weiterhin nicht bestätigt.
+
 CI-Nachtrag vom 23.10.2026: Karma konnte unter Linux das von Playwright heruntergeladene Chromium wegen „No usable sandbox“ nicht starten. Der Linux-Job verwendet für Karma jetzt `/usr/bin/google-chrome` vom GitHub-Runner und prüft dessen Existenz sowie Version. Playwright behält sein eigenes Chromium; der Windows-Job bleibt unverändert. Keine `--no-sandbox`-Flags und keine globale Änderung der AppArmor-Einstellungen. Der YAML-Aufbau wurde lokal geprüft; der erfolgreiche Browserstart muss im nächsten GitHub-Lauf bestätigt werden. Hintergrund: [GitHub-Runner installiert Chrome und setzt CHROME_BIN](https://github.com/actions/runner-images/blob/main/images/ubuntu/scripts/build/install-google-chrome.sh), [Chromium-Dokumentation zu AppArmor und dem installierten Chrome](https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md).
 
 Der Nutzer hat die manuellen Tests als erfolgreich bestaetigt und den vollstaendigen [Quality-Bericht](evidence/phase-6-quality.json) bereitgestellt. Geprueft wurde 3dc359a302f37181a97b51b78fe0cd4c75fcc7df mit dirty=false und full=true, von 20:16:23 bis 20:23:13 UTC. Alle 16 Checks bestanden. Der Bericht wurde aus der Nutzernachricht uebernommen; dies ist kein lokal erneut ausgefuehrter Lauf.
@@ -22,7 +24,7 @@ Nachtrag aus dem frischen Nutzer-Checkout: Der Tab-Wechsel zur Buchungsseite üb
 | Lokaler Übergabestand, README, GitHub-Anleitung und PR-Entwurf | Vorbereitet |
 | Frischer Checkout mit Installation, Setup und Start | Vom Nutzer am 22.10.2026 als erfolgreich bestaetigt |
 | Terminal-Ctrl+C, VS-Code-Debugger, persistente UI-Buchung | Manuelle Tests vom Nutzer am 22.10.2026 als erfolgreich bestaetigt |
-| GitHub Linux-/Docker- und Windows-Checks | Nach Veröffentlichung auszuführen |
+| GitHub Linux-/Docker- und Windows-Checks | Beide am 23.10.2026 vom Nutzer als erfolgreich bestätigt |
 | PR integriert, API-Repository archiviert, einzige aktive Quelle | Noch nicht erfolgt |
 | Rollen/Owner und Sicherheitsbereinigung | Separat offen; keine Livebetriebsfreigabe |
 
