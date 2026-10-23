@@ -24,8 +24,12 @@ jobs:
       - run: npm ci
       - run: git diff --exit-code -- package-lock.json
       - run: npm exec --workspace=@tobu/web -- playwright install --with-deps chromium
-      - name: Use installed Chromium for Karma
-        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'CHROME_BIN=' + require('@playwright/test').chromium.executablePath() + '\n')"
+      - name: Use system Chrome with sandbox for Karma
+        shell: bash
+        run: |
+          test -x /usr/bin/google-chrome
+          /usr/bin/google-chrome --version
+          echo "CHROME_BIN=/usr/bin/google-chrome" >> "$GITHUB_ENV"
       - run: npm run quality:full
       - uses: actions/upload-artifact@v4
         if: always()
