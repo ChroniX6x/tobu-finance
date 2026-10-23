@@ -4,6 +4,8 @@ Voraussetzungen: Node 24.13.1, npm 11.8.0, Docker mit Compose und laufender Linu
 
 ## Erstes Setup
 
+Ab der Erweiterung für sichere Migrationen läuft lokale Docker-MongoDB als Single-Node-Replica-Set. Bei einem bereits vorhandenen Standalone-Volume zuerst die [Umstellung mit geprüfter Sicherung](database/migration-progress.md) durchführen. `setup`/`dev` verweigern eine ungeprüfte Übernahme. Neue leere Installationen und reguläre Neustarts initialisieren das Replica Set automatisch; der aktive Migrationsrunner folgt in einem weiteren Abschnitt.
+
 Im Repository-Root:
 
 ```powershell
@@ -51,6 +53,7 @@ Fehler bei belegten Ports werden vor dem Stackstart gemeldet. Fehlende Docker-En
 | Befehl | Wirkung |
 | --- | --- |
 | npm run db:init | Baseline auf leerer DB erzeugen oder vorhandenen Stand prüfen; keine Demo |
+| npm run db:replica:init -- --writers-stopped=tobu_finance_dev | Bekannte lokale Standalone-DB nach Backup und Restore-Probe auf Replica Set umstellen; alle Writer müssen beendet sein |
 | npm run db:seed | Fehlende Demo-Dokumente ergänzen; bestehende Dokumente unverändert lassen |
 | npm run db:migrate | Aktuellen Baseline-Stand prüfen; noch keine Migrationen nach der Baseline vorhanden |
 | npm run db:reset -- --confirm=tobu_finance_dev | Bewusst ausschließlich die Docker-DB tobu_finance_dev löschen und neu aufbauen |

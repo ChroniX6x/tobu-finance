@@ -1,6 +1,6 @@
 # Migrationen: Anforderungen an nachfolgende Agents
 
-Stand: 23.10.2026. **Der aktive Umzug-Runner ist noch nicht ergänzt.** Diese Anleitung definiert die Anforderungen; konkrete Erstellungs- und Ausführungsbefehle folgen mit der Umsetzung. `db:migrate` prüft derzeit nur den Baseline-Stand. Gewählt sind transaktionale Migrationen als Standard und ein kontrollierter struktureller Modus. Der [Architekturvorschlag](migration-architecture.md) beschreibt Sicherheit, Wiederherstellung und Abnahme; seine Implementierung wartet auf die ausdrückliche Freigabe des Nutzers.
+Stand: 23.10.2026. **Der aktive Umzug-Runner ist noch nicht ergänzt.** Diese Anleitung definiert die Anforderungen; konkrete Erstellungs- und Ausführungsbefehle folgen mit der Umsetzung. `db:migrate` prüft derzeit nur den Baseline-Stand. Gewählt sind transaktionale Migrationen als Standard und ein kontrollierter struktureller Modus. Die [Architektur](migration-architecture.md) wurde vom Nutzer freigegeben; der [Umsetzungsstand](migration-progress.md) unterscheidet implementierte Grundlagen und noch offene Runner-/Recovery-Funktionen.
 
 ## Vor dem Schreiben
 

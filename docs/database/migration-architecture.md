@@ -1,6 +1,6 @@
 # Architekturvorschlag: aktive Umzug-Migrationen
 
-Stand: 23.10.2026. **Nur Planung, noch nicht zur Implementierung freigegeben.** Grundlage ist die Nutzerentscheidung: transaktionale Migrationen als Standard, kontrollierte strukturelle Migrationen als Ergänzung. Dieser Vorschlag ersetzt die zuvor offene Entweder-oder-Entscheidung. Bestehende Programme und Datenbanken sind nicht verändert.
+Stand: 23.10.2026. **Architektur vom Nutzer zur Implementierung freigegeben.** Grundlage ist die Nutzerentscheidung: transaktionale Migrationen als Standard, kontrollierte strukturelle Migrationen als Ergänzung. Dieses Dokument beschreibt das Ziel, nicht durchgehend bereits vorhandene Funktionen. Der [Umsetzungsstand](migration-progress.md) hält Implementierung und Testnachweise getrennt fest.
 
 ## 1. Bestehender Stand und notwendige Korrekturen
 

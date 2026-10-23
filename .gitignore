@@ -59,3 +59,4 @@ Thumbs.db
 *.log
 data/db/
 mongo-data/
+backups/
