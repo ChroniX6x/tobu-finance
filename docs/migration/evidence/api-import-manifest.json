@@ -1,0 +1,453 @@
+{
+  "repository": "https://github.com/ChroniX6x/tobu-finance-api.git",
+  "commit": "f4b65f6547b5620a5dc92d4711649f5cd335c78b",
+  "algorithm": "sha256",
+  "excluded": [
+    {
+      "path": "docs/tobu_finance.users.json",
+      "reason": "User export contains password hashes; not required by application or seed scripts."
+    }
+  ],
+  "files": [
+    {
+      "path": ".env.example",
+      "sha256": "624678994fde1968fa7ee62a60a61e5223b559223c68289c7d7e14d940ff225f"
+    },
+    {
+      "path": ".github/ToBu_Masterkonzept_Agent_Ready.md",
+      "sha256": "3d9edead7efe9c14254505bcac558e6afe35496d42ffdcadb013a8b5cdf9cc12"
+    },
+    {
+      "path": ".github/copilot-instructions.md",
+      "sha256": "2499ac8065bd80c9fb7506d772a1f8c1bccef8a1138bd9565b51eb39fcc5975f"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "83ff3fe8af078f1f37fa659f932f216d912e723c56354886a792cd102f4e4fb7"
+    },
+    {
+      "path": ".vscode/launch.json",
+      "sha256": "9d4eb1fa4b38f9253fb707b55c460a8fd4a58255e491b602670a86204b48aeb8"
+    },
+    {
+      "path": ".vscode/tasks.json",
+      "sha256": "3166784e1954dac6e9b2f7b7b37b10863d2e47c49de0a2f9a2092b78c4534ecd"
+    },
+    {
+      "path": "README.md",
+      "sha256": "3d181d7031cb8c66a71ea38d54bb487d4a5975ae236dc4f2492cc31af00f4dd5"
+    },
+    {
+      "path": "db.json",
+      "sha256": "e68c6ded35b6c0626aa627a89912df718de6a8d4c60daf210b72dacc1d208d8b"
+    },
+    {
+      "path": "docs/agent/best-practices.md",
+      "sha256": "6812b89cd1c53c1c3e9999056d69da7ff324b5dc0157192b425556803780edf1"
+    },
+    {
+      "path": "docs/db-schema.md",
+      "sha256": "f393a5d43b6efff958982a6c72af721dc86afb2768b6c23712d45f74b381c0dd"
+    },
+    {
+      "path": "docs/impl_doc/fe-structure.txt.txt",
+      "sha256": "4f0345fa7a33c6e78f62106af0b42b6f0c94085414db1ac32af3a02ac398a5ea"
+    },
+    {
+      "path": "docs/impl_doc/master-data/ToBu_Stammdaten_Taskliste_Agent_Ready.md",
+      "sha256": "953ae76812a9286c4702d8c34af6a8cc830f9e93c08dd4fe5c031db9437fd136"
+    },
+    {
+      "path": "docs/impl_doc/master-data/to_bu_stammdaten_erweiterungskonzept_v_1.md",
+      "sha256": "86e6c8855f1894c9edff3a9d5d15517e14b12fbcf04fb6e679cd5d4d5e8f9fa8"
+    },
+    {
+      "path": "docs/impl_doc/master-data/to_bu_stammdaten_page_konzept_v_1.md",
+      "sha256": "69561b9ef44b0703f41057208df3511cfcac60466efde4329e234791a340b98d"
+    },
+    {
+      "path": "docs/impl_doc/month-page/ToBu_Monat_Detailtabellen_Konzept.md",
+      "sha256": "ced41d885a70774ea2a10677c7ed11f1dded2f5da5ddbe7b3f8fd2f4dabdb18b"
+    },
+    {
+      "path": "docs/impl_doc/month-page/ToBu_Monat_Seite_Agent_Ready.md",
+      "sha256": "be156860daca6f70f4da4722b2c2817cb7ae54a39649fa1d5e5f6dc55bf72326"
+    },
+    {
+      "path": "docs/impl_doc/month-page/ToBu_Monat_Taskliste_Agent_Ready.md",
+      "sha256": "3cff7284401816bc9cf015514b4a756d61463036c7b93029cb2d89fa9da766ba"
+    },
+    {
+      "path": "docs/impl_doc/month-page/month-page-concept.png",
+      "sha256": "780ac23a9a65cd5f87b2a42b46992256412d89c1ea1a8032989fe9d870dd986e"
+    },
+    {
+      "path": "docs/impl_doc/planning/ToBu_Planung_Taskliste_Agent_Ready.md",
+      "sha256": "52db5a3b3bedfade9ebed45e12066c7da4091745973677dd8b18940f052da91f"
+    },
+    {
+      "path": "docs/impl_doc/planning/to_bu_planung_page_konzept_v_1.md",
+      "sha256": "35e281a68af9e5c7f6387431a9cb991e7316acecddcfa68c3a7c4fb8e8fa7882"
+    },
+    {
+      "path": "docs/impl_doc/transaction-page/ToBu_Buchungen_VarianteC_Splits_Concept.md",
+      "sha256": "ab6b2654f018be9f5647335480c2e27f2eeee1a0871243cc0a52b60d41439cb5"
+    },
+    {
+      "path": "docs/impl_doc/transaction-page/mockup_varianteC_splits_expandable.png",
+      "sha256": "e95cc82838bcee307ae610d7c6e8bf04807600b360c6d226aa9b7ccb2429f2e4"
+    },
+    {
+      "path": "docs/impl_doc/transaction-page/transaction-page-tasks.md",
+      "sha256": "5832003842a03234f1067f8bde89d00fb960be81af32d5d13aa1b6d1444e60b1"
+    },
+    {
+      "path": "docs/openapi.yaml",
+      "sha256": "9a81adaa9aa358257a9a6268d6841d45948bfd20d1fb38f01a27768455c3905f"
+    },
+    {
+      "path": "docs/phase-1-testing.md",
+      "sha256": "cfffb7802b2f205f9fb8f48ba3b222ee22b8722bf1ac0705163c0ea91a244d67"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "d96056706c51331a49c7a447aa65677a4feb78e5594bf4a3b13e579ac213e984"
+    },
+    {
+      "path": "package.json",
+      "sha256": "44aa060e5a998cb88e37711a0a7dd1165594e71090a4d45087d2b390606be16f"
+    },
+    {
+      "path": "scripts/ToBu-Finance_Schema_Summary_v2.md",
+      "sha256": "51e017c4ca807a05ddb09f3f208c19adc1d82011086cc788e8b12975aa4c615b"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "999b2e4c3929cae50187045e40612e96560510fcf4a988ccdc7feb60332205d4"
+    },
+    {
+      "path": "scripts/ensure-env.ts",
+      "sha256": "9ffd45941af0aa332fad9ac15a57514f1ae8f72325a9edb46b07a666a52a79b0"
+    },
+    {
+      "path": "scripts/fixtures/transactions.dev.json",
+      "sha256": "9e154121b7218bc8536aad824a729a7546f65e4b9f2d8fd1ec47bc593d5d5eaa"
+    },
+    {
+      "path": "scripts/link-users-to-members.ts",
+      "sha256": "ed20c45970ac5a3279860366071558d830ede26416bcdcee8affa95e755348bd"
+    },
+    {
+      "path": "scripts/new-migration.ts",
+      "sha256": "811c53ae137c21ea1ac45ba1b4b881422497ab9381bf1d7af2cd745a95a8222a"
+    },
+    {
+      "path": "scripts/revertHalfMigration.ts",
+      "sha256": "21fc1b4ba10157a586013bed0e07ecfd4fde21aed75404548c3b6a827ed014d9"
+    },
+    {
+      "path": "scripts/seed-transactions.ts",
+      "sha256": "1ffde1a938b082d1252a357f7bdb6a2badd731c6b7e92d2cee2c41afd043fbf9"
+    },
+    {
+      "path": "scripts/seed.ts",
+      "sha256": "c924645ba17b742a1e54ef793b76e969bcaecb7627e1d498b76bf9df25e21d22"
+    },
+    {
+      "path": "scripts/start.mjs",
+      "sha256": "3fe46246eff8a59df35e2464710c32bd37b6fe85ba136782f5ec1cd8fdc65f3f"
+    },
+    {
+      "path": "src/auth/config.ts",
+      "sha256": "659299886e8501b29fdbec620cbf2669b6235f2e04195a22a0cafa338b246472"
+    },
+    {
+      "path": "src/auth/index.ts",
+      "sha256": "335a7ef27d60a88e8df56e000b99ad02f12b1d4adfcf8fc4d884081055fc53f3"
+    },
+    {
+      "path": "src/auth/jwt.ts",
+      "sha256": "0f96fa8f605da67d990afcd6401a1ed920b797f32074b77e41a5537e0354643b"
+    },
+    {
+      "path": "src/auth/middleware.ts",
+      "sha256": "2bcf3f4543be30655d29e6f7a375e08900a1c7f73d935cdc98ca43daac765c90"
+    },
+    {
+      "path": "src/auth/models.ts",
+      "sha256": "2d237c62a8ae0b456db59c3556fc5837f3018aae7927caec2b0dd481f83a7564"
+    },
+    {
+      "path": "src/auth/rateLimit.ts",
+      "sha256": "7a301f32f1d7c34f1bf9a7f5fab058339e5a38799c3b0a12c3670c15e69fa0b8"
+    },
+    {
+      "path": "src/auth/routes.ts",
+      "sha256": "923fb42d5978dd534feb731f4c66649bb036d1ac22a089a49d8e8a8fcaea5227"
+    },
+    {
+      "path": "src/db.ts",
+      "sha256": "55a8690f06d6eda5ab5b5df5704a8660966246a2261274af19d9395e46333095"
+    },
+    {
+      "path": "src/docs/swagger.ts",
+      "sha256": "8e20f847f7b032d9750483a537abed724c956bfa86b871ee0eb895310d0e0f92"
+    },
+    {
+      "path": "src/lib/month.ts",
+      "sha256": "3868ba223f7d578e7dcbcd706f7b38eab3736c46752702ed77b84da78604fde5"
+    },
+    {
+      "path": "src/lib/objectid.ts",
+      "sha256": "37256c3559436f67edca39f4b5a85d4f6d101161897ce1d5ad3be5f7abf5343e"
+    },
+    {
+      "path": "src/middleware/error.ts",
+      "sha256": "7132c3c89cfc1ebb5480984f59ee272906f2615a7817e32009b3515ae9b8a416"
+    },
+    {
+      "path": "src/middleware/validate.ts",
+      "sha256": "2fe1114ab500b255eaab35158a0009271d03c8b8731e451b645aae76ec8acbc3"
+    },
+    {
+      "path": "src/migrate.ts",
+      "sha256": "f7e4a1366e69b1adf65042d46676fccad4147ba7b679b108fed39a931840d1ba"
+    },
+    {
+      "path": "src/migration-path.ts",
+      "sha256": "fdb3b701c8ae7acb7b9ace0a47b081506b4f6240bcdbb067eb39b3cec00e4d3c"
+    },
+    {
+      "path": "src/migrations/20250813-reshape_schema.ts",
+      "sha256": "faa978fa54efd7103e6337fd783a87ad121100b1845db1a9d67bd495dc7997a7"
+    },
+    {
+      "path": "src/migrations/20250820_add_settings_events.ts",
+      "sha256": "9a7c9c50b87c8ee072dc9c0846312b063fb778702f76576c20a1d616ac9ec659"
+    },
+    {
+      "path": "src/migrations/20251009_rename_cents_to_minor.ts",
+      "sha256": "fe4bcaf83373f10894aff55e8189cb7e988b68a576c4ab37e28a569ff2f27f3a"
+    },
+    {
+      "path": "src/migrations/20260222_seed_default_users.ts",
+      "sha256": "82ca71b7083172afece294adda8020e801b1b4dffa5cea75f5889cb333c2ab7e"
+    },
+    {
+      "path": "src/migrations/20260224_transactions_phase0.ts",
+      "sha256": "ee9e0225dfcd41e2f9076ef6fa665385d105df22ca6af95336d121ff00362b61"
+    },
+    {
+      "path": "src/migrations/lib/backupRegistry.ts",
+      "sha256": "016b22093c0e6add8285a18f55e6b66b177286cde9ad6987ebad821454e32608"
+    },
+    {
+      "path": "src/models/Account.ts",
+      "sha256": "2c7d7c981b20e9de4944b6823ab86a1d0323efafe49e93d2071b23f0ee46a3a0"
+    },
+    {
+      "path": "src/models/AccountBalance.ts",
+      "sha256": "907af6a6a16828d1303a519ed6747671409caf9fe179e94c1fa37054c6dd93ea"
+    },
+    {
+      "path": "src/models/CarryOver.ts",
+      "sha256": "934918e3f06513b20076318d11f9643cfce1498cbd02280dfdad51e44072daf1"
+    },
+    {
+      "path": "src/models/Category.ts",
+      "sha256": "8c626d5decd038dac2a8f1e311bd99079458c47741f73c39010b2a99661c6894"
+    },
+    {
+      "path": "src/models/CategoryBudget.ts",
+      "sha256": "43607ebb092e2df74960ab5e6a90f199044f558dd3ba11445bebb054840070b2"
+    },
+    {
+      "path": "src/models/ContributionRule.ts",
+      "sha256": "bd110f5686868122d1676d7d5ce3a86d83c24baef38bc78423cf3852c0d9eb1c"
+    },
+    {
+      "path": "src/models/Event.ts",
+      "sha256": "48d69604caa8f7e332084a2fd78e8ea554b1430da7256a7adc9cca967dd4a740"
+    },
+    {
+      "path": "src/models/Member.ts",
+      "sha256": "47794156d696bbf4e93039caa7c75dbe18ef75699c8ca82d5940d3d7d8851272"
+    },
+    {
+      "path": "src/models/MemberIncome.ts",
+      "sha256": "dd94267c7f72427d397e878f1473f59709d5f5b446fdda0324c3aeb7d01afe40"
+    },
+    {
+      "path": "src/models/Recurrence.ts",
+      "sha256": "72cf86d1fa849d0809d1c91bf98ad1c0584c47f593f833cc950dbc650d4271a2"
+    },
+    {
+      "path": "src/models/Transaction.ts",
+      "sha256": "627f9a20b1bb73c6ba3db6579c45a34b68affc243d81e470d006b72888c08f24"
+    },
+    {
+      "path": "src/new-migration.ts",
+      "sha256": "811c53ae137c21ea1ac45ba1b4b881422497ab9381bf1d7af2cd745a95a8222a"
+    },
+    {
+      "path": "src/routes/account-balances.ts",
+      "sha256": "0f9ac25dc49c6632028e18cd009ee4bc30b585e51728f08739b979504b71cb9e"
+    },
+    {
+      "path": "src/routes/account-overview.ts",
+      "sha256": "5ac5acce1167fc27cee07300b29b5489f284e7934c6c5d0b20eaf6f03de83ffe"
+    },
+    {
+      "path": "src/routes/accounts-summary.ts",
+      "sha256": "a3e1d104c89798b9c92ca8d282369c7681ce86ed5ac592659e59a237fcc7ae74"
+    },
+    {
+      "path": "src/routes/accounts.ts",
+      "sha256": "48811a7cb812b57fe9f965f0952993c59cf6202754f5f07158abf98aa54bb378"
+    },
+    {
+      "path": "src/routes/carryovers.ts",
+      "sha256": "20c48e97e418f96508b7a572dfee6ff8d8da4439df00ae59bf16cfbbcc3e6869"
+    },
+    {
+      "path": "src/routes/categories.ts",
+      "sha256": "abd0dc4b48846711a458b08a3823cca63fdfd15700e5f2cad5a9b1fc2c6a5f29"
+    },
+    {
+      "path": "src/routes/category-budgets.ts",
+      "sha256": "bd2fb66a67a796126caa5191706abf89cb88255a4a735e661bd421e8e77d0fab"
+    },
+    {
+      "path": "src/routes/contribution-rules.ts",
+      "sha256": "4bbbfb95ffb8ac9033d36b2b9c7002bbed99c6ad56a7b5d260dea8b468d12449"
+    },
+    {
+      "path": "src/routes/master-data.ts",
+      "sha256": "b205397ce38eedfe574fb1b86574a0a1488a806ad4757f71ac712849ba6358ed"
+    },
+    {
+      "path": "src/routes/member-incomes.ts",
+      "sha256": "49653e4a95942fa6fe3b694b3f1e619d32193382e0c751ceb69cfceab9e7da4e"
+    },
+    {
+      "path": "src/routes/members.ts",
+      "sha256": "625ed4b12f6a5dc3722964c13c487103f7eef53225d0287031c4d49837895b97"
+    },
+    {
+      "path": "src/routes/month-view.ts",
+      "sha256": "53860c7d06509e54605dc75bedb10439d031a87b328ed4b88854c89624aec73a"
+    },
+    {
+      "path": "src/routes/planning.ts",
+      "sha256": "d11a7e86f024eeb3b2f90a8993c8b3e43685b7bba074a25c24cf36e6f55bdce3"
+    },
+    {
+      "path": "src/routes/recurrences.ts",
+      "sha256": "4a202262938a9201e25378b74385a02becdebfcd7d45ce814053a84a3c14bcc4"
+    },
+    {
+      "path": "src/routes/transactions.ts",
+      "sha256": "1f112b169f1f863b9af46e20bd3ba81cd8c120796917fb2dc21328c070823f3d"
+    },
+    {
+      "path": "src/server.ts",
+      "sha256": "fbb916ec7b9391257424f7f3dbba8eb5aef56bbed01006f13e19c5a03b75acec"
+    },
+    {
+      "path": "src/services/contribution-rule-generator.ts",
+      "sha256": "99b64f76a616210e39394ad9e24ff5a93cfefefdaf78535caee4514be654bb74"
+    },
+    {
+      "path": "src/services/insights.ts",
+      "sha256": "94cc7dfb5c0a0b3e90d83cbbd659709fb905af698a77705a15124e28b0769e82"
+    },
+    {
+      "path": "src/utils/contrib.ts",
+      "sha256": "eb16603da10e799c715fe8c86cc3f5ed2370bd3b189b00490152602965c4a241"
+    },
+    {
+      "path": "src/utils/date.ts",
+      "sha256": "3bcefeb8c960095797e1935a80732637d6a7264d26ab01aee23db3d93048668e"
+    },
+    {
+      "path": "src/utils/math.ts",
+      "sha256": "216e3bbbd88d4b7b3d5370a2f0102b5b4475a472e286d8d2de29c881717c8e11"
+    },
+    {
+      "path": "src/utils/month-overlap.ts",
+      "sha256": "724c4cf7c70f765ab58982040b5f289b0ca9219fa9c22ef460db05695fccd225"
+    },
+    {
+      "path": "src/utils/reliableBalance.ts",
+      "sha256": "6d795167de85987801fa9db42e2872705e5773a67c891c9c4ac42c718604b166"
+    },
+    {
+      "path": "src/utils/renderEvent.ts",
+      "sha256": "0e95c04181aa7e5d3683ccda4cfbaae77ef46aaef77257750834dbb7ca445ae7"
+    },
+    {
+      "path": "src/validation/account-balances.ts",
+      "sha256": "991bf04bb855f02855f1b4fd79864a29cef52ff39d2f576a3518eb03e737f5a6"
+    },
+    {
+      "path": "src/validation/accounts-summary.ts",
+      "sha256": "aba1336f604bced030d81e14cb75004d0a6bd0ee45ad9a8034172d5e59281ece"
+    },
+    {
+      "path": "src/validation/accounts.ts",
+      "sha256": "272af9825d543b6ea966d29a15fd772e86ca7fd498d849562ad479b134401bf2"
+    },
+    {
+      "path": "src/validation/carryovers.ts",
+      "sha256": "f98929ef1628a11866d44cb6f711fcceedb237260e993bd1229fd41b5f679fec"
+    },
+    {
+      "path": "src/validation/categories.ts",
+      "sha256": "ada0a3165c5acbeaff4e5edf9980b1c6afe91cc02232caa260d447984f4f12cd"
+    },
+    {
+      "path": "src/validation/category-budgets.ts",
+      "sha256": "fc79821584108062009958e994535be8b58d0e8b0e8299b2a4fbb897356cef92"
+    },
+    {
+      "path": "src/validation/common.ts",
+      "sha256": "c7a1267e5d2c61d226cd5b011d4165a564a176c7d28f53a23032ed5dec6c5f9a"
+    },
+    {
+      "path": "src/validation/contribution-rules.ts",
+      "sha256": "a673e27826177d8ba389fc5858c5f85ca3287c292ec15bf9f04cba866ca90dfb"
+    },
+    {
+      "path": "src/validation/member-incomes.ts",
+      "sha256": "eeac5fbfb79d1ee5c465f6f81abc0fbd9e8b51e2b1ddfc2f4eae47303fd6a3a0"
+    },
+    {
+      "path": "src/validation/members.ts",
+      "sha256": "ad673bc9dbcf5d03552bf1be59a73ce539896c6bfe5dec527bf35e27184f3ae0"
+    },
+    {
+      "path": "src/validation/month-view.ts",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/validation/recurrences.ts",
+      "sha256": "c7abeb39b4b3343d7087c48d1795820666d27242698bf3535bc5c1c3da9964e8"
+    },
+    {
+      "path": "src/validation/transactions.ts",
+      "sha256": "6aab0564f7ec5db61c464d8d9dc30f212a0d01aae60d9fa6a63de4dcdac2c9bc"
+    },
+    {
+      "path": "tests/integration/api.test.mjs",
+      "sha256": "9542d617ddaf8c0bf7bfdb167693be8de8637115782738f3202076cab5fb4170"
+    },
+    {
+      "path": "tests/unit/finance.test.mjs",
+      "sha256": "19797249de20bb374b45e69c84688160a651757b654c087c10fd795f3c6fa9e4"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "14cc57196aa7043bd22feeac6113b99c706b5fe3254335d014b9f17e0558e752"
+    }
+  ]
+}

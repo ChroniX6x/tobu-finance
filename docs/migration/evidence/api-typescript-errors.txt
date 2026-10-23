@@ -1,0 +1,85 @@
+﻿scripts/ensure-env.ts(15,16): error TS2538: Type 'undefined' cannot be used as an index type.
+scripts/link-users-to-members.ts(103,40): error TS2349: This expression is not callable.
+scripts/link-users-to-members.ts(118,29): error TS2349: This expression is not callable.
+scripts/link-users-to-members.ts(163,37): error TS2349: This expression is not callable.
+scripts/link-users-to-members.ts(169,43): error TS2349: This expression is not callable.
+scripts/link-users-to-members.ts(170,65): error TS7006: Parameter 'm' implicitly has an 'any' type.
+scripts/link-users-to-members.ts(213,37): error TS2349: This expression is not callable.
+scripts/link-users-to-members.ts(221,29): error TS2349: This expression is not callable.
+scripts/link-users-to-members.ts(222,29): error TS2349: This expression is not callable.
+scripts/link-users-to-members.ts(225,40): error TS2349: This expression is not callable.
+scripts/link-users-to-members.ts(231,40): error TS2349: This expression is not callable.
+scripts/seed.ts(76,22): error TS18048: 'db' is possibly 'undefined'.
+scripts/seed.ts(83,11): error TS18048: 'db' is possibly 'undefined'.
+scripts/seed.ts(95,20): error TS18048: 'mongoose.connection.db' is possibly 'undefined'.
+scripts/seed.ts(134,27): error TS2345: Argument of type '({ _id: string | undefined; } & Omit<any, "id">)[]' is not assignable to parameter of type '{ _id?: string | null; }[]'.
+scripts/seed.ts(148,19): error TS2349: This expression is not callable.
+scripts/seed.ts(152,29): error TS2345: Argument of type '({ _id: string | undefined; } & Omit<any, "id">)[]' is not assignable to parameter of type '{ _id?: string | null; }[]'.
+scripts/seed.ts(166,32): error TS2345: Argument of type '({ _id: string | undefined; } & Omit<any, "id">)[]' is not assignable to parameter of type '{ _id?: string | null; }[]'.
+scripts/seed.ts(169,40): error TS2345: Argument of type '({ _id: string | undefined; } & Omit<any, "id">)[]' is not assignable to parameter of type '{ _id?: string | null; }[]'.
+src/auth/jwt.ts(18,14): error TS2769: No overload matches this call.
+src/auth/middleware.ts(18,5): error TS2375: Type '{ sub: string; roles: string[] | undefined; email: string | undefined; }' is not assignable to type '{ sub: string; roles?: string[]; email?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+src/migrations/lib/backupRegistry.ts(72,7): error TS2322: Type '{ validators: { coll: string; validator: any; validationLevel: any; validationAction: any; }; }' is not assignable to type 'PushOperator<Document>'.
+src/migrations/lib/backupRegistry.ts(96,7): error TS2322: Type '{ collections: { coll: string; backupColl: string; count: number; method: string; }; }' is not assignable to type 'PushOperator<Document>'.
+src/models/Event.ts(19,73): error TS2344: Type '{ date: NativeDate; params: any; code: string; accountId: ObjectId; createdByMemberId: ObjectId; } & DefaultTimestampProps' does not satisfy the constraint 'Schema<any, Model<any, any, any, any, any, any>, {}, {}, {}, {}, DefaultSchemaOptions, { [x: number]: unknown; [x: symbol]: unknown; [x: string]: unknown; }, Document<unknown, {}, FlatRecord<{ [x: number]: unknown; [x: symbol]: unknown; [x: string]: unknown; }>, {}, ResolveSchemaOptions<...>> & FlatRecord<...> & Req...'.
+src/routes/account-overview.ts(28,33): error TS2349: This expression is not callable.
+src/routes/account-overview.ts(53,35): error TS2349: This expression is not callable.
+src/routes/account-overview.ts(54,34): error TS7006: Parameter 'x' implicitly has an 'any' type.
+src/routes/account-overview.ts(75,31): error TS2769: No overload matches this call.
+src/routes/account-overview.ts(75,65): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+src/routes/account-overview.ts(200,68): error TS2532: Object is possibly 'undefined'.
+src/routes/account-overview.ts(219,34): error TS7006: Parameter 'mid' implicitly has an 'any' type.
+src/routes/accounts-summary.ts(101,32): error TS2349: This expression is not callable.
+src/routes/accounts-summary.ts(107,34): error TS2349: This expression is not callable.
+src/routes/accounts.ts(43,31): error TS2349: This expression is not callable.
+src/routes/accounts.ts(51,29): error TS2349: This expression is not callable.
+src/routes/accounts.ts(65,29): error TS2349: This expression is not callable.
+src/routes/accounts.ts(86,28): error TS2349: This expression is not callable.
+src/routes/accounts.ts(167,33): error TS2349: This expression is not callable.
+src/routes/accounts.ts(191,33): error TS2349: This expression is not callable.
+src/routes/accounts.ts(202,29): error TS2349: This expression is not callable.
+src/routes/accounts.ts(204,38): error TS7006: Parameter 'x' implicitly has an 'any' type.
+src/routes/accounts.ts(230,29): error TS2349: This expression is not callable.
+src/routes/accounts.ts(271,33): error TS2349: This expression is not callable.
+src/routes/master-data.ts(22,29): error TS2349: This expression is not callable.
+src/routes/master-data.ts(42,12): error TS2349: This expression is not callable.
+src/routes/members.ts(14,30): error TS2349: This expression is not callable.
+src/routes/members.ts(21,32): error TS2349: This expression is not callable.
+src/routes/members.ts(34,32): error TS2349: This expression is not callable.
+src/routes/members.ts(41,27): error TS2349: This expression is not callable.
+src/routes/month-view.ts(45,30): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+src/routes/month-view.ts(47,33): error TS2349: This expression is not callable.
+src/routes/month-view.ts(75,14): error TS2349: This expression is not callable.
+src/routes/month-view.ts(299,47): error TS7006: Parameter 'rule' implicitly has an 'any' type.
+src/routes/month-view.ts(326,47): error TS7006: Parameter 'co' implicitly has an 'any' type.
+src/routes/planning.ts(35,30): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+src/routes/planning.ts(37,33): error TS2349: This expression is not callable.
+src/routes/planning.ts(59,12): error TS2349: This expression is not callable.
+src/routes/planning.ts(89,44): error TS7006: Parameter 'inc' implicitly has an 'any' type.
+src/routes/planning.ts(148,37): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/planning.ts(156,56): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/routes/planning.ts(197,6): error TS7006: Parameter 'rule' implicitly has an 'any' type.
+src/routes/planning.ts(201,62): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/routes/planning.ts(201,65): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/planning.ts(207,43): error TS7006: Parameter 'inc' implicitly has an 'any' type.
+src/routes/planning.ts(232,38): error TS7006: Parameter 'inc' implicitly has an 'any' type.
+src/routes/planning.ts(241,43): error TS7006: Parameter 'rule' implicitly has an 'any' type.
+src/routes/planning.ts(309,50): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/planning.ts(310,45): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/planning.ts(315,50): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/planning.ts(328,16): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/planning.ts(328,46): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/routes/planning.ts(329,13): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/planning.ts(332,45): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/routes/planning.ts(374,43): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/planning.ts(385,54): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/routes/planning.ts(385,59): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/routes/planning.ts(387,6): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/utils/math.ts(6,54): error TS2532: Object is possibly 'undefined'.
+src/utils/math.ts(13,48): error TS2532: Object is possibly 'undefined'.
+src/utils/reliableBalance.ts(36,13): error TS18048: 'prev' is possibly 'undefined'.
+src/utils/reliableBalance.ts(37,13): error TS18048: 'last' is possibly 'undefined'.
+src/utils/reliableBalance.ts(105,7): error TS2561: Object literal may only specify known properties, but 'currentMonthIso' does not exist in type 'ReliableBalance'. Did you mean to write 'currentMonth'?
+src/utils/reliableBalance.ts(111,47): error TS18048: 'last' is possibly 'undefined'.
+src/utils/reliableBalance.ts(116,26): error TS18048: 'last' is possibly 'undefined'.
+src/utils/reliableBalance.ts(117,5): error TS2561: Object literal may only specify known properties, but 'currentMonthIso' does not exist in type 'ReliableBalance'. Did you mean to write 'currentMonth'?

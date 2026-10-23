@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-21",
+  "mongodb": "8.2.2 isolated native diagnostic",
+  "input": "archived db.json",
+  "steps": [
+    {
+      "file": "20250813-reshape_schema.ts",
+      "result": "passed"
+    },
+    {
+      "file": "20250820_add_settings_events.ts",
+      "result": "passed"
+    },
+    {
+      "file": "20251009_rename_cents_to_minor.ts",
+      "result": "passed"
+    },
+    {
+      "file": "20260222_seed_default_users.ts",
+      "result": "passed"
+    },
+    {
+      "file": "20260224_transactions_phase0.ts",
+      "result": "passed"
+    }
+  ],
+  "collections": [
+    "account_balances",
+    "accounts",
+    "carryovers",
+    "categories",
+    "category_budgets",
+    "contribution_rules",
+    "events",
+    "member_incomes",
+    "members",
+    "recurrences",
+    "transactions",
+    "users"
+  ]
+}

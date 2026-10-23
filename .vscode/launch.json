@@ -1,20 +1,25 @@
 {
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "ng serve",
-      "type": "chrome",
-      "request": "launch",
-      "preLaunchTask": "npm: start",
-      "url": "http://localhost:4200/"
+      "name": "ToBu: API + Stack",
+      "type": "node",
+      "request": "attach",
+      "address": "127.0.0.1",
+      "port": 9229,
+      "restart": true,
+      "preLaunchTask": "ToBu: Debug-Stack",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "sourceMaps": true
     },
     {
-      "name": "ng test",
+      "name": "ToBu: Browser (laufender Stack)",
       "type": "chrome",
       "request": "launch",
-      "preLaunchTask": "npm: test",
-      "url": "http://localhost:9876/debug.html"
+      "url": "http://localhost:4200/",
+      "webRoot": "${workspaceFolder}/apps/web"
     }
   ]
 }

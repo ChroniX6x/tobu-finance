@@ -1,59 +1,59 @@
-# TobuFinance
+# ToBu Finance
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.0.
+Angular-Frontend und Express/MongoDB-API in einem gemeinsamen npm-Workspace.
 
-## Development server
+| Pfad | Inhalt |
+| --- | --- |
+| `apps/web` | Angular und Browsertests |
+| `apps/api` | Express, Datenbanklogik und API-Tests |
+| `packages/contracts` | Gemeinsame Zod-Verträge und OpenAPI-Grundlage |
+| `infra` | Lokale Docker-Datenbank |
+| `docs/database/legacy-migrations` | Historischer Schemaweg, außerhalb aktiver Runner |
 
-To start a local development server, run:
+## Einrichten und starten
 
-```bash
-ng serve
+Voraussetzungen: Node **24.13.1**, npm **11.8.0**, Docker mit laufender Linux-Engine. Im Repository-Root einmalig:
+
+```powershell
+npm ci
+npm run setup
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Täglich reicht:
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```powershell
+npm run dev
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Web: <http://localhost:4200>, OpenAPI: <http://127.0.0.1:4000/docs>. API, Web und gemeinsame Verträge werden überwacht. `Ctrl+C` beendet die Entwicklungsprozesse. `npm run dev:down` stoppt die Docker-Datenbank und erhält das Volume einschließlich manuell erstellter Testdaten. Eine native MongoDB wird nicht benötigt. Das Projekt verwendet MongoDB **9.0.4**.
 
-```bash
-ng generate --help
+Setup erzeugt fehlende lokale Konfiguration und Schlüssel sowie einmalig Baseline und Demo. Wiederholtes Setup überschreibt keine vorhandenen Daten. Demo-Login: `alice@demo.tobu.test`, Passwort `Tobu-Demo-2026!`. Diese Zugangsdaten sind ausschließlich für die lokale Entwicklung vorgesehen.
+
+Details zu VS Code, Datenbankszenarien, externem DB-Modus und bewusstem Reset: [Entwicklungsanleitung](docs/development.md).
+
+## Prüfen und bauen
+
+Chromium einmalig installieren und für Karma verfügbar machen (PowerShell):
+
+```powershell
+npm exec --workspace=@tobu/web -- playwright install chromium
+$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")
+npm run quality:full
 ```
 
-## Building
+`quality` enthält die Prüfungen ohne Docker; `quality:full` beziehungsweise `verify:phase5` ergänzt isolierte API-/Browser-Integration, Lifecycle und eine saubere Produktionsinstallation. Ergebnisbericht: `test-results/quality.json`. Tests benötigen keine manuell gestartete API und verändern keine Entwicklungsdatenbank.
 
-To build the project run:
-
-```bash
-ng build
+```powershell
+npm run build
+npm run package:artifact
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Das Ergebnis liegt unter `dist/release`. Installation und Start des gebauten Pakets: [Artefaktanleitung](docs/production-artifact.md). Das ist noch kein eingerichtetes produktives Hosting.
 
-## Running unit tests
+Nur `package-lock.json` im Root ist aktiv; Installationen erfolgen im Root. Die gemeinsame Schnittstelle ist in [Vertragsarchitektur](docs/architecture/contracts.md) beschrieben.
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Übergang und offene Arbeiten
 
-```bash
-ng test
-```
+Der Nutzer hat das automatisierte Gate 5 als erfolgreich bestätigt. [Phase 6](docs/migration/phase-6-handover.md) beschreibt den noch ausstehenden Übergang auf GitHub, die manuelle Abnahme und den Rückfallweg. Für Push, PR, CI, Merge und die spätere Archivierung gibt es eine separate [GitHub-Einweisung](docs/migration/github-transition.md).
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Die vollständige Rollenprüfung, die automatische Owner-Zuordnung bei Kontoerstellung und bestehende Sicherheitsbefunde bleiben [offene Arbeiten](docs/migration/open-issues.md). Ein grüner Migrationscheck bedeutet keine Freigabe für den Livebetrieb.

@@ -1,42 +1,76 @@
 {
-  // For more information, visit: https://go.microsoft.com/fwlink/?LinkId=733558
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "ToBu: Setup",
       "type": "npm",
-      "script": "start",
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "typescript",
-        "pattern": "$tsc",
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": {
-            "regexp": "(.*?)"
-          },
-          "endsPattern": {
-            "regexp": "bundle generation complete"
-          }
-        }
-      }
+      "script": "setup",
+      "problemMatcher": []
     },
     {
+      "label": "ToBu: Start",
       "type": "npm",
-      "script": "test",
-      "isBackground": true,
+      "script": "dev",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: Debug-Stack",
+      "type": "npm",
+      "script": "dev:debug",
       "problemMatcher": {
         "owner": "typescript",
         "pattern": "$tsc",
         "background": {
           "activeOnStart": true,
-          "beginsPattern": {
-            "regexp": "(.*?)"
-          },
-          "endsPattern": {
-            "regexp": "bundle generation complete"
-          }
+          "beginsPattern": ".*",
+          "endsPattern": "ToBu ready:.*"
         }
-      }
+      },
+      "isBackground": true
+    },
+    {
+      "label": "ToBu: Datenbank stoppen (Daten behalten)",
+      "type": "npm",
+      "script": "dev:down",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: Build",
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "ToBu: Typecheck",
+      "type": "npm",
+      "script": "typecheck",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: Unit-Tests",
+      "type": "npm",
+      "script": "test",
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "ToBu: API-Integration",
+      "type": "npm",
+      "script": "test:integration",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: E2E (Mocks)",
+      "type": "npm",
+      "script": "e2e",
+      "problemMatcher": []
+    },
+    {
+      "label": "ToBu: E2E (echte API)",
+      "type": "npm",
+      "script": "e2e:real",
+      "problemMatcher": []
     }
   ]
 }
