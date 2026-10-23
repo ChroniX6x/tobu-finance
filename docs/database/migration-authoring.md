@@ -1,6 +1,6 @@
 # Migrationen: Anforderungen an nachfolgende Agents
 
-Stand: 23.10.2026. **Der aktive Umzug-Runner ist noch nicht ergänzt.** Diese Anleitung definiert die Anforderungen; konkrete Erstellungs- und Ausführungsbefehle folgen mit der Umsetzung. `db:migrate` prüft derzeit nur den Baseline-Stand. Die Entscheidung über den Umgang mit nicht transaktionalen Schemaoperationen ist beim Nutzer angefragt.
+Stand: 23.10.2026. **Der aktive Umzug-Runner ist noch nicht ergänzt.** Diese Anleitung definiert die Anforderungen; konkrete Erstellungs- und Ausführungsbefehle folgen mit der Umsetzung. `db:migrate` prüft derzeit nur den Baseline-Stand. Gewählt sind transaktionale Migrationen als Standard und ein kontrollierter struktureller Modus. Der [Architekturvorschlag](migration-architecture.md) beschreibt Sicherheit, Wiederherstellung und Abnahme; seine Implementierung wartet auf die ausdrückliche Freigabe des Nutzers.
 
 ## Vor dem Schreiben
 
@@ -35,8 +35,9 @@ Nur isolierte Testdatenbanken benutzen. Für jede neue Migration mindestens:
 - Unterstützter Vorgänger → Up → erwarteter Daten-, Validator- und Indexstand.
 - Up → Down: vollständige Daten inklusive IDs, Beziehungen, Geldbeträge und Datentypen erhalten beziehungsweise korrekt wiederhergestellt.
 - Erneutes Ausführen: keine doppelte Transformation; Versionsprotokoll konsistent.
-- Fehler nach mindestens einer tatsächlichen Änderung: nach Abbruch genau der vorherige Datenbestand, keine vorgezogene Versionsmarkierung.
-- Fehler innerhalb Down: der vorherige erfolgreiche Up-Stand bleibt vollständig bestehen.
+- Transaktionaler Fehler nach mindestens einer tatsächlichen Änderung: nach Abbruch genau der vorherige Datenbestand, keine vorgezogene Versionsmarkierung.
+- Transaktionaler Fehler innerhalb Down: der vorherige erfolgreiche Up-Stand bleibt vollständig bestehen.
+- Struktureller Fehler innerhalb Up oder Down: Anwendung bleibt gesperrt, Teilstand wird erkannt, kontrollierte Wiederaufnahme oder verifizierte Wiederherstellung stellt einen definierten Stand her. Auch den Abbruch des Restore testen; keine sofortige Atomizität behaupten.
 - Prozessabbruch, konkurrierende Runner und Verbindungsverlust während Commit: definierter, erkennbarer Zustand; kein stilles Fortsetzen mit unbekanntem Ergebnis.
 - Unbekannte, fehlende oder manipulierte Migrationseinträge: Abbruch ohne Änderungen.
 - Frische Baseline plus neue Migrationen entspricht dem migrierten Vorgängerstand. Seeds sind davon unabhängig.
