@@ -25,7 +25,10 @@ process.on('message', (message) => {
 });
 const tsx = pathToFileURL(apiRequire.resolve('tsx/esm')).href;
 export async function dbCommand(command, config, extra = {}) {
-    await run(process.execPath, ['--import', tsx, resolve(apiRoot, 'src/database/cli.ts'), command], { cwd: apiRoot, env: { ...apiEnvironment(config), ...extra } });
+    await run(process.execPath, ['--import', tsx, resolve(apiRoot, 'src/database/cli.ts'), command], {
+        cwd: apiRoot,
+        env: { ...apiEnvironment(config), TOBU_MIGRATION_BACKUP_DIR: process.env.TOBU_MIGRATION_BACKUP_DIR ?? resolve(root, 'backups/migrations'), TOBU_MIGRATION_BACKUP_MODE: config.mode === 'docker' ? 'docker-local' : 'native', ...extra }
+    });
 }
 try {
     if (!['setup', 'init', 'down', 'dev', 'debug', 'init-db', 'seed', 'migrate', 'reset'].includes(command)) throw new Error('Unknown workspace command');

@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { apiRoot, loadConfig, apiEnvironment } from './lib/config.mjs';
+import { apiRoot, root, loadConfig, apiEnvironment } from './lib/config.mjs';
 import { assertPortFree, run } from './lib/processes.mjs';
 
 // No Docker start, baseline adoption, seeds or automatic fallbacks in this administrative command.
@@ -14,7 +14,9 @@ try {
     // Setup/build prepares contracts. Status/plan must not rewrite files watched by a live API.
     await run(process.execPath, [resolve(apiRoot, 'scripts/migration-files.mjs'), '--check']);
     await run(process.execPath, [resolve(apiRoot, 'scripts/build.mjs')]);
-    await run(process.execPath, [resolve(apiRoot, 'dist/src/database/migration-cli.js'), command, ...process.argv.slice(3)], { env: apiEnvironment(config) });
+    await run(process.execPath, [resolve(apiRoot, 'dist/src/database/migration-cli.js'), command, ...process.argv.slice(3)], {
+        env: { ...apiEnvironment(config), TOBU_MIGRATION_BACKUP_DIR: process.env.TOBU_MIGRATION_BACKUP_DIR ?? resolve(root, 'backups/migrations'), TOBU_MIGRATION_BACKUP_MODE: config.mode === 'docker' ? 'docker-local' : 'native' }
+    });
 } catch (error) {
     console.error(error.message);
     process.exitCode = 1;

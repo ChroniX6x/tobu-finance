@@ -4,10 +4,13 @@ import { Umzug } from 'umzug';
 import { migrations } from './migration-catalog.js';
 import { migrationContext } from './migration-types.js';
 import type { Direction, MigrationEntry } from './migration-types.js';
-import { migrationState } from './migration-state.js';
+import { migrationState, validateCatalog } from './migration-state.js';
 import type { Control, SchemaState } from './migration-state.js';
 import { migrationStorage } from './migration-storage.js';
-import { verifyBaselineSchema } from './baseline.js';
+import { verifySchema } from './migration-schema.js';
+import { StructuralRunner } from './structural-runner.js';
+import type { StructuralRun } from './structural-types.js';
+import type { MigrationBackup } from './migration-backup.js';
 
 export class MigrationRunner {
     constructor(
@@ -15,7 +18,8 @@ export class MigrationRunner {
         private db: Db,
         private uri: string,
         private environment: string,
-        private entries: MigrationEntry[] = migrations
+        private entries: MigrationEntry[] = migrations,
+        private options: { backup?: MigrationBackup; productionStructuralApproved?: boolean } = {}
     ) {
         // Parse the authority without URL(), which cannot represent multi-host MongoDB URIs.
         const match = /^mongodb(?:\+srv)?:\/\/([^/]+)\/([^?]+)(?:\?.*)?$/.exec(uri);
@@ -24,14 +28,49 @@ export class MigrationRunner {
     }
 
     async plan(direction: Direction = 'up') {
+        validateCatalog(this.entries);
+        const lock = await this.db.collection<Control>('_tobu_migration_control').findOne({ _id: 'runner' });
+        if (lock?.kind === 'structural') {
+            const run = await this.db.collection<StructuralRun>('_tobu_migration_runs').findOne({ _id: lock.runId });
+            if (!run || run.targetHash !== this.targetHash() || this.entries.find((entry) => entry.id === run.migration)?.checksum !== run.checksum) throw new Error('Invalid structural recovery journal');
+            // During restore the schema/history collections can be absent or incomplete.
+            const details = { target: this.target(run.before.databaseId), direction, applied: run.before.applied, migrations: [] as { id: string; checksum: string }[], recovery: lock, progress: { stage: run.stage, steps: run.steps } };
+            return { ...details, confirmation: this.confirmation(details) };
+        }
         const state = await migrationState(this.db, this.entries);
-        await verifyBaselineSchema(this.db);
-        const selected = direction === 'up' ? state.pending : state.applied.slice(-1);
-        const target = { environment: this.environment, server: this.uri.split('://')[1]!.split('/')[0]!.split('@').at(-1), database: this.db.databaseName, databaseId: state.state.databaseId ?? null };
-        const details = { target, direction, applied: state.applied, migrations: selected.map((id) => ({ id, checksum: this.entries.find((entry) => entry.id === id)!.checksum })), recovery: state.control };
+        await verifySchema(this.db, this.entries, state.applied);
+        let selected = direction === 'up' ? state.pending : state.applied.slice(-1);
+        const structural = selected.findIndex((id) => this.entries.find((entry) => entry.id === id)!.migration.type === 'structural');
+        if (structural >= 0) selected = selected.slice(0, structural === 0 ? 1 : structural);
+        const target = this.target(state.state.databaseId);
+        const details = {
+            target,
+            direction,
+            applied: state.applied,
+            migrations: selected.map((id) => {
+                const entry = this.entries.find((entry) => entry.id === id)!;
+                return { id, checksum: entry.checksum, type: entry.migration.type, description: entry.migration.description, namespaces: entry.migration.namespaces };
+            }),
+            recovery: state.control
+        };
         // Bind confirmation to URI (including TLS/options), target, history, checksums and lock.
-        const confirmation = createHash('sha256').update(this.uri).update(JSON.stringify(details)).digest('hex');
+        const confirmation = this.confirmation(details);
         return { ...details, confirmation };
+    }
+
+    private target(databaseId?: string) {
+        return { environment: this.environment, server: this.uri.split('://')[1]!.split('/')[0]!.split('@').at(-1), database: this.db.databaseName, databaseId: databaseId ?? null };
+    }
+    private confirmation(details: unknown) {
+        return createHash('sha256').update(this.uri).update(JSON.stringify(details)).digest('hex');
+    }
+    private targetHash() {
+        return createHash('sha256').update(this.uri).update(this.environment).digest('hex');
+    }
+    private structural() {
+        if (!this.options.backup) throw new Error('Structural migrations require a configured verified backup backend');
+        if (this.environment === 'production' && !this.options.productionStructuralApproved) throw new Error('Production structural migration requires maintenance and protected-backup acknowledgement');
+        return new StructuralRunner(this.client, this.db, this.entries, this.options.backup, this.targetHash());
     }
 
     private async requireTransactions() {
@@ -45,6 +84,8 @@ export class MigrationRunner {
         if (plan.recovery) throw new Error(`Migration runner is locked; explicit recovery required: ${plan.recovery.runId}`);
         if (!plan.migrations.length) return { applied: [], pending: [] };
         await this.requireTransactions();
+        const first = this.entries.find((entry) => entry.id === plan.migrations[0]!.id)!;
+        if (first.migration.type === 'structural') return this.structural().begin(first, direction, plan.applied);
         // Explicit metadata creation outside the data transaction, after validation/confirmation.
         for (const name of ['_tobu_migrations', '_tobu_migration_control']) {
             try {
@@ -83,11 +124,13 @@ export class MigrationRunner {
                                     migrations: this.entries.map((candidate) => ({
                                         name: candidate.id,
                                         up: async () => {
+                                            if (candidate.migration.type !== 'transactional') throw new Error('Wrong execution mode');
                                             await candidate.migration.preUp(bound.context);
                                             await candidate.migration.up(bound.context);
                                             await candidate.migration.verifyUp(bound.context);
                                         },
                                         down: async () => {
+                                            if (candidate.migration.type !== 'transactional') throw new Error('Wrong execution mode');
                                             await candidate.migration.preDown(bound.context);
                                             await candidate.migration.down(bound.context);
                                             await candidate.migration.verifyDown(bound.context);
@@ -127,10 +170,14 @@ export class MigrationRunner {
         }
     }
 
-    async recover(confirmation: string, stoppedRun: string, writersStopped: boolean) {
+    async recover(confirmation: string, stoppedRun: string, writersStopped: boolean, action?: 'resume' | 'restore') {
         const plan = await this.plan();
         if (!plan.recovery || plan.recovery.runId !== stoppedRun || plan.confirmation !== confirmation || !writersStopped) throw new Error('Fresh recovery confirmation, stopped runner ID and stopped writers required');
         await this.requireTransactions();
+        if (plan.recovery.kind === 'structural') {
+            if (!action) throw new Error('Choose resume or restore explicitly for structural recovery');
+            return this.structural().recover(plan.recovery, action);
+        }
         const session = this.client.startSession();
         try {
             return await session.withTransaction(

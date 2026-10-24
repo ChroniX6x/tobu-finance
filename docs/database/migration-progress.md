@@ -1,6 +1,6 @@
 # Sichere Migrationen: Umsetzungsstand
 
-Stand: 23.10.2026. Architektur freigegeben. Branch: `feat/safe-database-migrations`.
+Stand: 24.10.2026. Architektur freigegeben. Branch: `feat/safe-database-migrations`. Aktuell: Abschnitt 3 implementiert, Docker-Abnahme offen; ältere Statusangaben unten dokumentieren den damaligen Stand.
 
 ## Abschnitt 1: feste Baseline und lokale Replica Sets
 
@@ -80,3 +80,25 @@ Danach auf weitere Nutzeranweisung warten. Noch offen: kontrollierte strukturell
 Nachtrag 24.10.2026: Der Nutzer bestätigt beide Docker-Tests aus `test:replica` als erfolgreich. `quality:full` scheiterte anschließend beim Lifecycle-Test: Dessen separat zusammengesetzte URI enthielt noch keine direkte Host-Verbindung und folgte der Replica-Set-Adresse `mongo:27017`, die außerhalb des Docker-Netzes nicht auflösbar ist. Der Test verwendet jetzt denselben Konfigurationsloader mit seiner isolierten Prozessumgebung wie der Workspace. Die Tooling-Prüfung deckt die übergebene Umgebung, den abweichenden Port und die lokalen Replica-Set-Optionen ab. Lifecycle und vollständiges Gate müssen mit dieser Korrektur erneut ausgeführt werden; keine Datenbank-Neuinitialisierung nötig.
 
 Die bestehende Freigabe alter Quality-Gates gilt nicht automatisch für Abschnitt 2. Kein Push oder Merge vorgenommen.
+
+## Abschnitt 3: kontrollierte strukturelle Migrationen
+
+Abschnitt 2 wurde vom Nutzer mit erfolgreichen Integrationstests und `GATE 5 AUTOMATED VERIFICATION PASSED` bestätigt. Ein vorheriger E2E-Lauf mit 54 Verbindungsfehlern auf localhost ist damit nicht ursächlich aufgeklärt. Der anschließend gemeldete Diagnoselauf bestand alle 54 Tests mit sechs Workern. Keine Änderungen an Workerzahl, Videos oder Retry-Verhalten in Abschnitt 3.
+
+Implementiert: strukturelle Templates, versionierte Schema-Verifikation, ein struktureller Lauf pro bestätigtem Plan, eingeschränkter DDL-/Datenkontext, persistente Schritte und Wartungssperre, atomare abschließende Buchführung, explizites Resume/Restore. Echte Database-Tools-Archive werden durch vollständige Restore-Proben und BSON-/Metadatenvergleich geprüft. Wiederherstellung behält ihre operativen Journale und bleibt nach erneutem Abbruch fortsetzbar. Bestätigte historische Erfolge dürfen nicht per Backup zurückgesetzt werden. Lokaler Docker-Helper und native externe Werkzeuge sind getrennt; MongoDB bleibt auf 9.0.4 gepinnt. Details und Grenzen: [Strukturelle Migrationen](structural-migrations.md).
+
+Lokale Nachweise: API-Build; 13 API-Unit-/Tooling-Tests; 35 Integrationsprüfungen auf einer ausdrücklich isolierten nativen MongoDB-8.2-Testinstanz. Letztere prüfen reale Datenbank-/Transaktionszustände; der strukturelle Memory-Backup-Adapter ist nur ein Testdouble zur kontrollierten Fehlererzeugung. Der zusätzliche Docker-Test prüft echte Archive, BSON-Sondertypen, Validatoren, beschädigte Backups, Restore, Prozesskill nach Rename, Resume und Down. Seine Ausführung auf MongoDB 9.0.4 steht noch aus; kein Ersatz durch die native Testinstanz.
+
+Ergänzende Abschlussprüfung: neun strukturelle Prüfungen nach der Absicherung der DDL-Kommentare und TTL-Vorprüfung erfolgreich. Die tatsächlichen MongoDB-Kommandos tragen die Run-ID, damit Recovery laufende Strukturarbeiten erkennen kann. Der neue Docker-Test wurde hier gestartet und wegen nicht erreichbarer Docker-Engine abgebrochen, nicht übersprungen. Die Benutzeranleitung dokumentiert native Tools, Backup-Schutz, produktive Bestätigungen und die Grenzen bei Atlas/TTL.
+
+API-Build, ESLint, Formatprüfung, Vertragsinventar/OpenAPI und Workspace-/Quellschutz sind erfolgreich. Externe Multi-Host-URIs werden vom Konfigurationsloader unverändert unterstützt; ein Tooling-Test sichert das ab. Keine neuen Paketabhängigkeiten, keine fachliche Migration, kein Push oder Merge.
+
+Abnahme im Repository-Root auf dem Docker-Rechner:
+
+```powershell
+npm run test:replica
+npm run test:integration
+npm run quality:full
+```
+
+Die Tests verwenden eigene Datenbanken und Backup-Verzeichnisse. Keine manuelle Entwicklungsdatenbank migrieren oder zurücksetzen. Bei Fehlern die Ausgabe mitteilen; das Gate nicht durch Wiederholungen als ursächlich behoben ansehen. Danach auf weitere Anweisung warten. Abschnitt 4 (abschließende Betriebs-/Artefakt-/CI-Abnahme) ist noch nicht freigegeben.

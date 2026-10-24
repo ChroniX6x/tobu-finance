@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import { randomUUID } from 'node:crypto';
-import { isDeepStrictEqual } from 'node:util';
 import snapshot from './baseline/2026-10-v1.json' with { type: 'json' };
 import type { Db, IndexDescription } from 'mongodb';
 import { BASELINE, migrationState } from './migration-state.js';
 import type { SchemaState } from './migration-state.js';
 import { migrations } from './migration-catalog.js';
+import { verifySchema } from './migration-schema.js';
 
 export { BASELINE };
 function db() {
@@ -28,7 +28,7 @@ export async function initializeBaseline() {
     if (state?.status === 'ready') {
         const current = await migrationState(database, migrations);
         if (current.control) throw new Error('Migration recovery required before setup');
-        await verifyBaselineSchema(database);
+        await verifySchema(database, migrations, current.applied);
         return false;
     }
     if (!state) {
@@ -52,23 +52,12 @@ export async function initializeBaseline() {
     return true;
 }
 export async function verifyBaselineSchema(database: Db) {
-    for (const { name, validator, indexes } of snapshot) {
-        const collection = await database.listCollections({ name }, { nameOnly: false }).next();
-        if (!isDeepStrictEqual(collection?.options?.validator, validator) || (collection?.options?.validationLevel ?? 'strict') !== 'strict' || (collection?.options?.validationAction ?? 'error') !== 'error') {
-            throw new Error(`Missing/incompatible validator on ${name}`);
-        }
-        const actual = await database.collection(name).listIndexes().toArray();
-        for (const { key: keys, ...options } of indexes as IndexDescription[]) {
-            const found = actual.find((i) => JSON.stringify(i.key) === JSON.stringify(keys));
-            if (!found || Boolean(found.unique) !== Boolean(options.unique) || Boolean(found.sparse) !== Boolean(options.sparse) || found.expireAfterSeconds !== options.expireAfterSeconds) {
-                throw new Error(`Missing/incompatible index on ${name}: ${JSON.stringify(keys)}`);
-            }
-        }
-    }
+    await verifySchema(database);
 }
 export async function verifyBaseline() {
     if (!(await schemaStatus()).ready) throw new Error('Database not initialized or incompatible; run npm run setup / db:migrate');
-    await verifyBaselineSchema(db());
+    const state = await migrationState(db(), migrations);
+    await verifySchema(db(), migrations, state.applied);
 }
 export async function migrateDatabase() {
     // Compatibility read-only check; actual writes use the explicit migration CLI.

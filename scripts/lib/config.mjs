@@ -32,7 +32,8 @@ export function loadConfig(environment = process.env) {
     if (!/^tobu_[a-z0-9_]+$/.test(values.DEV_DB_NAME)) throw new Error('DEV_DB_NAME must start with tobu_ and contain only lowercase letters, digits and underscores');
     const uri = values.DB_MODE === 'docker' ? `mongodb://127.0.0.1:${dbPort}/${values.DEV_DB_NAME}?directConnection=true&replicaSet=tobu-local` : values.MONGODB_URI;
     if (!uri || !/^mongodb(?:\+srv)?:\/\//.test(uri)) throw new Error('DB_MODE=external requires an explicit MongoDB URI; no fallback');
-    const pathname = new URL(uri).pathname.slice(1);
+    // WHATWG URL cannot parse MongoDB's multi-host replica-set authority.
+    const pathname = decodeURIComponent(/^mongodb(?:\+srv)?:\/\/[^/]+\/([^?]*)(?:\?.*)?$/.exec(uri)?.[1] ?? '');
     if (!pathname || ['admin', 'config', 'local'].includes(pathname)) throw new Error('Choose an explicit application database, not admin/config/local');
     return { mode: values.DB_MODE, uri, dbName: pathname, project: values.COMPOSE_PROJECT, apiPort, webPort, dbPort, month: values.SEED_MONTH || undefined };
 }

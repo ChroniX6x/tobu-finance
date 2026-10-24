@@ -1,5 +1,6 @@
 import { MongoClient } from 'mongodb';
 import { MigrationRunner } from './migration-runner.js';
+import { ToolsBackup } from './migration-backup.js';
 
 const uri = process.env.MONGODB_URI;
 if (!uri) throw new Error('Explicit MONGODB_URI required');
@@ -9,13 +10,23 @@ const client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000, readPrefer
 try {
     if (!['status', 'plan', 'up', 'down', 'recover'].includes(command)) throw new Error('Use status, plan, up, down or recover');
     await client.connect();
-    const runner = new MigrationRunner(client, client.db(), uri, process.env.NODE_ENV ?? 'development');
+    const backupRoot = process.env.TOBU_MIGRATION_BACKUP_DIR;
+    const mode = process.env.TOBU_MIGRATION_BACKUP_MODE ?? 'native';
+    if (!['native', 'docker-local'].includes(mode)) throw new Error('Unknown backup tool mode');
+    if (mode === 'docker-local' && process.env.NODE_ENV === 'production') throw new Error('Docker-local helper is not a production backend');
+    const options = {
+        ...(backupRoot ? { backup: new ToolsBackup(client, client.db(), uri, backupRoot, mode as 'native' | 'docker-local') } : {}),
+        productionStructuralApproved: option('maintenance-approved') === client.db().databaseName && option('backup-protection-confirmed') === client.db().databaseName
+    };
+    const runner = new MigrationRunner(client, client.db(), uri, process.env.NODE_ENV ?? 'development', undefined, options);
     const direction = command === 'down' || (command === 'plan' && option('direction') === 'down') ? 'down' : 'up';
     if (['status', 'plan'].includes(command)) console.log(JSON.stringify(await runner.plan(direction), null, 2));
     else {
         const confirm = option('confirm') ?? '';
         const stopped = option('writers-stopped') === client.db().databaseName;
-        if (command === 'recover') console.log(await runner.recover(confirm, option('runner-stopped') ?? '', stopped));
+        const action = option('recovery');
+        if (action && !['resume', 'restore'].includes(action)) throw new Error('Use --recovery=resume or --recovery=restore');
+        if (command === 'recover') console.log(await runner.recover(confirm, option('runner-stopped') ?? '', stopped, action as 'resume' | 'restore' | undefined));
         else console.log(await runner.run(direction, confirm, stopped));
     }
 } catch (error) {

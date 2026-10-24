@@ -28,6 +28,13 @@ test('migration generator is exclusive, detects stale content and normalizes Win
         await capture(process.execPath, [tool]);
         await capture(process.execPath, [tool, '--check']);
         await assert.rejects(capture(process.execPath, [tool, 'create', '../unsafe']), /lowercase migration slug/);
+        await capture(process.execPath, [tool, 'create', 'structural-transition', '--type=structural']);
+        const structuralFile = (await readdir(directory)).find((name) => name.endsWith('-structural-transition.ts'));
+        const structural = await readFile(resolve(directory, structuralFile), 'utf8');
+        assert.match(structural, /type: 'structural'/);
+        assert.match(structural, /schemaChanges/);
+        assert.match(structural, /before\/after\/ambiguous/);
+        await capture(process.execPath, [tool, '--check']);
         await writeFile(file, template + '\nimport "mutable-runtime-helper";\n');
         await assert.rejects(capture(process.execPath, [tool]), /only import types/);
     } finally {

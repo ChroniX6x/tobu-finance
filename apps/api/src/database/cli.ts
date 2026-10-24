@@ -3,13 +3,23 @@ import { connectDB } from '../db.js';
 import { initializeBaseline, verifyBaseline } from './baseline.js';
 import { seedDevelopment } from './seed.js';
 import { MigrationRunner } from './migration-runner.js';
+import { ToolsBackup } from './migration-backup.js';
 
 async function initializeAndMigrateNewDatabase(uri: string) {
     const created = await initializeBaseline();
     if (created) {
-        const runner = new MigrationRunner(mongoose.connection.getClient(), mongoose.connection.db!, uri, process.env.NODE_ENV ?? 'development');
-        const plan = await runner.plan();
-        await runner.run('up', plan.confirmation, true);
+        const client = mongoose.connection.getClient();
+        const db = mongoose.connection.db!;
+        const root = process.env.TOBU_MIGRATION_BACKUP_DIR;
+        const mode = process.env.TOBU_MIGRATION_BACKUP_MODE ?? 'native';
+        if (!['native', 'docker-local'].includes(mode)) throw new Error('Unknown backup mode');
+        const runner = new MigrationRunner(client, db, uri, process.env.NODE_ENV ?? 'development', undefined, root ? { backup: new ToolsBackup(client, db, uri, root, mode as 'native' | 'docker-local') } : {});
+        // Only a database created by this invocation can auto-advance through plans.
+        for (;;) {
+            const plan = await runner.plan();
+            if (!plan.migrations.length) break;
+            await runner.run('up', plan.confirmation, true);
+        }
     }
     await verifyBaseline();
 }

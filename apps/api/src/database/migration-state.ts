@@ -4,7 +4,7 @@ import type { MigrationEntry } from './migration-types.js';
 export const BASELINE = '2026-10-v1';
 export type SchemaState = { _id: string; version: string; status: 'initializing' | 'ready'; applied: string[]; databaseId?: string };
 export type History = { _id: string; checksum: string; applied: boolean; runId: string };
-export type Control = { _id: string; runId: string; migration: string; direction: 'up' | 'down'; status: 'running' | 'committed'; startedAt: Date };
+export type Control = { _id: string; runId: string; migration: string; direction: 'up' | 'down'; status: 'running' | 'committed'; startedAt: Date; kind?: 'structural'; owner?: string };
 
 export function validateCatalog(entries: MigrationEntry[]) {
     const ids = new Set<string>();
@@ -12,10 +12,20 @@ export function validateCatalog(entries: MigrationEntry[]) {
         if (!/^\d{17}-[a-z0-9-]+$/.test(entry.id) || ids.has(entry.id) || !/^[a-f0-9]{64}$/.test(entry.checksum)) throw new Error('Invalid/duplicate migration identity');
         ids.add(entry.id);
         const migration = entry.migration;
-        if (migration.type !== 'transactional') throw new Error('Structural migrations are not enabled yet');
+        if (!['transactional', 'structural'].includes(migration.type)) throw new Error('Unknown migration type');
         if (migration.predecessor !== (entries[index - 1]?.id ?? BASELINE)) throw new Error('Invalid migration predecessor chain');
         if (!migration.description || !migration.namespaces.length || migration.namespaces.some((name) => !/^[a-z][a-z0-9_]*$/.test(name) || name.startsWith('system'))) throw new Error('Migration description/namespaces required');
-        for (const method of ['preUp', 'up', 'verifyUp', 'preDown', 'down', 'verifyDown'] as const) if (typeof migration[method] !== 'function') throw new Error(`Missing migration method: ${method}`);
+        for (const method of ['preUp', 'verifyUp', 'preDown', 'verifyDown'] as const) if (typeof migration[method] !== 'function') throw new Error(`Missing migration method: ${method}`);
+        if (migration.type === 'transactional') {
+            if (typeof migration.up !== 'function' || typeof migration.down !== 'function') throw new Error('Missing up/down');
+        } else {
+            if (!migration.schemaChanges || Object.entries(migration.schemaChanges).some(([name, schema]) => !migration.namespaces.includes(name) || (schema !== null && (schema.name !== name || !schema.validator || !Array.isArray(schema.indexes)))))
+                throw new Error('Invalid structural schema changes');
+            for (const steps of [migration.up, migration.down]) {
+                if (!Array.isArray(steps) || !steps.length || new Set(steps.map((step) => step.id)).size !== steps.length) throw new Error('Unique nonempty structural steps required');
+                for (const step of steps) if (!/^[a-z][a-z0-9-]*$/.test(step.id) || typeof step.inspect !== 'function' || typeof step.apply !== 'function' || typeof step.verify !== 'function') throw new Error('Invalid structural step');
+            }
+        }
     });
 }
 

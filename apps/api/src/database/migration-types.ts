@@ -1,4 +1,5 @@
 import type { ClientSession, Db, Document, Filter, UpdateFilter } from 'mongodb';
+import type { StructuralMigration } from './structural-types.js';
 
 export type Direction = 'up' | 'down';
 export type MigrationContext = ReturnType<typeof migrationContext>['context'];
@@ -17,7 +18,7 @@ export interface TransactionalMigration {
 export interface MigrationEntry {
     id: string;
     checksum: string;
-    migration: TransactionalMigration;
+    migration: TransactionalMigration | StructuralMigration;
 }
 
 // Deliberately no Db, Session, arbitrary commands, DDL, upserts or aggregation writes.

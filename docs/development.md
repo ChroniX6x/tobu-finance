@@ -119,3 +119,7 @@ Für die Mock-E2E gelten auf ausdrücklichen Nutzerwunsch 60 Sekunden pro Test u
 Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren. Für Karma in PowerShell bei fehlendem lokalen Chrome: `$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")`. Unter Linux/Bash entsprechend `export CHROME_BIN="$(node -p "require('@playwright/test').chromium.executablePath()")"`; in Linux-CI installiert Playwright außerdem die Systemabhängigkeiten mit `--with-deps`.
 
 Der Umfang der Quellcode-/Formatprüfungen sowie offene Punkte stehen im [Phase-5-Bericht](migration/phase-5-results.md). Gebaute Pakete: `npm run build`, `npm run package:artifact`; siehe [Artefaktanleitung](production-artifact.md). Der dortige lokale Webserver liefert die gebauten Angular-Dateien mit API-Proxy aus; er ersetzt kein produktives Hosting.
+
+## StrukturÄnderungen der Datenbank
+
+Transaktionale Migrationen bleiben der Standard. Index-, Validator-, Collection- und größere Datenumbauten verwenden den bestätigten strukturellen Modus mit geprüftem Backup und Wiederherstellungsjournal. Siehe [Agent-Anleitung](database/migration-authoring.md) und [Betrieb/Recovery](database/structural-migrations.md). `dev` migriert oder restauriert niemals automatisch. Lokale Archive liegen unter `backups/migrations/`; Docker-Daten bleiben im bisherigen persistenten Volume.

@@ -1,12 +1,12 @@
 # Migrationen: Anforderungen an nachfolgende Agents
 
-Stand: Abschnitt 2. **Transaktionaler Umzug-Runner implementiert; Docker-Gesamtabnahme dieses Abschnitts noch offen.** Strukturelle Migrationen werden noch abgelehnt. Die [Architektur](migration-architecture.md) bleibt das Ziel; der [Umsetzungsstand](migration-progress.md) trennt Implementierung und Nachweise.
+Stand: Abschnitt 3. Transaktionaler und kontrollierter struktureller Modus sind implementiert; die Docker-Abnahme von Abschnitt 3 steht aus. Für Strukturänderungen zusätzlich [Strukturelle Migrationen](structural-migrations.md) lesen. Der [Umsetzungsstand](migration-progress.md) trennt Implementierung und Nachweise.
 
 ## Neue transaktionale Migration erstellen
 
 1. Im Repository-Root `npm run db:migration:create -- beschreibender-name` ausführen. Der Generator legt genau eine neue Datei unter `apps/api/src/database/migrations` an. Keine Legacy-Dateien verschieben und den Baseline-Snapshot nicht ändern.
 2. `description`, `namespaces`, `preUp`, `up`, `verifyUp`, `preDown`, `down`, `verifyDown` ausarbeiten. Unfertige Templates werfen absichtlich Fehler. Der Vorgänger ist die unmittelbar vorhergehende Migration; keine Lücken oder unabhängigen Zweige.
-3. Nur den bereitgestellten Kontext verwenden: `findOne`, begrenztes `findMany`, `count`, `insertOne`, `updateMany`, `deleteMany`. Jede Operation einzeln `await`en. Keine parallelen Aufrufe, keine eigene Verbindung, keine DDL, keine HTTP-/Datei-Nebenwirkungen. Collections müssen bereits existieren. Datenumstrukturierungen, die diese Grenzen überschreiten, warten auf den strukturellen Modus.
+3. Nur den bereitgestellten Kontext verwenden: `findOne`, begrenztes `findMany`, `count`, `insertOne`, `updateMany`, `deleteMany`. Jede Operation einzeln `await`en. Keine parallelen Aufrufe, keine eigene Verbindung, keine DDL, keine HTTP-/Datei-Nebenwirkungen. Collections müssen bereits existieren. Datenumstrukturierungen, die diese Grenzen überschreiten, verwenden den separat bestätigten strukturellen Modus.
 4. Migrationslogik bleibt in der Datei; nur Type-Imports sind erlaubt. Veränderliche Runtime-Helfer würden die historischen Prüfsummen umgehen. Das ist eine Regel für vertrauenswürdigen Projektcode, keine Sicherheits-Sandbox.
 5. Datei formatieren, dann `npm run db:migration:manifest`. Datei und generierten Katalog gemeinsam reviewen und committen. Der Build lehnt veraltete Prüfsummen ab. Nach bereits ausgeführtem Up bleibt die Datei auch nach Down unveränderlich.
 6. Eigene Integrationstests für Vorbedingungen, Up/Down, Nachbedingungen und Fehler nach Writes ergänzen. Keine Produktionsmigration nur für einen Test erzeugen. `npm run test:integration`, danach `npm run quality:full` ausführen. Ein geänderter Datenbestand muss gegenüber einer frischen Baseline plus denselben Migrationen fachlich gleichwertig sein.
@@ -30,9 +30,9 @@ npm run db:migrate:plan -- --direction=down
 npm run db:migrate:down -- --confirm=<confirmation-aus-dem-down-plan> --writers-stopped=tobu_finance_dev
 ```
 
-Die Garantie gilt pro Migration. In einem Stapel können frühere Migrationen bereits committed sein, wenn eine spätere scheitert. Schema-Marker, Daten und Historie werden pro Schritt atomar gespeichert. Für diese reinen Datenmigrationen gelten unverändert die eingefrorenen Collection-Validatoren/Indizes. Neue Schema-Snapshots für strukturelle Übergänge folgen erst in Abschnitt 3.
+Die Garantie gilt pro transaktionaler Migration. In einem Stapel können frühere Migrationen bereits committed sein, wenn eine spätere scheitert. Schema-Marker, Daten und Historie werden pro Migration atomar gespeichert. Reine Datenmigrationen behalten das jeweilige Collection-Schema bei. Strukturelle Übergänge erweitern den versionierten Schema-Stand über `schemaChanges`; die historische Baseline bleibt unverändert.
 
-## Abbruch und unklare Commit-Ergebnisse
+## Transaktionaler Abbruch und unklare Commit-Ergebnisse
 
 Nach einem Fehler bleibt die exklusive Sperre erhalten, auch wenn der Treiber die Daten bereits zurückgerollt hat. Readiness und API-Zugriffe einschließlich Auth melden Wartung. Ein normaler App-Start migriert nicht automatisch. Sperren niemals manuell löschen und keinen Down auf Verdacht ausführen.
 
@@ -43,7 +43,7 @@ Nach einem Fehler bleibt die exklusive Sperre erhalten, auch wenn der Treiber di
 
 Recovery entfernt die Sperre und prüft die atomare Historie innerhalb einer Transaktion. Ein alter konkurrierender Commit wird durch den Schreibkonflikt an derselben Sperre verhindert. Eine ausgeführte Operation kann daher nicht nachträglich hinter einer erfolgreich freigegebenen Sperre committen. Die Recovery wartet begrenzt auf noch serverseitig offene Transaktionen; bei Timeout bleibt die Sperre bestehen. Migrationsbudget 60 Sekunden, Commitbudget 15 Sekunden, Recoverybudget 120 Sekunden. Das garantiert keine Erfolgsmeldung bei einem dauerhaft unerreichbaren Server.
 
-Produktiv wird direkt `node apps/api/dist/src/database/migration-cli.js plan` bzw. `up`, `down`, `recover` mit denselben Bestätigungsargumenten ausgeführt. `NODE_ENV=production` und `MONGODB_URI` kommen aus dem Deployment, nicht als URI-Kommandozeilenargument. Die Dev-CLI bleibt produktiv gesperrt. Die produktive Betriebsfreigabe und strukturelle Backup-/Restore-Verfahren sind damit noch nicht abgeschlossen.
+Produktiv wird direkt `node apps/api/dist/src/database/migration-cli.js plan` bzw. `up`, `down`, `recover` mit denselben Bestätigungsargumenten ausgeführt. `NODE_ENV=production` und `MONGODB_URI` kommen aus dem Deployment, nicht als URI-Kommandozeilenargument. Die Dev-CLI bleibt produktiv gesperrt. Die produktive Betriebsfreigabe bleibt separat. Strukturelle Recovery hat andere Garantien und zusätzliche Pflichtargumente: siehe [Betriebsanleitung](structural-migrations.md).
 
 ## Vor dem Schreiben
 

@@ -18,6 +18,9 @@ test('configuration chooses an explicit database, rejects invalid ports and neve
         assert.equal(loadConfig().uri, process.env.MONGODB_URI);
         process.env.MONGODB_URI = 'mongodb+srv://example.test/tobu_external?tls=true&retryWrites=true';
         assert.equal(loadConfig().uri, process.env.MONGODB_URI, 'External SRV/TLS options must not be rewritten');
+        process.env.MONGODB_URI = 'mongodb://user:encoded%40password@node-a:27017,node-b:27017/tobu_external?replicaSet=production&tls=true';
+        assert.equal(loadConfig().uri, process.env.MONGODB_URI, 'Multi-host URI and credentials must be preserved');
+        assert.equal(loadConfig().dbName, 'tobu_external');
         const lifecycle = loadConfig({ ...process.env, DB_MODE: 'docker', DB_PORT: '54758', DEV_DB_NAME: 'tobu_test_lifecycle' });
         const lifecycleUri = new URL(lifecycle.uri);
         assert.equal(lifecycleUri.hostname, '127.0.0.1');

@@ -13,8 +13,32 @@ if (process.argv[2] === 'create') {
     if (!slug || !/^[a-z][a-z0-9-]*$/.test(slug)) throw new Error('Provide a lowercase migration slug');
     const id = `${new Date().toISOString().replace(/\D/g, '')}-${slug}`;
     const predecessor = files.at(-1)?.slice(0, -3) ?? '2026-10-v1';
+    const type = process.argv.find((arg) => arg.startsWith('--type='))?.slice(7) ?? 'transactional';
+    if (!['transactional', 'structural'].includes(type)) throw new Error('Unknown migration type');
     const template = `import type { TransactionalMigration } from '../migration-types.js';\n\n// Implement and test all six methods. Never edit a previously executed migration.\nexport const migration: TransactionalMigration = {\n    type: 'transactional',\n    predecessor: '${predecessor}',\n    description: '${slug}',\n    namespaces: [],\n    async preUp(_context) { throw new Error('Implement preUp'); },\n    async up(_context) { throw new Error('Implement up'); },\n    async verifyUp(_context) { throw new Error('Implement verifyUp'); },\n    async preDown(_context) { throw new Error('Implement preDown'); },\n    async down(_context) { throw new Error('Implement down'); },\n    async verifyDown(_context) { throw new Error('Implement verifyDown'); }\n};\n`;
-    await writeFile(resolve(directory, `${id}.ts`), template, { flag: 'wx' });
+    const structural = `import type { StructuralMigration } from '../structural-types.js';
+
+// Keep inspection read-only; every step needs unambiguous before/after states.
+export const migration: StructuralMigration = {
+    type: 'structural', predecessor: '${predecessor}', description: '${slug}',
+    namespaces: [], schemaChanges: {},
+    async preUp(_context) { throw new Error('Implement preUp'); },
+    async preDown(_context) { throw new Error('Implement preDown'); },
+    up: [{ id: 'change',
+        async inspect(_context) { throw new Error('Implement before/after/ambiguous inspection'); },
+        async apply(_context) { throw new Error('Implement up'); },
+        async verify(_context) { throw new Error('Implement verification'); }
+    }],
+    down: [{ id: 'revert',
+        async inspect(_context) { throw new Error('Implement before/after/ambiguous inspection'); },
+        async apply(_context) { throw new Error('Implement down'); },
+        async verify(_context) { throw new Error('Implement verification'); }
+    }],
+    async verifyUp(_context) { throw new Error('Implement verifyUp'); },
+    async verifyDown(_context) { throw new Error('Implement verifyDown'); }
+};
+`;
+    await writeFile(resolve(directory, `${id}.ts`), type === 'structural' ? structural : template, { flag: 'wx' });
     files = [...files, `${id}.ts`].sort();
     console.log(`Created ${id}.ts. Implement, format and test it; then run db:migration:manifest.`);
 }
