@@ -55,6 +55,8 @@ const adapted = new Set([
     'src/auth/routes.ts',
     'src/db.ts',
     'src/server.ts',
+    // Active build now checks immutable migration checksums before compiling.
+    'scripts/build.mjs',
     'src/routes/month-view.ts',
     'src/routes/planning.ts',
     'tests/integration/api.test.mjs',

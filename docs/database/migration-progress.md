@@ -49,12 +49,34 @@ Ein Pending-Marker ist kein Schutz gegen direkte Fremdzugriffe. Die Bestätigung
 - Zusätzlicher isolierter Smoke-Test mit lokal vorhandenem MongoDB 8.2: Replica-Set-Initialisierung, Wiederholung, Ablehnung fremder Topologie, Baseline und echter Transaktionsabbruch erfolgreich. Eigenes temporäres Datenverzeichnis und eigener Port, keine Änderung an einer bestehenden MongoDB-Installation oder Entwicklungsdatenbank.
 - Docker-Tests gestartet, beide wegen nicht erreichbarer Docker-Engine fehlgeschlagen. Der Smoke-Test ersetzt ausdrücklich nicht die Docker-9.0.4-Abnahme. Kein neuer vollständiger Quality-Nachweis vorhanden.
 
-## Nächste Abschnitte nach Abnahme/Anweisung
+## Abschnitt 2: transaktionaler Runner
+
+Abschnitt 1 wurde vom Nutzer nach der E2E-Zeitbudgetkorrektur mit `ARTIFACT VERIFICATION PASSED` und `GATE 5 AUTOMATED VERIFICATION PASSED` abgenommen. Für diesen gemeldeten Lauf liegt hier kein neuer vollständiger quality.json-Bericht mit Commit-Zuordnung vor.
+
+Implementiert in Abschnitt 2:
+
+- Aktives Umzug mit einer Transaktion pro Up/Down, gemeinsamem Session-Storage und atomarem Schema-/Historienstand. Keine fachliche Beispielmigration wird auf Entwicklungsdaten ausgeführt.
+- Begrenzter, automatisch Session-gebundener CRUD-Kontext; keine DDL, keine fremden/reservierten Namespaces, keine parallelen Aufrufe. Treiber-Retries behalten ihre Fehlerlabels trotz Umzug-Wrapper.
+- Lesender Zielplan mit Hash-Bestätigung; explizit gestoppte Writer; exklusive persistente Sperre. Auch bei Fehler oder unklarem Commit bleibt Wartung aktiv. Recovery gleicht den Stand ab und verhindert durch einen Schreibkonflikt auf der Sperre nachträgliche alte Commits.
+- App-Start und Readiness prüfen ausstehende Migrationen und Sperren. Laufende API einschließlich Auth lehnt neue Anfragen während Wartung ab. Dies ersetzt nicht das Stoppen und Drainieren sämtlicher Writer vor Migrationen.
+- Generator, unveränderliche Quell-Prüfsummen, kontrollierter Katalog und Prüfung im Build. Down behält historische Prüfsummen. Neue Baselines bekommen eine Datenbank-ID; bekannte alte Baselines werden bei der ersten echten Migration atomar ergänzt.
+- Separate kompilierte CLI für produktive Deployment-Konfiguration. Der Produktionsartefakttest prüft jetzt auch Plan und bestätigten No-op ohne TS-Runner.
+
+Die [Agent-/Bedienanleitung](migration-authoring.md) enthält die konkreten Befehle. Die vollständige Abnahme dieses Abschnitts ist noch offen. Lokale Nachweise: API-Build, API-Units, Tooling inklusive Generator sowie echte API-/Datenbanktests auf einer isolierten MongoDB-8.2-Instanz. Die Commit-Antwortverluste werden am Treiber nach einem echten Server-Commit injiziert; der Prozessabbruch beendet einen separaten Runner tatsächlich. Der native Testserver verwendet zur schnellen Abbruchprüfung eine Transaktionslebensdauer von fünf Sekunden; Docker verwendet seinen Standard. Diese Tests ersetzen keinen Lauf auf MongoDB 9.0.4.
+
+Auf dem Docker-Testrechner im Repository-Root dieses Branches:
+
+Abschließende lokale Prüfung Abschnitt 2: 13 API-Unit-/Tooling-Tests und 27 API-/Datenbank-Integrationstests erfolgreich; dazu API-Build, Workspace-/Quellschutz, Vertragsinventar, ESLint und Formatprüfung. Docker bleibt hier nicht erreichbar, daher sind das erneute Docker-Gate, Browserabläufe und die saubere Produktionsinstallation mit den neuen Änderungen noch nicht bestätigt. Die ursprünglichen Import-Prüfsummen wurden nicht neu geschrieben; lediglich der absichtlich um die Manifestprüfung erweiterte API-Build ist in der bestehenden Liste angepasster Dateien dokumentiert.
+
+```powershell
+npm run test:integration
+npm run quality:full
+```
+
+Danach auf weitere Nutzeranweisung warten. Noch offen: kontrollierte strukturelle Migrationen, allgemeines Backup/Restore-Journal, versionierte strukturelle Schema-Verifikation und abschließende Betriebsabnahme. Der allgemeine Runner stellt derzeit ausschließlich transaktionale Datenänderungen bereit; strukturelle Definitionen werden vor Änderungen abgelehnt.
+
+## Historischer Nachtrag zu Abschnitt 1
 
 Nachtrag 24.10.2026: Der Nutzer bestätigt beide Docker-Tests aus `test:replica` als erfolgreich. `quality:full` scheiterte anschließend beim Lifecycle-Test: Dessen separat zusammengesetzte URI enthielt noch keine direkte Host-Verbindung und folgte der Replica-Set-Adresse `mongo:27017`, die außerhalb des Docker-Netzes nicht auflösbar ist. Der Test verwendet jetzt denselben Konfigurationsloader mit seiner isolierten Prozessumgebung wie der Workspace. Die Tooling-Prüfung deckt die übergebene Umgebung, den abweichenden Port und die lokalen Replica-Set-Optionen ab. Lifecycle und vollständiges Gate müssen mit dieser Korrektur erneut ausgeführt werden; keine Datenbank-Neuinitialisierung nötig.
 
-2. Aktiver Umzug-Runner, atomare Historie, Metadaten, Zielschutz, Sperren, Up/Down und Generator.
-3. Allgemeine strukturelle Migrationen mit Wartung, Backup, Journal, Resume und Restore.
-4. Vollständige Agent-/Betriebsanleitung, Produktionsartefakt und Gesamtabnahme.
-
-`db:migrate` bleibt bis Abschnitt 2 eine Baseline-Prüfung. Noch keine Zusage allgemeiner atomarer Migrationen oder produktiver Recovery. Die bestehende Freigabe alter Quality-Gates gilt nicht automatisch für diese Änderungen. Kein Push oder Merge vorgenommen.
+Die bestehende Freigabe alter Quality-Gates gilt nicht automatisch für Abschnitt 2. Kein Push oder Merge vorgenommen.

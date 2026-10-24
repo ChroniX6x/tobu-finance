@@ -128,6 +128,18 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
         await delay(200);
     }
     assert.ok(healthy, `API not ready: ${apiOutput}`);
+    await t.test('migration maintenance blocks readiness and authentication writes', async () => {
+        const locks = client.db(dbName).collection('_tobu_migration_control');
+        await locks.insertOne({ _id: 'runner', runId: randomUUID(), migration: 'test', direction: 'up', status: 'running', startedAt: new Date() });
+        try {
+            assert.equal((await fetch(`${base}/ready`)).status, 503);
+            assert.equal((await fetch(`${base}/api/auth/register`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: 'must-not-exist@example.test', password: '1234567890' }) })).status, 503);
+            assert.equal(await client.db(dbName).collection('users').countDocuments(), 0);
+        } finally {
+            await locks.deleteOne({ _id: 'runner' });
+        }
+        assert.equal((await fetch(`${base}/ready`)).status, 200);
+    });
     async function request(method, path, body, token, cookie) {
         const response = await fetch(base + path, {
             method,

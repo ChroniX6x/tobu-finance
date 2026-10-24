@@ -55,7 +55,8 @@ Fehler bei belegten Ports werden vor dem Stackstart gemeldet. Fehlende Docker-En
 | npm run db:init | Baseline auf leerer DB erzeugen oder vorhandenen Stand prüfen; keine Demo |
 | npm run db:replica:init -- --writers-stopped=tobu_finance_dev | Bekannte lokale Standalone-DB nach Backup und Restore-Probe auf Replica Set umstellen; alle Writer müssen beendet sein |
 | npm run db:seed | Fehlende Demo-Dokumente ergänzen; bestehende Dokumente unverändert lassen |
-| npm run db:migrate | Aktuellen Baseline-Stand prüfen; noch keine Migrationen nach der Baseline vorhanden |
+| npm run db:migrate:plan | Ziel, ausstehende Migrationen und Bestätigungshash lesen |
+| npm run db:migrate -- --confirm=HASH --writers-stopped=tobu_finance_dev | Bestätigte transaktionale Up-Migrationen bei gestoppten Writern ausführen; siehe [Anleitung](database/migration-authoring.md) |
 | npm run db:reset -- --confirm=tobu_finance_dev | Bewusst ausschließlich die Docker-DB tobu_finance_dev löschen und neu aufbauen |
 
 Reset ist im externen Modus und ohne die exakte Bestätigung gesperrt. Die Entwicklungsbefehle sind bei `NODE_ENV=production` gesperrt. Einen anderen Referenzmonat nur mit bewusstem Reset wählen. Gelöschte Seed-Dokumente können durch `db:seed` wieder ergänzt werden; eine manuell geänderte vorhandene Buchung wird dabei nicht ersetzt.

@@ -15,4 +15,6 @@ Das ist eine lokale Artefakt-/Übergangsprüfung, keine neue Hosting-Lösung. Di
 
 Baseline- und künftige Migrationslogik liegen kompiliert unter `apps/api/dist/src/database`. Der vorhandene CLI schützt Entwicklungsbefehle im Produktionsmodus. Der isolierte Artefakttest initialisiert seine leere Testdatenbank ausdrücklich mit `NODE_ENV=test`, bevor er den Produktionsprozess startet. Das ist keine Anleitung, Produktionsdaten mit Entwicklungsseeds zu verändern. Historische Migrationen werden nicht ausgeliefert oder ausgeführt.
 
+Der transaktionale Runner ist über `node apps/api/dist/src/database/migration-cli.js plan` erreichbar. Die weiteren Befehle, Zielbestätigung und Writer-/Recovery-Voraussetzungen stehen in der [Migrationsanleitung](database/migration-authoring.md). Er benötigt weder TypeScript noch Docker und migriert nicht beim App-Start. Der Artefakttest prüft diesen separaten Einstieg gegen seine isolierte Datenbank im Produktionsmodus. Strukturelle Migrationen und die abschließende produktive Betriebsfreigabe bleiben offen.
+
 `npm run test:artifact` im Checkout prüft das Release in einem temporären Verzeichnis mit frischer Installation und eigener Docker-Datenbank. Es verwendet keine lokal installierten TS-Runner oder vorhandenen Entwicklungsdaten. Das Ergebnis fließt in `npm run quality:full` ein.

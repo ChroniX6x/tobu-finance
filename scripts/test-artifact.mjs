@@ -7,7 +7,7 @@ import { createServer } from 'node:net';
 import { once } from 'node:events';
 import { root } from './lib/config.mjs';
 import { temporaryDatabase } from './lib/docker.mjs';
-import { run, start, stop, waitHttp, ownedChildren } from './lib/processes.mjs';
+import { run, start, stop, waitHttp, ownedChildren, capture } from './lib/processes.mjs';
 
 async function freePort() {
     const s = createServer().listen(0, '127.0.0.1');
@@ -50,6 +50,11 @@ try {
     }
     // Baseline/seed CLI is an explicit test setup step, never a production start side effect.
     await run(process.execPath, ['apps/api/dist/src/database/cli.js', 'init'], { cwd: scratch, env: { ...env, NODE_ENV: 'test' } });
+    const plan = JSON.parse(await capture(process.execPath, ['apps/api/dist/src/database/migration-cli.js', 'plan'], { cwd: scratch, env }));
+    assert.equal(plan.target.environment, 'production');
+    assert.equal(plan.target.database, new URL(db.uri).pathname.slice(1));
+    assert.deepEqual(plan.migrations, []);
+    await run(process.execPath, ['apps/api/dist/src/database/migration-cli.js', 'up', `--confirm=${plan.confirmation}`, `--writers-stopped=${plan.target.database}`], { cwd: scratch, env });
     abort.signal.throwIfAborted();
     server = start(process.execPath, ['scripts/serve-artifact.mjs'], { cwd: scratch, env, detached: process.platform !== 'win32' });
     const base = `http://127.0.0.1:${env.WEB_PORT}`;
