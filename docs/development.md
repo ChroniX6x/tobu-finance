@@ -111,6 +111,8 @@ Siehe [Vertragsarchitektur](architecture/contracts.md). `npm run dev` baut und �
 
 ## Qualitätsprüfung und Artefakte
 
+Für die Mock-E2E gelten auf ausdrücklichen Nutzerwunsch 60 Sekunden pro Test und 15 Sekunden für wiederholte Assertions (zuvor 30/5 Sekunden). Erfolgreiche Schritte warten diese Budgets nicht ab. Parallelität und Videoaufzeichnung bleiben aktiv; fehlgeschlagene Tests behalten zusätzlich einen Trace, ohne automatische Wiederholungen. Der längere Real-API-CRUD-Test behält sein bestehendes 90-Sekunden-Budget. Die Wizard-Prüfungen verwenden das gemeinsame Assertion-Budget statt kürzerer lokaler Überschreibungen. Falls für einen Diagnoseversuch `$env:PLAYWRIGHT_VIDEO = "off"` gesetzt wurde, vor dem nächsten Lauf in PowerShell `Remove-Item Env:PLAYWRIGHT_VIDEO -ErrorAction SilentlyContinue` ausführen. Diese Zeitbudgets sind keine Garantie bei beliebiger Rechnerüberlastung.
+
 `npm run quality` prüft Quellen, Typen, Verträge, Builds, Units und Mock-E2E. `npm run quality:full` (Alias `npm run verify:phase5`) ergänzt Docker-Integration, echte Browserabläufe, Start/Stop/Persistenz und eine saubere Produktionsinstallation. Docker und Paketdownloads müssen dafür verfügbar sein. Fehlende Voraussetzungen führen zu einem Fehler; der Bericht liegt in `test-results/quality.json`.
 
 Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren. Für Karma in PowerShell bei fehlendem lokalen Chrome: `$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")`. Unter Linux/Bash entsprechend `export CHROME_BIN="$(node -p "require('@playwright/test').chromium.executablePath()")"`; in Linux-CI installiert Playwright außerdem die Systemabhängigkeiten mit `--with-deps`.

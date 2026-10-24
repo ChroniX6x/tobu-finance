@@ -10,11 +10,15 @@ const baseURL = `http://localhost:${webPort}`;
 export default defineConfig<TestOptions>({
   testDir: './tests/e2e',
   fullyParallel: true,
+  // Allow slower hosts to render while parallel browsers record video.
+  // These are upper bounds, not sleeps; successful steps continue immediately.
+  timeout: 60000,
+  expect: { timeout: 15000 },
   retries: 0,
   reporter: 'list',
   use: {
     baseURL,
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: process.env['PLAYWRIGHT_VIDEO'] === 'off' ? 'off' : 'retain-on-failure',
     ...(process.env['PLAYWRIGHT_CHANNEL'] ? { channel: process.env['PLAYWRIGHT_CHANNEL'] } : {}),
