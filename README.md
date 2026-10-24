@@ -31,6 +31,8 @@ Setup erzeugt fehlende lokale Konfiguration und Schlüssel sowie einmalig Baseli
 
 Details zu VS Code, Datenbankszenarien, externem DB-Modus und bewusstem Reset: [Entwicklungsanleitung](docs/development.md).
 
+Datenbankänderungen erfolgen über aktive Umzug-Migrationen: transaktional als Standard, strukturell mit geprüftem Backup und kontrollierter Recovery. Einstieg für Entwickler und Agents: [Migrations-Handover](docs/database/migration-handover.md). Historische Baseline und angewendete Migrationen bleiben unverändert; der normale App-Start führt keine Migrationen aus.
+
 ## Prüfen und bauen
 
 Chromium einmalig installieren und für Karma verfügbar machen (PowerShell):

@@ -2,6 +2,8 @@
 
 Stand: 23.10.2026. **Architektur vom Nutzer zur Implementierung freigegeben.** Grundlage ist die Nutzerentscheidung: transaktionale Migrationen als Standard, kontrollierte strukturelle Migrationen als Ergänzung. Dieses Dokument beschreibt das Ziel, nicht durchgehend bereits vorhandene Funktionen. Der [Umsetzungsstand](migration-progress.md) hält Implementierung und Testnachweise getrennt fest.
 
+Nachtrag 25.10.2026: Die Abschnitte 1–3 sind implementiert und ihre Tests vom Nutzer bestätigt. Aussagen wie „Runner fehlt“ oder „noch nicht implementiert“ beschreiben unten den Ausgangspunkt des Vorschlags vom 23.10.2026. Für tatsächliche Befehle, Grenzen und Abschlussstatus den [aktuellen Handover](migration-handover.md) verwenden.
+
 ## 1. Bestehender Stand und notwendige Korrekturen
 
 - Umzug 3.8.2 ist bereits eine API-Abhängigkeit; der aktive Runner fehlt. `db:migrate` prüft derzeit nur die Baseline.

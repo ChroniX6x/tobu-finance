@@ -1,6 +1,6 @@
 # Sichere Migrationen: Umsetzungsstand
 
-Stand: 24.10.2026. Architektur freigegeben. Branch: `feat/safe-database-migrations`. Aktuell: Abschnitt 3 implementiert, Docker-Abnahme offen; ältere Statusangaben unten dokumentieren den damaligen Stand.
+Stand: 25.10.2026. Architektur freigegeben. Branch: `feat/safe-database-migrations`. Abschnitte 1–3 sind implementiert; der Nutzer bestätigt die Tests aus Abschnitt 3 als erfolgreich. Abschnitt 4 ergänzt den Abschluss-Handover; GitHub-CI für den Abschluss-Commit ist separat zu bestätigen. Ältere Statusangaben unten dokumentieren den damaligen Stand.
 
 ## Abschnitt 1: feste Baseline und lokale Replica Sets
 
@@ -102,3 +102,13 @@ npm run quality:full
 ```
 
 Die Tests verwenden eigene Datenbanken und Backup-Verzeichnisse. Keine manuelle Entwicklungsdatenbank migrieren oder zurücksetzen. Bei Fehlern die Ausgabe mitteilen; das Gate nicht durch Wiederholungen als ursächlich behoben ansehen. Danach auf weitere Anweisung warten. Abschnitt 4 (abschließende Betriebs-/Artefakt-/CI-Abnahme) ist noch nicht freigegeben.
+
+## Abschnitt 4: Abschluss und Agent-Handover
+
+Am 25.10.2026 meldet der Nutzer alle angeforderten Tests (`test:replica`, `test:integration`, `quality:full`) als erfolgreich und gibt Abschnitt 4 frei. Die Rückmeldung folgt auf Übergabe von `7d1d1d0`; ein vollständiger neuer Bericht mit Commit-Zuordnung liegt hier nicht vor. Die Docker-/Gesamtabnahme von Abschnitt 3 gilt damit als vom Nutzer bestätigt, nicht als auf dem Agent-Rechner neu ausgeführt.
+
+Der [Abschluss-Handover](migration-handover.md) bündelt den Einstieg für Agents, reale Betriebsbefehle, Artefaktgrenzen, Recovery-Regeln, Nachweise und die separate GitHub-Einweisung. README, Entwickler-, Artefakt- und Copilot-Anleitung verweisen auf diesen Stand. Veraltete Aussagen über noch nicht implementierte Runner sind in den aktuellen Betriebsanleitungen korrigiert; die Architektur und frühere Nachträge bleiben als historischer Verlauf erhalten.
+
+Prüfung der vorhandenen Abläufe: Der API-Build prüft das unveränderliche Migrationsmanifest und kompiliert die aktiven Module. Die Release-Paketierung kopiert gebaute Module und explizit ausgewählte Runtime-Dateien; Backups, Secrets, Tests und Legacy-Archiv gehören nicht dazu. Der Artefakttest installiert nur Produktionsabhängigkeiten und prüft die kompilierte CLI mit Plan und bestätigtem No-op. Es gibt derzeit keine fachliche Katalogmigration. Der Linux-CI-Job führt das vollständige Gate einschließlich echter Backup-/Replica-Set-Tests aus; Windows-CI ergänzt die Prüfungen ohne Docker.
+
+Abschnitt 4 verändert ausschließlich Dokumentation, keine Laufzeitlogik, Abhängigkeiten, Testbudgets oder CI-Prüfungen. Deshalb werden die bereits vom Nutzer bestätigten Laufzeittests nicht ohne neue technische Änderung wiederholt. Lokale Abschlusskontrolle: relative Dokumentlinks, Konsistenz der referenzierten Befehle/Workflow-Schritte und Whitespace-Prüfung. Noch offen bleibt der tatsächliche GitHub-Lauf für den Abschluss-Commit. Kein Push, Merge, Deployment oder Datenbankumbau durch diesen Abschnitt. Produktive Betriebsfreigabe und bestehende Fach-/Sicherheitsaufgaben bleiben separat.

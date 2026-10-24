@@ -4,7 +4,7 @@ Voraussetzungen: Node 24.13.1, npm 11.8.0, Docker mit Compose und laufender Linu
 
 ## Erstes Setup
 
-Ab der Erweiterung für sichere Migrationen läuft lokale Docker-MongoDB als Single-Node-Replica-Set. Bei einem bereits vorhandenen Standalone-Volume zuerst die [Umstellung mit geprüfter Sicherung](database/migration-progress.md) durchführen. `setup`/`dev` verweigern eine ungeprüfte Übernahme. Neue leere Installationen und reguläre Neustarts initialisieren das Replica Set automatisch; der aktive Migrationsrunner folgt in einem weiteren Abschnitt.
+Ab der Erweiterung für sichere Migrationen läuft lokale Docker-MongoDB als Single-Node-Replica-Set. Bei einem bereits vorhandenen Standalone-Volume zuerst die [Umstellung mit geprüfter Sicherung](database/migration-progress.md) durchführen. `setup`/`dev` verweigern eine ungeprüfte Übernahme. Neue leere Installationen und reguläre Neustarts initialisieren das Replica Set automatisch. Der aktive Migrationsrunner unterstützt transaktionale und kontrollierte strukturelle Änderungen; Einstieg und Nachweise stehen im [Migrations-Handover](database/migration-handover.md).
 
 Im Repository-Root:
 

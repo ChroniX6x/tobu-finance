@@ -1,6 +1,6 @@
 # Migrationen: Anforderungen an nachfolgende Agents
 
-Stand: Abschnitt 3. Transaktionaler und kontrollierter struktureller Modus sind implementiert; die Docker-Abnahme von Abschnitt 3 steht aus. Für Strukturänderungen zusätzlich [Strukturelle Migrationen](structural-migrations.md) lesen. Der [Umsetzungsstand](migration-progress.md) trennt Implementierung und Nachweise.
+Stand: 25.10.2026. Transaktionaler und kontrollierter struktureller Modus sind implementiert; der Nutzer bestätigt die Docker-/Gesamttests aus Abschnitt 3. Für Strukturänderungen zusätzlich [Strukturelle Migrationen](structural-migrations.md) lesen. Der [Umsetzungsstand](migration-progress.md) trennt Implementierung und Nachweise; der [Handover](migration-handover.md) beschreibt den Abschluss und die noch separate CI-/Betriebsfreigabe.
 
 ## Neue transaktionale Migration erstellen
 

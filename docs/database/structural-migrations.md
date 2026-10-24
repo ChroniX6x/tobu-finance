@@ -1,6 +1,6 @@
 # Kontrollierte strukturelle Migrationen
 
-Stand: Abschnitt 3, 24.10.2026. Implementiert; Docker-/Gesamtabnahme steht noch aus. Die [Architektur](migration-architecture.md) und [Agent-Anleitung](migration-authoring.md) gelten weiter. Der transaktionale Modus bleibt der Standard für kleine Datenänderungen.
+Stand: 25.10.2026. Implementiert; der Nutzer bestätigt die Docker-/Gesamttests aus Abschnitt 3. Die [Architektur](migration-architecture.md) und [Agent-Anleitung](migration-authoring.md) gelten weiter. Abschlussnachweise und Betriebsgrenzen stehen im [Handover](migration-handover.md). Der transaktionale Modus bleibt der Standard für kleine Datenänderungen.
 
 ## Ablauf und Garantien
 
