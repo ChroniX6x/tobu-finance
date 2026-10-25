@@ -6,6 +6,14 @@ import { createServer } from 'node:net';
 import { once } from 'node:events';
 import { loadConfig, apiEnvironment, root, apiRoot, apiRequire } from '../lib/config.mjs';
 import { capture, start, stop, assertPortFree, waitHttp } from '../lib/processes.mjs';
+import { MONGO_IMAGE } from '../lib/docker.mjs';
+
+test('Compose and shared backup defaults agree on the MongoDB image', async () => {
+    const defaults = JSON.parse(await readFile(resolve(apiRoot, 'src/database/runtime-defaults.json'), 'utf8'));
+    assert.equal(MONGO_IMAGE, defaults.mongoImage);
+    const compose = await readFile(resolve(root, 'infra/compose.yaml'), 'utf8');
+    assert.ok(compose.includes(`image: ${MONGO_IMAGE}`));
+});
 
 test('configuration chooses an explicit database, rejects invalid ports and never falls back', () => {
     const original = { ...process.env };

@@ -35,8 +35,12 @@ test('migration generator is exclusive, detects stale content and normalizes Win
         assert.match(structural, /schemaChanges/);
         assert.match(structural, /before\/after\/ambiguous/);
         await capture(process.execPath, [tool, '--check']);
-        await writeFile(file, template + '\nimport "mutable-runtime-helper";\n');
-        await assert.rejects(capture(process.execPath, [tool]), /only import types/);
+        await writeFile(file, template + '\n// import legacy data\n/* import("legacy") */\nconst text = "require(legacy) and import data";\n');
+        await capture(process.execPath, [tool]);
+        for (const source of ['import "mutable-runtime-helper";', 'async function helper() { return import("mutable"); }', 'const helper = require("mutable");', 'import helper = require("mutable");', 'export { helper } from "mutable";']) {
+            await writeFile(file, template + '\n' + source + '\n');
+            await assert.rejects(capture(process.execPath, [tool]), /only import types/);
+        }
     } finally {
         assert.equal(dirname(scratch), resolve(root));
         await rm(scratch, { recursive: true, force: true });

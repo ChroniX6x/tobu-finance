@@ -4,6 +4,7 @@ import { contractResponses } from './middleware/contracts.js';
 import { schemaStatus, verifyBaseline } from './database/baseline.js';
 import type { Control } from './database/migration-state.js';
 import mongoose from 'mongoose';
+import { maintenanceCheck } from './database/maintenance.js';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -67,9 +68,10 @@ async function bootstrap() {
     app.use(docsRouter); // /docs & /openapi.json bleiben öffentlich
 
     // Maintenance includes authentication writes. Operators must still stop/drain all writers.
+    const isMaintenance = maintenanceCheck(async () => Boolean(await mongoose.connection.db!.collection<Control>('_tobu_migration_control').findOne({ _id: 'runner' })));
     app.use('/api', async (_req, res, next) => {
         try {
-            const lock = await mongoose.connection.db!.collection<Control>('_tobu_migration_control').findOne({ _id: 'runner' });
+            const lock = await isMaintenance();
             if (lock) {
                 res.status(503).send('Database migration maintenance');
                 return;
@@ -116,8 +118,12 @@ async function bootstrap() {
 
     // Compatibility endpoint for the active baseline; archived Umzug scripts never run.
     app.get('/health/migrations', async (_req, res) => {
-        const status = await schemaStatus();
-        res.status(status.ready ? 200 : 503).json(status);
+        try {
+            const status = await schemaStatus();
+            res.status(status.ready ? 200 : 503).json(status);
+        } catch {
+            res.status(503).json({ ready: false, status: 'database-unavailable' });
+        }
     });
 
     // Error-Handler (immer zuletzt)

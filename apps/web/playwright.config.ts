@@ -1,44 +1,47 @@
-import { defineConfig, devices } from '@playwright/test';
-import type { TestOptions } from './tests/e2e/helpers/test-fixture';
-import { resolve } from 'node:path';
+import { defineConfig, devices } from "@playwright/test";
+import type { TestOptions } from "./tests/e2e/helpers/test-fixture";
+import { resolve } from "node:path";
 
 const webRoot = __dirname;
-const REAL_AUTH_STATE = resolve(webRoot, '.playwright-real-auth.json');
-const webPort = Number(process.env['WEB_PORT'] || 4200);
+const REAL_AUTH_STATE = resolve(webRoot, ".playwright-real-auth.json");
+const webPort = Number(process.env["WEB_PORT"] || 4200);
 const baseURL = `http://localhost:${webPort}`;
 
 export default defineConfig<TestOptions>({
-  testDir: './tests/e2e',
+  testDir: "./tests/e2e",
   fullyParallel: true,
   // Allow slower hosts to render while parallel browsers record video.
   // These are upper bounds, not sleeps; successful steps continue immediately.
   timeout: 60000,
   expect: { timeout: 15000 },
   retries: 0,
-  reporter: 'list',
+  reporter: "list",
   use: {
     baseURL,
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: process.env['PLAYWRIGHT_VIDEO'] === 'off' ? 'off' : 'retain-on-failure',
-    ...(process.env['PLAYWRIGHT_CHANNEL'] ? { channel: process.env['PLAYWRIGHT_CHANNEL'] } : {}),
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+    video:
+      process.env["PLAYWRIGHT_VIDEO"] === "off" ? "off" : "retain-on-failure",
+    ...(process.env["PLAYWRIGHT_CHANNEL"]
+      ? { channel: process.env["PLAYWRIGHT_CHANNEL"] }
+      : {}),
   },
   projects: [
     {
-      name: 'chromium',
-      testIgnore: ['**/*.real.spec.ts', '**/*.setup.ts'],
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      testIgnore: ["**/*.real.spec.ts", "**/*.setup.ts"],
+      use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: 'real-api-setup',
-      testMatch: '**/auth.setup.ts',
+      name: "real-api-setup",
+      testMatch: "**/auth.setup.ts",
     },
     {
-      name: 'chromium-real-api',
-      testMatch: '**/*.real.spec.ts',
-      dependencies: ['real-api-setup'],
+      name: "chromium-real-api",
+      testMatch: "**/*.real.spec.ts",
+      dependencies: ["real-api-setup"],
       use: {
-        ...devices['Desktop Chrome'],
+        ...devices["Desktop Chrome"],
         useMocks: false,
         // Restores the httpOnly refresh-token cookie written by global-setup.
         // The app's APP_INITIALIZER calls POST /api/auth/refresh with
@@ -49,7 +52,7 @@ export default defineConfig<TestOptions>({
     },
   ],
   webServer: {
-    command: `"${process.execPath}" "${require.resolve('@angular/cli/bin/ng.js')}" serve --port ${webPort} --host 127.0.0.1`,
+    command: `"${process.execPath}" "${require.resolve("@angular/cli/bin/ng.js")}" serve --port ${webPort} --host 127.0.0.1`,
     cwd: webRoot,
     url: baseURL,
     reuseExistingServer: false,

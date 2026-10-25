@@ -31,7 +31,7 @@ export async function dbCommand(command, config, extra = {}) {
     });
 }
 try {
-    if (!['setup', 'init', 'down', 'dev', 'debug', 'init-db', 'seed', 'migrate', 'reset'].includes(command)) throw new Error('Unknown workspace command');
+    if (!['setup', 'init', 'down', 'dev', 'debug', 'init-db', 'seed', 'reset'].includes(command)) throw new Error('Unknown workspace command');
     if (process.versions.node !== '24.13.1') throw new Error('Use the pinned Node 24.13.1 version (.node-version/.nvmrc).');
     if (process.env.NODE_ENV === 'production') throw new Error('Development orchestration is disabled in NODE_ENV=production.');
     if (['setup', 'init'].includes(command)) initializeConfig();
@@ -54,7 +54,7 @@ try {
             if (command === 'setup') await requireDocker();
             await databaseUp(config);
             if (closing) throw new Error('Startup interrupted');
-            if (['setup', 'init-db', 'seed', 'migrate', 'reset'].includes(command)) {
+            if (['setup', 'init-db', 'seed', 'reset'].includes(command)) {
                 const confirm = process.argv.find((a) => a.startsWith('--confirm='))?.slice('--confirm='.length);
                 if (command === 'reset') {
                     if (config.mode !== 'docker' || config.dbName !== 'tobu_finance_dev' || confirm !== config.dbName) throw new Error('Reset is only allowed for Docker tobu_finance_dev with --confirm=tobu_finance_dev.');

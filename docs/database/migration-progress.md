@@ -105,6 +105,8 @@ Die Tests verwenden eigene Datenbanken und Backup-Verzeichnisse. Keine manuelle 
 
 ## Abschnitt 4: Abschluss und Agent-Handover
 
+Nachfolgende Review-Korrekturen, Entscheidungen und erneute Testnachweise sind in [Review-Nacharbeit](review-followup.md) dokumentiert. Die ursprüngliche Abnahme unten bleibt historisch erhalten.
+
 Am 25.10.2026 meldet der Nutzer alle angeforderten Tests (`test:replica`, `test:integration`, `quality:full`) als erfolgreich und gibt Abschnitt 4 frei. Die Rückmeldung folgt auf Übergabe von `7d1d1d0`; ein vollständiger neuer Bericht mit Commit-Zuordnung liegt hier nicht vor. Die Docker-/Gesamtabnahme von Abschnitt 3 gilt damit als vom Nutzer bestätigt, nicht als auf dem Agent-Rechner neu ausgeführt.
 
 Der [Abschluss-Handover](migration-handover.md) bündelt den Einstieg für Agents, reale Betriebsbefehle, Artefaktgrenzen, Recovery-Regeln, Nachweise und die separate GitHub-Einweisung. README, Entwickler-, Artefakt- und Copilot-Anleitung verweisen auf diesen Stand. Veraltete Aussagen über noch nicht implementierte Runner sind in den aktuellen Betriebsanleitungen korrigiert; die Architektur und frühere Nachträge bleiben als historischer Verlauf erhalten.

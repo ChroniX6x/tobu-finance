@@ -5,8 +5,9 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { root, apiRequire } from './config.mjs';
 import { capture, run } from './processes.mjs';
 import { initializeLocalReplicaSet, LOCAL_REPLICA_SET } from './replica-set.mjs';
+import defaults from '../../apps/api/src/database/runtime-defaults.json' with { type: 'json' };
 
-export const MONGO_IMAGE = 'mongo:9.0.4';
+export const MONGO_IMAGE = defaults.mongoImage;
 export async function requireDocker() {
     try {
         if ((await capture('docker', ['info', '--format', '{{.OSType}}'])) !== 'linux') throw new Error('Linux containers required');

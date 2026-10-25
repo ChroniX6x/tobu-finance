@@ -39,6 +39,19 @@ test('transactional migration safety against a real isolated replica set', { tim
     const documents = () => db.collection('migration_test').find().sort({ _id: 1 }).toArray();
     const original = await documents();
 
+    await t.test('missing namespaces and stale confirmations are rejected without acquiring a lock', async () => {
+        const migration = entry();
+        migration.migration.namespaces.push('missing_collection');
+        const r = new MigrationRunner(client, db, connection, 'test', [migration]);
+        await assert.rejects(r.plan(), /Missing collection missing_collection/);
+        await assert.rejects(r.run('up', 'obsolete', true), /Missing collection/);
+        assert.equal(await db.collection('_tobu_migration_control').countDocuments(), 0);
+        const valid = runner();
+        await assert.rejects(valid.run('up', 'obsolete', true), /confirmation/);
+        assert.equal(await db.collection('_tobu_migration_control').countDocuments(), 0);
+        assert.deepEqual(await documents(), original);
+    });
+
     await t.test('target confirmation and immutable history, up/down and repeat', async () => {
         const r = runner();
         await assert.rejects(r.run('up', 'wrong', true), /confirmation/);

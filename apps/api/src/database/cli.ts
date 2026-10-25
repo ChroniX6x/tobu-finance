@@ -40,7 +40,6 @@ try {
         await verifyBaseline();
         await seedDevelopment(process.env.SEED_MONTH);
     } else if (command === 'check') await verifyBaseline();
-    else if (command === 'migrate') throw new Error('Use npm run db:migrate:plan and the confirmed npm run db:migrate command');
     else if (command === 'reset') {
         const name = mongoose.connection.db!.databaseName;
         if (name !== 'tobu_finance_dev' || process.env.TOBU_RESET_CONFIRM !== name) {
