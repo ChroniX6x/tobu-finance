@@ -15,3 +15,11 @@ Die Review-Punkte wurden im bestehenden Feature-Branch bearbeitet. Auf Nutzeranw
 | Tote Pfade/Kosmetik | Alter `workspace migrate`-Pfad und die zugehörige Dev-CLI-Abzweigung entfernt. Aktive `db:migrate`-Befehle bleiben unverändert. Überschrift korrigiert; `.gitignore` ignoriert `/backups/` ausdrücklich im Root. |
 
 Nachweise: acht API-Unit- und acht Tooling-Tests erfolgreich. 38 Integrationsprüfungen auf einer ausdrücklich isolierten nativen MongoDB-8.2-Testinstanz erfolgreich, einschließlich realer HTTP-/Datenbankfehler und Recovery. Diese Zusatzprüfung ändert den Docker-Pin nicht und ersetzt keinen neuen Docker-9.0.4-/CI-Lauf. API-Build, ESLint, Prettier, Vertrags- und Workspace-Prüfung gehören zur lokalen Abschlusskontrolle. Auf dem Docker-Rechner danach `npm run quality:full` für den neuen Commit ausführen; frühere erfolgreiche Gates gelten nicht automatisch für diese Nacharbeit.
+
+## Nachtrag: mongodump im Linux-PR-Gate
+
+Der Nutzer meldet einen Fehler beim ersten `mongodump` im strukturellen Backup-Test; die beiden übrigen Replica-Set-Tests bestehen. Der generische Fehler enthielt noch kein stderr, deshalb ist die konkrete CI-Ursache nicht vollständig nachgewiesen. Ein passender Linux-Rechtefehler ist im Aufruf erkennbar: Der [offizielle Image-Entrypoint](https://github.com/docker-library/mongo/blob/master/docker-entrypoint.sh) wechselt bei `mongo*`-Befehlen als root auf `mongodb`. Dieser Benutzer kann die hosteigenen `0700`-/`0600`-Dateien nicht verwenden.
+
+Korrektur: Tools direkt per `--entrypoint` und unter POSIX mit Host-UID/GID ausführen. Keine Lockerung der Sicherungsrechte, keine Wiederholung oder Abschwächung der Restore-Prüfung. Der Linux-Integrationstest prüft zusätzlich Archivbesitz und private Rechte. Fehlermeldungen zeigen künftig sicheren Exitcode bzw. fehlendes Programm und eine feste Kategorie für verweigerten Dateizugriff; rohe stderr-Inhalte bleiben wegen möglicher Zugangsdaten unterdrückt. Der tatsächliche Linux-Docker-Erfolg muss durch einen neuen PR-Lauf bestätigt werden.
+
+Lokale Prüfung dieses Fixes: API-Build und acht API-Unit-Tests, ESLint und Prettier erfolgreich. Der echte strukturelle Docker-Test wurde gestartet und brach vor Testaufbau wegen nicht erreichbarer Docker-Engine ab. Kein lokaler Linux-/Restore-Erfolg behauptet; nächster Nachweis ist das PR-Gate mit diesem Fix.

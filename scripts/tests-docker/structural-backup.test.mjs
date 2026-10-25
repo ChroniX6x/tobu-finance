@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm, readFile, writeFile, readdir } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fork } from 'node:child_process';
 import { once } from 'node:events';
@@ -37,6 +37,11 @@ test('real MongoDB Tools archive, restore drill, corruption protection and kille
         assert.deepEqual((await backup.inspect(runId, target)).inventory, original);
         await assert.rejects(backup.inspect(runId, 'wrong-target'), /different run|Unverified/);
         const archivePath = resolve(scratch, runId, 'database.archive');
+        if (process.platform === 'linux') {
+            assert.equal((await stat(resolve(scratch, runId))).mode & 0o777, 0o700, 'Backup directory must remain private');
+            assert.equal((await stat(resolve(scratch, runId, 'owner.json'))).mode & 0o777, 0o600, 'Backup metadata must remain private');
+            assert.equal((await stat(archivePath)).uid, process.getuid(), 'Archive must belong to the host runner, not the image mongodb/root user');
+        }
         const archive = await readFile(archivePath);
         await writeFile(archivePath, Buffer.from('corrupted'));
         await assert.rejects(backup.restore(runId, target, []), /checksum/);

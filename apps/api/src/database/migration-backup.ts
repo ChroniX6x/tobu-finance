@@ -113,13 +113,26 @@ export class ToolsBackup implements MigrationBackup {
         try {
             const toolArgs = [`--config=${this.mode === 'native' ? path : `/backup/${name}`}`, '--quiet', ...args];
             if (this.mode === 'native') await execute(command, toolArgs, { cwd: directory, windowsHide: true, maxBuffer: 1024 * 1024 });
-            else
-                await execute('docker', ['run', '--rm', '--network', `container:${container}`, '--mount', `type=bind,source=${directory},target=/backup`, '--workdir', '/backup', defaults.mongoImage, command, ...toolArgs], {
-                    windowsHide: true,
-                    maxBuffer: 1024 * 1024
-                });
-        } catch {
-            throw new MigrationDiagnosticError(`Database tool ${command} failed; keep maintenance active and inspect tool availability/permissions`);
+            else {
+                // The image entrypoint drops mongo* commands to its mongodb user. That user
+                // cannot read host-owned 0600 credentials or write into our 0700 directory.
+                // Execute the tool directly as the host owner; keep restrictive permissions.
+                const user = `${process.getuid?.() ?? 0}:${process.getgid?.() ?? 0}`;
+                await execute(
+                    'docker',
+                    ['run', '--rm', '--user', user, '--entrypoint', command, '--network', `container:${container}`, '--mount', `type=bind,source=${directory},target=/backup`, '--workdir', '/backup', defaults.mongoImage, ...toolArgs],
+                    {
+                        windowsHide: true,
+                        maxBuffer: 1024 * 1024
+                    }
+                );
+            }
+        } catch (error) {
+            const failure = error as { code?: unknown; stderr?: unknown };
+            const exit = typeof failure.code === 'number' ? ` (exit ${failure.code})` : failure.code === 'ENOENT' ? ' (executable unavailable)' : '';
+            const permissions = typeof failure.stderr === 'string' && /permission denied|operation not permitted/i.test(failure.stderr) ? ' Filesystem permissions denied.' : '';
+            // Never print stderr: native tool output may contain credentials or document data.
+            throw new MigrationDiagnosticError(`Database tool ${command} failed${exit}.${permissions} Keep maintenance active and inspect tool availability/permissions`);
         } finally {
             await rm(path, { force: true });
         }
