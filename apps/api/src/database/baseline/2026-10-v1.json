@@ -1,0 +1,1144 @@
+[
+  {
+    "name": "accounts",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "_id"
+        ],
+        "properties": {
+          "name": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "currency": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "members": {
+            "bsonType": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "bsonType": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "memberId"
+              ],
+              "properties": {
+                "memberId": {
+                  "bsonType": "objectId"
+                },
+                "role": {
+                  "bsonType": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "owner",
+                    "member",
+                    null
+                  ]
+                }
+              }
+            }
+          },
+          "settings": {
+            "properties": {
+              "dashboard": {
+                "bsonType": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "historyMonths": {
+                    "bsonType": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "topKCategories": {
+                    "bsonType": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "alerts": {
+                "bsonType": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "lowBalanceForecastMinor": {
+                    "bsonType": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "carryoverLargeMinor": {
+                    "bsonType": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "stalenessDays": {
+                    "bsonType": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            },
+            "bsonType": [
+              "object",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "__v": {
+            "bsonType": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "members.memberId": 1
+        },
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "account_balances",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "accountId",
+          "closingBalanceMinor",
+          "_id"
+        ],
+        "properties": {
+          "accountId": {
+            "bsonType": "objectId"
+          },
+          "month": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "closingBalanceMinor": {
+            "bsonType": "number"
+          },
+          "_id": {
+            "bsonType": "objectId"
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "accountId": 1,
+          "month": 1
+        },
+        "unique": true,
+        "sparse": true,
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "carryovers",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "accountId",
+          "memberId",
+          "amountMinor",
+          "_id"
+        ],
+        "properties": {
+          "accountId": {
+            "bsonType": "objectId"
+          },
+          "memberId": {
+            "bsonType": "objectId"
+          },
+          "month": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "amountMinor": {
+            "bsonType": "number"
+          },
+          "reason": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "accountId": 1,
+          "memberId": 1,
+          "month": 1
+        },
+        "unique": true,
+        "sparse": true,
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "categories",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "accountId",
+          "_id"
+        ],
+        "properties": {
+          "accountId": {
+            "bsonType": "objectId"
+          },
+          "name": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "customSplit": {
+            "bsonType": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "bsonType": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "memberId",
+                "split"
+              ],
+              "properties": {
+                "memberId": {
+                  "bsonType": "objectId"
+                },
+                "split": {
+                  "bsonType": "number"
+                }
+              }
+            }
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "accountId": 1,
+          "name": 1
+        },
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "category_budgets",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "accountId",
+          "categoryId",
+          "amountMinor",
+          "_id"
+        ],
+        "properties": {
+          "accountId": {
+            "bsonType": "objectId"
+          },
+          "categoryId": {
+            "bsonType": "objectId"
+          },
+          "amountMinor": {
+            "bsonType": "number"
+          },
+          "fromMonth": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "toMonth": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": []
+  },
+  {
+    "name": "contribution_rules",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "accountId",
+          "type",
+          "recurring",
+          "amountMinor",
+          "distribution",
+          "_id"
+        ],
+        "properties": {
+          "accountId": {
+            "bsonType": "objectId"
+          },
+          "type": {
+            "bsonType": "string",
+            "enum": [
+              "base",
+              "additional",
+              "topup"
+            ]
+          },
+          "recurring": {
+            "bsonType": "bool"
+          },
+          "description": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "amountMinor": {
+            "bsonType": "number"
+          },
+          "distribution": {
+            "required": [
+              "mode"
+            ],
+            "properties": {
+              "mode": {
+                "bsonType": "string",
+                "enum": [
+                  "perMember",
+                  "customSplit",
+                  "proRataIncome"
+                ]
+              },
+              "memberId": {
+                "bsonType": [
+                  "objectId",
+                  "null"
+                ]
+              },
+              "customSplit": {
+                "bsonType": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "bsonType": [
+                    "object",
+                    "null"
+                  ],
+                  "required": [
+                    "memberId",
+                    "split"
+                  ],
+                  "properties": {
+                    "memberId": {
+                      "bsonType": "objectId"
+                    },
+                    "split": {
+                      "bsonType": "number"
+                    }
+                  }
+                }
+              }
+            },
+            "bsonType": "object"
+          },
+          "fromMonth": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "toMonth": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "meta": {
+            "bsonType": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "legacyTopUpDate": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "accountId": 1,
+          "fromMonth": 1,
+          "toMonth": 1,
+          "type": 1
+        },
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "events",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "accountId",
+          "date",
+          "code",
+          "params",
+          "_id"
+        ],
+        "properties": {
+          "accountId": {
+            "bsonType": "objectId"
+          },
+          "date": {
+            "bsonType": "date"
+          },
+          "code": {
+            "bsonType": "string"
+          },
+          "params": {},
+          "createdByMemberId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "__v": {
+            "bsonType": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "accountId": 1,
+          "date": -1
+        },
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "members",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "_id"
+        ],
+        "properties": {
+          "name": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "userId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "avatar": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "__v": {
+            "bsonType": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": []
+  },
+  {
+    "name": "member_incomes",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "accountId",
+          "memberId",
+          "amountMinor",
+          "_id"
+        ],
+        "properties": {
+          "accountId": {
+            "bsonType": "objectId"
+          },
+          "memberId": {
+            "bsonType": "objectId"
+          },
+          "amountMinor": {
+            "bsonType": "number"
+          },
+          "fromMonth": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "toMonth": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "source": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "accountId": 1,
+          "memberId": 1,
+          "fromMonth": 1,
+          "toMonth": 1
+        },
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "recurrences",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "accountId",
+          "type",
+          "amountMinor",
+          "schedule",
+          "activeFrom",
+          "_id"
+        ],
+        "properties": {
+          "accountId": {
+            "bsonType": "objectId"
+          },
+          "categoryId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "title": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "bsonType": "string",
+            "enum": [
+              "income",
+              "expense"
+            ]
+          },
+          "amountMinor": {
+            "bsonType": "number"
+          },
+          "isFromSharedAccount": {
+            "bsonType": [
+              "bool",
+              "null"
+            ]
+          },
+          "schedule": {
+            "properties": {
+              "freq": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "monthly",
+                  null
+                ]
+              },
+              "dayOfMonth": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "bsonType": "object"
+          },
+          "activeFrom": {
+            "bsonType": "date"
+          },
+          "activeUntil": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "createdByMemberId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "nextPlanned": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "lastEmitted": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "accountId": 1,
+          "nextPlanned": 1
+        },
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "transactions",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "accountId",
+          "title",
+          "type",
+          "amountMinor",
+          "month",
+          "isFromSharedAccount",
+          "_id"
+        ],
+        "properties": {
+          "accountId": {
+            "bsonType": "objectId"
+          },
+          "categoryId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "title": {
+            "bsonType": "string"
+          },
+          "notes": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "bsonType": "string",
+            "enum": [
+              "income",
+              "expense"
+            ]
+          },
+          "amountMinor": {
+            "bsonType": "number"
+          },
+          "month": {
+            "bsonType": "date"
+          },
+          "bookDate": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "status": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "booked",
+              "pending",
+              null
+            ]
+          },
+          "isFromSharedAccount": {
+            "bsonType": "bool"
+          },
+          "paidByMemberId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "parentTransactionId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "recurrenceId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "accountId": 1,
+          "month": 1,
+          "status": 1
+        },
+        "background": true
+      },
+      {
+        "key": {
+          "accountId": 1,
+          "bookDate": -1
+        },
+        "background": true
+      },
+      {
+        "key": {
+          "categoryId": 1,
+          "month": 1
+        },
+        "background": true
+      },
+      {
+        "key": {
+          "paidByMemberId": 1,
+          "month": 1
+        },
+        "background": true
+      },
+      {
+        "key": {
+          "accountId": 1,
+          "parentTransactionId": 1
+        },
+        "background": true
+      },
+      {
+        "key": {
+          "parentTransactionId": 1
+        },
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "users",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "email",
+          "emailNormalized",
+          "passwordHash",
+          "_id"
+        ],
+        "properties": {
+          "email": {
+            "bsonType": "string"
+          },
+          "emailNormalized": {
+            "bsonType": "string"
+          },
+          "name": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "passwordHash": {
+            "bsonType": "string"
+          },
+          "roles": {
+            "bsonType": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "bsonType": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "isActive": {
+            "bsonType": [
+              "bool",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "__v": {
+            "bsonType": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "emailNormalized": 1
+        },
+        "unique": true,
+        "background": true
+      },
+      {
+        "key": {
+          "roles": 1
+        },
+        "background": true
+      },
+      {
+        "key": {
+          "isActive": 1
+        },
+        "background": true
+      }
+    ]
+  },
+  {
+    "name": "auth_sessions",
+    "validator": {
+      "$jsonSchema": {
+        "required": [
+          "userId",
+          "jti",
+          "expiresAt",
+          "_id"
+        ],
+        "properties": {
+          "userId": {
+            "bsonType": "objectId"
+          },
+          "jti": {
+            "bsonType": "string"
+          },
+          "userAgent": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "ip": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "rotatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "revokedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "expiresAt": {
+            "bsonType": "date"
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "__v": {
+            "bsonType": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "indexes": [
+      {
+        "key": {
+          "userId": 1
+        },
+        "background": true
+      },
+      {
+        "key": {
+          "jti": 1
+        },
+        "unique": true,
+        "background": true
+      },
+      {
+        "key": {
+          "revokedAt": 1
+        },
+        "background": true
+      },
+      {
+        "key": {
+          "expiresAt": 1
+        },
+        "expireAfterSeconds": 0,
+        "background": true
+      }
+    ]
+  }
+]

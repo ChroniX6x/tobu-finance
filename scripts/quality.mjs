@@ -6,7 +6,7 @@ import { capture, run } from './lib/processes.mjs';
 if (!process.env.npm_execpath) throw new Error('Use npm run quality or quality:full');
 const full = process.argv.includes('--full');
 const checks = ['check:workspace', 'format:check', 'lint', 'typecheck', 'check:contracts', 'test:contracts', 'build', 'test:tooling', 'test:api', 'test:web', 'e2e'];
-if (full) checks.push('test:integration', 'e2e:real', 'test:lifecycle', 'package:artifact', 'test:artifact');
+if (full) checks.push('test:replica', 'test:integration', 'e2e:real', 'test:lifecycle', 'package:artifact', 'test:artifact');
 const report = { commit: await capture('git', ['rev-parse', 'HEAD'], { cwd: root }), dirty: Boolean(await capture('git', ['status', '--porcelain'], { cwd: root })), node: process.version, full, started: new Date().toISOString(), checks: [] };
 try {
     for (const check of checks) {

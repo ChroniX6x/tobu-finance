@@ -4,6 +4,8 @@ Voraussetzungen: Node 24.13.1, npm 11.8.0, Docker mit Compose und laufender Linu
 
 ## Erstes Setup
 
+Ab der Erweiterung für sichere Migrationen läuft lokale Docker-MongoDB als Single-Node-Replica-Set. Bei einem bereits vorhandenen Standalone-Volume zuerst die [Umstellung mit geprüfter Sicherung](database/migration-progress.md) durchführen. `setup`/`dev` verweigern eine ungeprüfte Übernahme. Neue leere Installationen und reguläre Neustarts initialisieren das Replica Set automatisch. Der aktive Migrationsrunner unterstützt transaktionale und kontrollierte strukturelle Änderungen; Einstieg und Nachweise stehen im [Migrations-Handover](database/migration-handover.md).
+
 Im Repository-Root:
 
 ```powershell
@@ -51,8 +53,10 @@ Fehler bei belegten Ports werden vor dem Stackstart gemeldet. Fehlende Docker-En
 | Befehl | Wirkung |
 | --- | --- |
 | npm run db:init | Baseline auf leerer DB erzeugen oder vorhandenen Stand prüfen; keine Demo |
+| npm run db:replica:init -- --writers-stopped=tobu_finance_dev | Bekannte lokale Standalone-DB nach Backup und Restore-Probe auf Replica Set umstellen; alle Writer müssen beendet sein |
 | npm run db:seed | Fehlende Demo-Dokumente ergänzen; bestehende Dokumente unverändert lassen |
-| npm run db:migrate | Aktuellen Baseline-Stand prüfen; noch keine Migrationen nach der Baseline vorhanden |
+| npm run db:migrate:plan | Ziel, ausstehende Migrationen und Bestätigungshash lesen |
+| npm run db:migrate -- --confirm=HASH --writers-stopped=tobu_finance_dev | Bestätigte transaktionale Up-Migrationen bei gestoppten Writern ausführen; siehe [Anleitung](database/migration-authoring.md) |
 | npm run db:reset -- --confirm=tobu_finance_dev | Bewusst ausschließlich die Docker-DB tobu_finance_dev löschen und neu aufbauen |
 
 Reset ist im externen Modus und ohne die exakte Bestätigung gesperrt. Die Entwicklungsbefehle sind bei `NODE_ENV=production` gesperrt. Einen anderen Referenzmonat nur mit bewusstem Reset wählen. Gelöschte Seed-Dokumente können durch `db:seed` wieder ergänzt werden; eine manuell geänderte vorhandene Buchung wird dabei nicht ersetzt.
@@ -108,8 +112,14 @@ Siehe [Vertragsarchitektur](architecture/contracts.md). `npm run dev` baut und �
 
 ## Qualitätsprüfung und Artefakte
 
+Für die Mock-E2E gelten auf ausdrücklichen Nutzerwunsch 60 Sekunden pro Test und 15 Sekunden für wiederholte Assertions (zuvor 30/5 Sekunden). Erfolgreiche Schritte warten diese Budgets nicht ab. Parallelität und Videoaufzeichnung bleiben aktiv; fehlgeschlagene Tests behalten zusätzlich einen Trace, ohne automatische Wiederholungen. Der längere Real-API-CRUD-Test behält sein bestehendes 90-Sekunden-Budget. Die Wizard-Prüfungen verwenden das gemeinsame Assertion-Budget statt kürzerer lokaler Überschreibungen. Falls für einen Diagnoseversuch `$env:PLAYWRIGHT_VIDEO = "off"` gesetzt wurde, vor dem nächsten Lauf in PowerShell `Remove-Item Env:PLAYWRIGHT_VIDEO -ErrorAction SilentlyContinue` ausführen. Diese Zeitbudgets sind keine Garantie bei beliebiger Rechnerüberlastung.
+
 `npm run quality` prüft Quellen, Typen, Verträge, Builds, Units und Mock-E2E. `npm run quality:full` (Alias `npm run verify:phase5`) ergänzt Docker-Integration, echte Browserabläufe, Start/Stop/Persistenz und eine saubere Produktionsinstallation. Docker und Paketdownloads müssen dafür verfügbar sein. Fehlende Voraussetzungen führen zu einem Fehler; der Bericht liegt in `test-results/quality.json`.
 
 Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren. Für Karma in PowerShell bei fehlendem lokalen Chrome: `$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")`. Unter Linux/Bash entsprechend `export CHROME_BIN="$(node -p "require('@playwright/test').chromium.executablePath()")"`; in Linux-CI installiert Playwright außerdem die Systemabhängigkeiten mit `--with-deps`.
 
 Der Umfang der Quellcode-/Formatprüfungen sowie offene Punkte stehen im [Phase-5-Bericht](migration/phase-5-results.md). Gebaute Pakete: `npm run build`, `npm run package:artifact`; siehe [Artefaktanleitung](production-artifact.md). Der dortige lokale Webserver liefert die gebauten Angular-Dateien mit API-Proxy aus; er ersetzt kein produktives Hosting.
+
+## Strukturänderungen der Datenbank
+
+Transaktionale Migrationen bleiben der Standard. Index-, Validator-, Collection- und größere Datenumbauten verwenden den bestätigten strukturellen Modus mit geprüftem Backup und Wiederherstellungsjournal. Siehe [Agent-Anleitung](database/migration-authoring.md) und [Betrieb/Recovery](database/structural-migrations.md). `dev` migriert oder restauriert niemals automatisch. Lokale Archive liegen unter `backups/migrations/`; Docker-Daten bleiben im bisherigen persistenten Volume.

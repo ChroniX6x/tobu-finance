@@ -1,5 +1,9 @@
 # Offene Punkte der Transformation
 
+## MIGRATION-S1–S7: Nacharbeiten am Migrationsbetrieb
+
+Offen und noch nicht implementiert: [bewertete Findings S1–S7](../database/migration-findings.md). S1 (Credential-freie Zielidentität/Recovery) und S2 (sichere Diagnostik) vor der ersten echten Migration bzw. Produktiveinsatz beheben; erneute TTL-Vorprüfung S6b vor produktiven strukturellen Restores. Dort stehen Prioritäten, abweichende Bewertungen, Abnahmekriterien und akzeptierte Restrisiken. Die Dokumentation ersetzt keinen erfolgreichen PR-CI-Lauf oder eine Merge-Freigabe.
+
 ## TEST-001: Vite-Proxy ECONNREFUSED in Mock-E2E
 
 - Status: in Phase 5 behoben und lokal geprüft; 52 Mock-E2E erfolgreich, zusätzlicher Negativtest für fehlende Mocks und Real-API-Tests erfolgreich. Die folgenden Punkte dokumentieren Ursache und Abnahmekriterien.

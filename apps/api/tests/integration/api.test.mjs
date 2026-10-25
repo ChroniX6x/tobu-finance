@@ -128,6 +128,37 @@ test('built API: isolated database, auth lifecycle and core CRUD', { timeout: 18
         await delay(200);
     }
     assert.ok(healthy, `API not ready: ${apiOutput}`);
+    await t.test('migration maintenance blocks readiness and authentication writes', async () => {
+        const locks = client.db(dbName).collection('_tobu_migration_control');
+        await locks.insertOne({ _id: 'runner', runId: randomUUID(), migration: 'test', direction: 'up', status: 'running', startedAt: new Date() });
+        try {
+            assert.equal((await fetch(`${base}/ready`)).status, 503);
+            assert.equal((await fetch(`${base}/api/auth/register`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: 'must-not-exist@example.test', password: '1234567890' }) })).status, 503);
+            assert.equal(await client.db(dbName).collection('users').countDocuments(), 0);
+        } finally {
+            await locks.deleteOne({ _id: 'runner' });
+        }
+        assert.equal((await fetch(`${base}/ready`)).status, 200);
+        // The conservative locked-result cache may delay reopening for at most one second.
+        let status = 503;
+        for (let attempt = 0; attempt < 100 && status === 503; attempt++) {
+            status = (await fetch(`${base}/api/accounts`)).status;
+            if (status === 503) await delay(20);
+        }
+        assert.equal(status, 401);
+    });
+    await t.test('migration health reports inconsistent history as 503 without leaking details', async () => {
+        const history = client.db(dbName).collection('_tobu_migrations');
+        await history.insertOne({ _id: 'unknown-test-migration', checksum: 'private-data', applied: true });
+        try {
+            const response = await fetch(`${base}/health/migrations`, { signal: AbortSignal.timeout(5000) });
+            assert.equal(response.status, 503);
+            assert.deepEqual(await response.json(), { ready: false, status: 'database-unavailable' });
+        } finally {
+            await history.deleteOne({ _id: 'unknown-test-migration' });
+        }
+        assert.equal((await fetch(`${base}/health/migrations`)).status, 200);
+    });
     async function request(method, path, body, token, cookie) {
         const response = await fetch(base + path, {
             method,

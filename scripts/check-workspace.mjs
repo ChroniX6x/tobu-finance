@@ -55,6 +55,8 @@ const adapted = new Set([
     'src/auth/routes.ts',
     'src/db.ts',
     'src/server.ts',
+    // Active build now checks immutable migration checksums before compiling.
+    'scripts/build.mjs',
     'src/routes/month-view.ts',
     'src/routes/planning.ts',
     'tests/integration/api.test.mjs',
@@ -75,7 +77,7 @@ for (const item of manifest.files) {
     assert.ok(matchesSource(bytes, item.sha256), `API import drift: ${item.path}`);
 }
 const assets = json('docs/migration/evidence/web-assets-manifest.json');
-const image = read('scripts/lib/docker.mjs').match(/MONGO_IMAGE = '([^']+)'/)[1];
+const image = JSON.parse(read('apps/api/src/database/runtime-defaults.json')).mongoImage;
 assert.ok(read('infra/compose.yaml').replaceAll('\r\n', '\n').includes(`image: ${image}\n`), 'Development and test MongoDB images must match');
 assert.match(image, /^mongo:\d+\.\d+\.\d+$/, 'Pin a concrete MongoDB version');
 for (const item of assets.files) {

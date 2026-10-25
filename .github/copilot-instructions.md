@@ -2,6 +2,8 @@
 
 ## Projekt-Überblick
 
+Gemeinsamer Projekteinstieg für alle Agents: [AGENTS.md](../AGENTS.md). Für Datenbankänderungen außerdem [Migrations-Handover](../docs/database/migration-handover.md), [Migrationserstellung](../docs/database/migration-authoring.md) und bei Strukturänderungen [Backup/Recovery](../docs/database/structural-migrations.md) lesen. Die folgenden UI-Konventionen ergänzen diese gemeinsamen Vorgaben; historische Baselines oder angewendete Migrationen niemals zur Anpassung an aktuelle Modelle umschreiben.
+
 ToBu Finance ist eine Haushalts-App mit Angular 21 Frontend (`apps/web/`) und Express.js/Mongoose Backend (`apps/api/`) im npm-Workspace. Befehle vom Repository-Root ausführen; keine App-eigenen Installationen oder Lockdateien anlegen.
 
 - **Frontend:** Angular 21 (zoneless/signal-basiert), NGXS State, PrimeNG v21, Tailwind CSS

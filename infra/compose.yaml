@@ -1,6 +1,7 @@
 services:
   mongo:
     image: mongo:9.0.4
+    command: ["mongod", "--replSet", "tobu-local", "--bind_ip_all"]
     ports:
       - "127.0.0.1:${DB_PORT:-27018}:27017"
     volumes:
