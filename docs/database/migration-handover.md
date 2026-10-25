@@ -71,4 +71,6 @@ Beide Checks für **den aktuellen PR-Commit** abwarten. Bei Fehler Logs prüfen;
 
 ## Bestehende offene Arbeiten
 
+Für die weitere Migrationsentwicklung verbindlich berücksichtigen: [Findings S1–S7](migration-findings.md). Sie sind bewertet und priorisiert, aber noch nicht implementiert. S1/S2 vor der ersten echten Migration bzw. Produktiveinsatz und S6b vor produktiven strukturellen Restores beheben. Der vorgeschlagene Code aus dem Review ist kein ungeprüft zu übernehmender Implementierungsauftrag.
+
 Rollen-/Owner-Durchsetzung, dokumentierte Dependency-Sicherheitsbefunde und produktives Hosting bleiben separate Aufgaben. Ein früherer vollständiger Browser-Verbindungsfehler auf localhost wurde nicht ursächlich aufgeklärt; ein späterer Diagnoselauf bestand alle 54 Tests. Das ist kein Grund, Retry-, Mock- oder Timeout-Schutzmechanismen abzuschwächen. Einzelheiten und frühere Befunde bleiben in [offene Arbeiten](../migration/open-issues.md) und [Umsetzungsstand](migration-progress.md) nachvollziehbar.
