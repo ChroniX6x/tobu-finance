@@ -116,7 +116,15 @@ Für die Mock-E2E gelten auf ausdrücklichen Nutzerwunsch 60 Sekunden pro Test u
 
 `npm run quality` prüft Quellen, Typen, Verträge, Builds, Units und Mock-E2E. `npm run quality:full` (Alias `npm run verify:phase5`) ergänzt Docker-Integration, echte Browserabläufe, Start/Stop/Persistenz und eine saubere Produktionsinstallation. Docker und Paketdownloads müssen dafür verfügbar sein. Fehlende Voraussetzungen führen zu einem Fehler; der Bericht liegt in `test-results/quality.json`.
 
-Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren. Für Karma in PowerShell bei fehlendem lokalen Chrome: `$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")`. Unter Linux/Bash entsprechend `export CHROME_BIN="$(node -p "require('@playwright/test').chromium.executablePath()")"`; in Linux-CI installiert Playwright außerdem die Systemabhängigkeiten mit `--with-deps`.
+Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren.
+
+`npm run test:web` (Karma, `ChromeHeadless`) wählt den Browser in dieser Reihenfolge:
+
+1. ein explizit gesetztes `CHROME_BIN` (bleibt unverändert, auch wenn die Datei fehlt; Karma meldet das selbst);
+2. ein installiertes System-Chrome an den Orten, die Karma selbst prüft (Windows: `Program Files`/`LOCALAPPDATA`; macOS: `/Applications`; Linux: `google-chrome` oder `google-chrome-stable` im `PATH`). Chromium zählt hier nicht, `ChromeHeadless` verwendet es nur über `CHROME_BIN`;
+3. sonst automatisch das installierte Playwright-Chromium; der Lauf meldet das ausdrücklich.
+
+Ohne jeden Browser warnt der Wrapper und Karma schlägt fehl; es wird nichts übersprungen. Manuell: PowerShell `$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")`, Linux/Bash `export CHROME_BIN="$(node -p "require('@playwright/test').chromium.executablePath()")"`. Die CI setzt `CHROME_BIN` selbst (Linux: System-Chrome wegen Sandbox, Windows: Playwright-Chromium); Playwright installiert in Linux-CI zusätzlich die Systemabhängigkeiten mit `--with-deps`. Direkte Aufrufe von `npm run test:unit --workspace=@tobu/web` nutzen die Automatik nicht.
 
 Der Umfang der Quellcode-/Formatprüfungen sowie offene Punkte stehen im [Phase-5-Bericht](migration/phase-5-results.md). Gebaute Pakete: `npm run build`, `npm run package:artifact`; siehe [Artefaktanleitung](production-artifact.md). Der dortige lokale Webserver liefert die gebauten Angular-Dateien mit API-Proxy aus; er ersetzt kein produktives Hosting.
 
