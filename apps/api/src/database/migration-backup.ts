@@ -56,6 +56,26 @@ async function fileDigest(path: string) {
     for await (const chunk of createReadStream(path)) hash.update(chunk);
     return hash.digest('hex');
 }
+export type DockerCommand = (args: string[]) => Promise<string>;
+// Another container on the host may stop between `ps` and `inspect`. Such a container is no longer running and
+// therefore cannot be the selected one; every other Docker failure stays fatal.
+const containerVanished = (error: unknown) => /no such (object|container)/i.test(String((error as { stderr?: unknown })?.stderr ?? ''));
+export async function findLocalMongoContainer(hostPort: string, docker: DockerCommand): Promise<string> {
+    const ids = (await docker(['ps', '--format', '{{.ID}}'])).trim().split(/\s+/).filter(Boolean);
+    const matches: string[] = [];
+    for (const id of ids) {
+        let data;
+        try {
+            data = JSON.parse(await docker(['inspect', id]))[0];
+        } catch (error) {
+            if (containerVanished(error)) continue;
+            throw error;
+        }
+        if (data?.State?.Running && data.NetworkSettings?.Ports?.['27017/tcp']?.some((mapping: { HostIp: string; HostPort: string }) => mapping.HostIp === '127.0.0.1' && mapping.HostPort === hostPort)) matches.push(data.Id);
+    }
+    if (matches.length !== 1) throw new MigrationDiagnosticError('Cannot identify the explicitly selected local MongoDB container');
+    return matches[0]!;
+}
 const same = (a: unknown, b: unknown, message: string) => {
     if (!isDeepStrictEqual(a, b)) throw new MigrationDiagnosticError(message);
 };
@@ -90,14 +110,7 @@ export class ToolsBackup implements MigrationBackup {
             const parsed = new URL(uri);
             if (parsed.protocol !== 'mongodb:' || !['127.0.0.1', 'localhost'].includes(parsed.hostname) || parsed.username || parsed.password)
                 throw new MigrationDiagnosticError('Docker helper is only for the explicitly selected local development connection');
-            const ids = (await execute('docker', ['ps', '--format', '{{.ID}}'], { windowsHide: true })).stdout.trim().split(/\s+/).filter(Boolean);
-            const matches: string[] = [];
-            for (const id of ids) {
-                const data = JSON.parse((await execute('docker', ['inspect', id], { windowsHide: true })).stdout)[0];
-                if (data.State.Running && data.NetworkSettings.Ports['27017/tcp']?.some((mapping: { HostIp: string; HostPort: string }) => mapping.HostIp === '127.0.0.1' && mapping.HostPort === (parsed.port || '27017'))) matches.push(data.Id);
-            }
-            if (matches.length !== 1) throw new MigrationDiagnosticError('Cannot identify the explicitly selected local MongoDB container');
-            container = matches[0];
+            container = await findLocalMongoContainer(parsed.port || '27017', async (args) => (await execute('docker', args, { windowsHide: true })).stdout);
             parsed.hostname = '127.0.0.1';
             parsed.port = '27017';
             uri = parsed.toString();
