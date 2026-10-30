@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '../db.js';
 import { initializeBaseline, verifyBaseline } from './baseline.js';
 import { seedDevelopment } from './seed.js';
+import { auditCalendarData } from './calendar-audit.js';
 import { MigrationRunner } from './migration-runner.js';
 import { ToolsBackup } from './migration-backup.js';
 
@@ -36,6 +37,11 @@ try {
         // Resume an interrupted first seed; do not refill an already completed demo.
         const seeded = await mongoose.connection.db!.collection('_tobu_seed').findOne({ name: 'demo-v1', status: 'ready' });
         if (!seeded) await seedDevelopment(process.env.SEED_MONTH);
+    } else if (command === 'audit-calendar') {
+        // Read-only: aggregated counts only, never document values.
+        const report = await auditCalendarData(mongoose.connection.db!);
+        console.log(JSON.stringify(report, null, 2));
+        if (report.decision === 'STOP-DATA') process.exitCode = 2;
     } else if (command === 'seed') {
         await verifyBaseline();
         await seedDevelopment(process.env.SEED_MONTH);
@@ -50,7 +56,8 @@ try {
         await initializeAndMigrateNewDatabase(uri);
         await seedDevelopment(process.env.SEED_MONTH);
     } else throw new Error('Unknown database command');
-    console.log(`Database ${command}: OK`);
+    // The audit keeps stdout as pure JSON.
+    if (process.exitCode !== 2) (command === 'audit-calendar' ? console.error : console.log)(`Database ${command}: OK`);
 } catch (error) {
     console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
