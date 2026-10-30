@@ -29,6 +29,20 @@ Das vollständige [Endpunktinventar](api-endpoints.md) enthält Methode, Pfad, A
 
 Die API gibt teilweise zusätzliche Metadaten wie `createdAt`, `updatedAt` oder `__v` aus. Die Vertragsprüfung akzeptiert sie, verändert oder entfernt sie aber nicht. UI-Modelle werden explizit aus den Transportdaten abgeleitet, etwa `_id` zu `id` und nullable Namen zu Platzhaltern. Zusammengesetzte Formtypen, etwa Mitgliedsdaten plus Kontorolle, bleiben im Web und werden auf getrennte HTTP-Requests abgebildet.
 
+## Datum und Monat (`calendar.ts`)
+
+[`packages/contracts/src/calendar.ts`](../../packages/contracts/src/calendar.ts) ist die einzige Quelle für Kalenderregeln; die Bibliothek ist rein und frameworkfrei. Wer Monate, Buchungstage oder „aktuellen Monat“ braucht, importiert von dort (`@tobu/contracts/calendar`), keine zweite Regex und kein eigener Parser.
+
+| Begriff | Format | Verwendung |
+| --- | --- | --- |
+| `MonthKey` | `YYYY-MM` | Fachlicher Monat für Befehle, Queries und Planning/MonthView-ReadModels. Strenge Kalenderprüfung, Jahr 1000–9999. |
+| Monatsanker | `YYYY-MM-01T00:00:00.000Z` | Persistierter BSON-Monat und ISO-Form in bestehenden Ressourcenantworten (`resources.ts`). Diese Antworten werden nicht auf `YYYY-MM` umgestellt. |
+| `MonthInput` | `YYYY-MM` oder exakter Monatsanker | Übergangsinput für `fromMonth`/`toMonth` von Einkommen, Budgets und Beitragsregeln. Andere Tage, Uhrzeiten oder Offsets werden abgelehnt; `normalizeMonthInput` liefert sofort den `MonthKey`. Das Schema selbst gibt den Originalstring zurück; die Routen normalisieren erst mit H03 (bis dahin parst `toMonthDate` beide Formen UTC-fest). |
+| `BankDate` | `YYYY-MM-DD` | Buchungstag der Bank als Kalendertag. Träger in JSON/BSON ist `YYYY-MM-DDT00:00:00.000Z`; er ist kein Zeitpunkt und wird nie lokalisiert. Der Buchungsmonat folgt dem Kalendertag unabhängig von Zeitzonen. |
+| Instant | ISO-UTC | Echte Zeitpunkte wie Ereignisse und `createdAt`. Für sie niemals die BankDate-Helfer verwenden. |
+
+`currentMonthKey(zone, now)` berechnet den aktuellen Monat aus einer IANA-Zone und einem vertrauenswürdigen Zeitpunkt (DST-sicher, keine festen Offsets, `+01:00` wird abgelehnt). Das Account-Zonen-Feature selbst ist damit noch nicht eingeführt (D-02/P04). Ungültige oder nicht kanonische Altwerte werden nie stillschweigend korrigiert: `monthKeyFromAnchor` und `bankDateFromCarrier` lehnen sie ab.
+
 ## OpenAPI und Fehlererkennung
 
 `npm run contracts:generate` erzeugt OpenAPI 3.1 und das Inventar aus `endpoints.ts` mit dem eingebauten Zod-4-JSON-Schema-Export. Es ist kein zusätzliches Generierungspaket nötig. `npm run check:contracts` erkennt veraltete generierte Dateien, nicht dokumentierte oder entfernte API-Routen und Serverabhängigkeiten im Vertragspaket.
