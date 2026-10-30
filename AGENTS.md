@@ -1,5 +1,9 @@
 # ToBu Finance: instructions for coding agents
 
+## Token-conscious feature work
+
+For booking templates, Date/Month consolidation and AccountActivity, use [the execution guide](docs/agents/token-plan.md). Keep prompts and handovers small; read the current step and required references completely. The feature plan §61 requires one explicit GO per step and a separate A/Q report followed by STOP. Full initial onboarding, safety checks, required tests and independent reviews remain mandatory. This documentation is not an implementation GO.
+
 ## Start here
 
 - Work from the repository root. This is one npm workspace: Angular in `apps/web`, Express/Mongoose in `apps/api`, shared Zod contracts in `packages/contracts`.

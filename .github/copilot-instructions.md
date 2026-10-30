@@ -1,5 +1,7 @@
 # ToBu Finance – Copilot-Rahmenbedingungen
 
+Für Buchungsvorlagen, Date/Month und AccountActivity gilt ergänzend der [tokenbewusste Ablauf](../docs/agents/token-plan.md), mit [GO-Prompts](../docs/agents/prompts.md). Nur den ausdrücklich freigegebenen Schritt ausführen; §61 verlangt danach A-/Q-Bericht und STOP. Vollständiges initiales Onboarding und Pflichtreviews bleiben erhalten. Quellen gezielt nachladen, keine wiederholten Gesamtdumps. In Cloud-Sessions muss der lokale externe Quellenordner zuerst tatsächlich zugänglich gemacht werden; ohne Pflichtquellen nicht implementieren. Diese Dokumentation ist kein Implementierungs-GO.
+
 ## Projekt-Überblick
 
 Gemeinsamer Projekteinstieg für alle Agents: [AGENTS.md](../AGENTS.md). Für Datenbankänderungen außerdem [Migrations-Handover](../docs/database/migration-handover.md), [Migrationserstellung](../docs/database/migration-authoring.md) und bei Strukturänderungen [Backup/Recovery](../docs/database/structural-migrations.md) lesen. Die folgenden UI-Konventionen ergänzen diese gemeinsamen Vorgaben; historische Baselines oder angewendete Migrationen niemals zur Anpassung an aktuelle Modelle umschreiben.
