@@ -33,6 +33,8 @@ Die API gibt teilweise zusätzliche Metadaten wie `createdAt`, `updatedAt` oder 
 
 [`packages/contracts/src/calendar.ts`](../../packages/contracts/src/calendar.ts) ist die einzige Quelle für Kalenderregeln; die Bibliothek ist rein und frameworkfrei. Wer Monate, Buchungstage oder „aktuellen Monat“ braucht, importiert von dort (`@tobu/contracts/calendar`), keine zweite Regex und kein eigener Parser.
 
+**Luxon in den Apps, nicht in den Contracts:** `apps/api` und `apps/web` verwenden für alle übrige Datums- und Zeitlogik (Arithmetik, Parsen, Formatieren, Anzeige) Luxon (`DateTime`, gepinnt in beiden `package.json`), immer mit expliziter Zone, z. B. `DateTime.fromISO(x, { zone: 'utc' })` oder `DateTime.utc()` für Monatsanker und BankDates. Die Nutzer- oder Kontozone gilt nur für die Anzeige echter Zeitpunkte. Nicht zulässig sind `DateTime.fromJSDate(d)`/`DateTime.now()` ohne Zone, lokales `new Date(y, m, d)`, `getMonth()`/`getDate()` und `toLocale*` zur Ableitung fachlicher Monate oder Buchungstage sowie eine zweite Datumsbibliothek. `packages/contracts` bleibt bewusst Luxon-frei (nur zod und `Intl`), damit das Paket klein und für Server und Browser identisch bleibt; eine neue Abhängigkeit dort braucht Freigabe. Bestehende Stellen, die diese Regeln verletzen, werden in den Plan-Schritten H02–H04 umgestellt, nicht nebenbei.
+
 | Begriff | Format | Verwendung |
 | --- | --- | --- |
 | `MonthKey` | `YYYY-MM` | Fachlicher Monat für Befehle, Queries und Planning/MonthView-ReadModels. Strenge Kalenderprüfung, Jahr 1000–9999. |

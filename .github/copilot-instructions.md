@@ -85,6 +85,7 @@ ToBu Finance ist eine Haushalts-App mit Angular 21 Frontend (`apps/web/`) und Ex
 
 - **Geldwerte:** immer als `amountMinor` (Integer, Minor Units / Cent) — UI zeigt Euro
 - **Monate:** immer als `YYYY-MM` String — API akzeptiert `YYYY-MM`, Backend persistiert als Date (Month-Anchor)
+- **Datum/Monat/Buchungstag:** kanonische Umrechnungen (MonthKey, UTC-Monatsanker, BankDate und Träger, `currentMonthKey`) ausschließlich über `@tobu/contracts/calendar`, nie neu implementieren. In `apps/api` und `apps/web` für alle übrige Datums-/Zeitlogik **Luxon** (`DateTime`) verwenden, immer mit expliziter Zone (`{ zone: 'utc' }` bzw. `DateTime.utc()` für Monatsanker und BankDates). Kein `DateTime.fromJSDate()`/`DateTime.now()` ohne Zone, kein lokales `new Date(y, m, d)`, kein `getMonth()`/`getDate()`/`toLocale*` für fachliche Monate oder Buchungstage. Keine zweite Datumsbibliothek. `packages/contracts` bleibt Luxon-frei (nur zod und `Intl`). BankDate ist ein Kalendertag, kein Zeitpunkt, und wird nie lokalisiert. Details: [AGENTS.md](../AGENTS.md) und `docs/architecture/contracts.md`.
 - **Backend TypeScript:** Imports mit `.js`-Extension (`import { X } from './file.js'`)
 - **IDs:** MongoDB ObjectId als `string` im Frontend
 
