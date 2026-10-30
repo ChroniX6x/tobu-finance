@@ -1,0 +1,11 @@
+{
+  "web": {
+    "@playwright/test": {
+      "from": "1.58.2",
+      "to": "1.61.0",
+      "date": "2026-10-30",
+      "reason": "ubuntu-latest is Ubuntu 26.04; Playwright below 1.61 cannot install Chromium dependencies there. 1.61.0 is the smallest supporting version. Approved by the product owner as a deliberate upgrade. 1.64.1 (Chromium 156) was tested and rejected for now: Karma ChromeHeadless does not start with the default Windows sandbox."
+    }
+  },
+  "api": {}
+}

@@ -16,6 +16,8 @@ function matchesSource(bytes, expected) {
 }
 const manifest = json('docs/migration/evidence/api-import-manifest.json');
 const baseline = json('docs/migration/evidence/phase-2-dependency-baseline.json');
+// Deliberate, reviewed upgrades of baseline dependencies. Anything not listed here still fails as drift.
+const approvedUpgrades = json('docs/migration/evidence/approved-dependency-upgrades.json');
 const lock = json('package-lock.json');
 assert.equal(lock.lockfileVersion, 3);
 assert.equal(json('package.json').private, true);
@@ -33,11 +35,14 @@ for (const app of ['web', 'api']) {
     for (const [name, previous] of Object.entries(baseline[app])) {
         // Phase 5: primeclt is a CLI, not part of the compiled web runtime.
         const group = app === 'web' && name === 'primeclt' ? 'devDependencies' : previous.group;
-        assert.equal(pkg[group][name], previous.version, `${app}: direct dependency drift ${name}`);
-        assert.equal(lock.packages[`apps/${app}`][group][name], previous.version);
+        const upgrade = approvedUpgrades[app]?.[name];
+        if (upgrade) assert.equal(upgrade.from, previous.version, `${app}: approved upgrade of ${name} does not start at the recorded baseline`);
+        const version = upgrade?.to ?? previous.version;
+        assert.equal(pkg[group][name], version, `${app}: direct dependency drift ${name}`);
+        assert.equal(lock.packages[`apps/${app}`][group][name], version);
         if (group !== previous.group) assert.equal(pkg[previous.group][name], undefined, `${app}: development tool in production dependencies`);
         const installed = lock.packages[`apps/${app}/node_modules/${name}`] ?? lock.packages[`node_modules/${name}`];
-        assert.equal(installed?.version, previous.version, `${app}: lockfile drift ${name}`);
+        assert.equal(installed?.version, version, `${app}: lockfile drift ${name}`);
     }
 }
 assert.equal(existsSync(resolve(root, 'yarn.lock')), false, 'Remove the one-time Yarn conversion input');
