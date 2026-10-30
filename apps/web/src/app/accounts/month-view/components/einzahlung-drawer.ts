@@ -7,25 +7,25 @@ import {
   input,
   output,
   signal,
-} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { DateTime } from 'luxon';
-import { DecimalPipe } from '@angular/common';
+} from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { DecimalPipe } from "@angular/common";
 
-import { form, FormField, required, min } from '@angular/forms/signals';
+import { form, FormField, required, min } from "@angular/forms/signals";
 
-import { ButtonModule } from 'primeng/button';
-import { DrawerModule } from 'primeng/drawer';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { DatePickerModule } from 'primeng/datepicker';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TagModule } from 'primeng/tag';
-import { AvatarModule } from 'primeng/avatar';
+import { ButtonModule } from "primeng/button";
+import { DrawerModule } from "primeng/drawer";
+import { InputNumberModule } from "primeng/inputnumber";
+import { InputTextModule } from "primeng/inputtext";
+import { TextareaModule } from "primeng/textarea";
+import { DatePickerModule } from "primeng/datepicker";
+import { SkeletonModule } from "primeng/skeleton";
+import { TagModule } from "primeng/tag";
+import { AvatarModule } from "primeng/avatar";
 
-import { MonthViewMemberUi } from '@/accounts/domain/month-view.ui-model';
-import { API_BASE_URL } from '@/core/api-base-url.token';
+import { bankDateLocalToCarrier } from "@/shared/utils/calendar-picker";
+import { MonthViewMemberUi } from "@/accounts/domain/month-view.ui-model";
+import { API_BASE_URL } from "@/core/api-base-url.token";
 
 // ---- Form model (UI representation, not domain payload) ----
 interface EinzahlungFormModel {
@@ -37,7 +37,7 @@ interface EinzahlungFormModel {
 }
 
 @Component({
-  selector: 'tbf-einzahlung-drawer',
+  selector: "tbf-einzahlung-drawer",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -59,33 +59,42 @@ interface EinzahlungFormModel {
       position="right"
       styleClass="w-full sm:!w-[420px]"
       [header]="drawerHeader()"
-      (onHide)="onHide()">
-
+      (onHide)="onHide()"
+    >
       @if (member(); as m) {
         <!-- Member context chip -->
-        <div class="flex items-center gap-3 mb-5 p-3 rounded-xl bg-surface-100 dark:bg-surface-800">
+        <div
+          class="flex items-center gap-3 mb-5 p-3 rounded-xl bg-surface-100 dark:bg-surface-800"
+        >
           <p-avatar
-            [label]="m.avatar ? '' : (m.name.charAt(0))"
+            [label]="m.avatar ? '' : m.name.charAt(0)"
             [image]="m.avatar ?? undefined"
             shape="circle"
-            size="normal" />
+            size="normal"
+          />
           <div class="flex-1 min-w-0">
             <div class="font-semibold text-color text-sm">{{ m.name }}</div>
             <div class="text-xs text-muted-color">
               Offen:
               <strong class="text-yellow-500">
-                {{ (m.openAmountMinor / 100) | number:'1.2-2' }} €
+                {{ m.openAmountMinor / 100 | number: "1.2-2" }} €
               </strong>
             </div>
           </div>
           @if (m.paid) {
-            <p-tag value="Bereits bezahlt" severity="success" icon="pi pi-check" />
+            <p-tag
+              value="Bereits bezahlt"
+              severity="success"
+              icon="pi pi-check"
+            />
           }
         </div>
 
         <!-- Form -->
-        <form (ngSubmit)="submit()" class="flex flex-col gap-4">
-
+        <form
+          (submit)="$event.preventDefault(); submit()"
+          class="flex flex-col gap-4"
+        >
           <!-- Amount -->
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-color">Betrag (€)</label>
@@ -96,8 +105,12 @@ interface EinzahlungFormModel {
               prefix="€ "
               placeholder="0,00"
               styleClass="w-full"
-              [min]="0.01" />
-            @if (paymentForm.amountEur().touched() && paymentForm.amountEur().invalid()) {
+              [min]="0.01"
+            />
+            @if (
+              paymentForm.amountEur().touched() &&
+              paymentForm.amountEur().invalid()
+            ) {
               <span class="text-xs text-red-500">
                 {{ paymentForm.amountEur().errors()[0]?.message }}
               </span>
@@ -107,8 +120,15 @@ interface EinzahlungFormModel {
           <!-- Title -->
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-color">Titel</label>
-            <input pInputText [formField]="paymentForm.title" placeholder="Einzahlung" class="w-full" />
-            @if (paymentForm.title().touched() && paymentForm.title().invalid()) {
+            <input
+              pInputText
+              [formField]="paymentForm.title"
+              placeholder="Einzahlung"
+              class="w-full"
+            />
+            @if (
+              paymentForm.title().touched() && paymentForm.title().invalid()
+            ) {
               <span class="text-xs text-red-500">
                 {{ paymentForm.title().errors()[0]?.message }}
               </span>
@@ -123,7 +143,8 @@ interface EinzahlungFormModel {
               dateFormat="dd.mm.yy"
               [showButtonBar]="true"
               [readonlyInput]="false"
-              styleClass="w-full" />
+              styleClass="w-full"
+            />
           </div>
 
           <!-- Notes -->
@@ -133,19 +154,26 @@ interface EinzahlungFormModel {
                not implement valueChanges → TypeError on first render.
                Binding manually instead (same pattern as transaction-detail-editor). -->
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-color">Notiz (optional)</label>
+            <label class="text-sm font-medium text-color"
+              >Notiz (optional)</label
+            >
             <textarea
               pTextarea
               [value]="paymentForm.notes().value() || ''"
-              (input)="paymentForm.notes().value.set($any($event.target).value || null)"
+              (input)="
+                paymentForm.notes().value.set($any($event.target).value || null)
+              "
               rows="2"
               placeholder="Optionale Anmerkung…"
-              class="w-full resize-none"></textarea>
+              class="w-full resize-none"
+            ></textarea>
           </div>
 
           <!-- Error -->
           @if (saveError()) {
-            <div class="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
+            <div
+              class="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400"
+            >
               {{ saveError() }}
             </div>
           }
@@ -159,15 +187,16 @@ interface EinzahlungFormModel {
               severity="success"
               styleClass="flex-1"
               [loading]="saving()"
-              [disabled]="paymentForm().invalid()" />
+              [disabled]="paymentForm().invalid()"
+            />
             <p-button
               type="button"
               label="Abbrechen"
               severity="secondary"
               [text]="true"
-              (onClick)="close()" />
+              (onClick)="close()"
+            />
           </div>
-
         </form>
       }
     </p-drawer>
@@ -177,8 +206,6 @@ export class EinzahlungDrawer {
   // ---- Inputs / Outputs ----
   readonly member = input<MonthViewMemberUi | null>(null);
   readonly accountId = input.required<string>();
-  /** YYYY-MM of the currently displayed month */
-  readonly monthIso = input.required<string>();
   /** Two-way binding for drawer visibility */
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
@@ -197,22 +224,26 @@ export class EinzahlungDrawer {
 
   protected readonly drawerHeader = computed(() => {
     const m = this.member();
-    return m ? `Einzahlung buchen — ${m.name}` : 'Einzahlung buchen';
+    return m ? `Einzahlung buchen — ${m.name}` : "Einzahlung buchen";
   });
 
   // ---- Signal Form ----
   private readonly formModel = signal<EinzahlungFormModel>({
     amountEur: 0,
-    title: 'Einzahlung',
+    title: "Einzahlung",
     bookDate: new Date(),
-    notes: '',
+    notes: "",
   });
 
-  protected readonly paymentForm = form(this.formModel, ({ amountEur, title }) => {
-    required(amountEur, { message: 'Betrag ist erforderlich' });
-    min(amountEur, 0.01, { message: 'Betrag muss größer als 0 sein' });
-    required(title, { message: 'Titel ist erforderlich' });
-  });
+  protected readonly paymentForm = form(
+    this.formModel,
+    ({ amountEur, title, bookDate }) => {
+      required(amountEur, { message: "Betrag ist erforderlich" });
+      min(amountEur, 0.01, { message: "Betrag muss größer als 0 sein" });
+      required(title, { message: "Titel ist erforderlich" });
+      required(bookDate, { message: "Datum ist erforderlich" });
+    },
+  );
 
   constructor() {
     // Sync visible input → internal model
@@ -226,9 +257,9 @@ export class EinzahlungDrawer {
       if (m) {
         this.formModel.set({
           amountEur: parseFloat((m.openAmountMinor / 100).toFixed(2)),
-          title: 'Einzahlung',
+          title: "Einzahlung",
           bookDate: new Date(),
-          notes: '',
+          notes: "",
         });
         this.saveError.set(null);
       }
@@ -248,22 +279,20 @@ export class EinzahlungDrawer {
 
     const v = this.formModel();
     const member = this.member();
-    if (!member) return;
+    if (!member || !v.bookDate) return;
 
     const amountMinor = Math.round(v.amountEur * 100);
-    const bookDateIso = DateTime.fromJSDate(v.bookDate).toUTC().toISO()!;
-    // month anchor: YYYY-MM-01T00:00:00.000Z derived from YYYY-MM input
-    const monthAnchor = DateTime.fromISO(`${this.monthIso()}-01`, { zone: 'utc' }).toISO()!;
+    // The server derives the finance month from the BankDate; no separate month is sent.
+    const bookDate = bankDateLocalToCarrier(v.bookDate);
 
     const payload = {
       accountId: this.accountId(),
-      type: 'income',
-      status: 'booked',
+      type: "income",
+      status: "booked",
       title: v.title.trim(),
       notes: v.notes.trim() || null,
       amountMinor,
-      bookDate: bookDateIso,
-      month: monthAnchor,
+      bookDate,
       isFromSharedAccount: false,
       paidByMemberId: member.id,
     };
@@ -282,7 +311,7 @@ export class EinzahlungDrawer {
         const msg =
           (err as { error?: { error?: string } })?.error?.error ??
           (err as { message?: string })?.message ??
-          'Fehler beim Speichern';
+          "Fehler beim Speichern";
         this.saveError.set(msg);
       },
     });

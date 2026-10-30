@@ -5,39 +5,51 @@ import {
   inject,
   OnInit,
   signal,
-} from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Store, select } from '@ngxs/store';
-import { CurrencyPipe, DatePipe, NgClass, NgStyle, PercentPipe, SlicePipe } from '@angular/common';
-import { DateTime } from 'luxon';
+} from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
+import { Store, select } from "@ngxs/store";
+import {
+  CurrencyPipe,
+  NgClass,
+  NgStyle,
+  PercentPipe,
+  SlicePipe,
+} from "@angular/common";
 
-import { ButtonModule } from 'primeng/button';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { AccordionModule } from 'primeng/accordion';
-import { AvatarModule } from 'primeng/avatar';
-import { SkeletonModule } from 'primeng/skeleton';
-import { DatePickerModule } from 'primeng/datepicker';
-import { ChartModule } from 'primeng/chart';
-import { FormsModule } from '@angular/forms';
+import { ButtonModule } from "primeng/button";
+import { ProgressBarModule } from "primeng/progressbar";
+import { TagModule } from "primeng/tag";
+import { TooltipModule } from "primeng/tooltip";
+import { AccordionModule } from "primeng/accordion";
+import { AvatarModule } from "primeng/avatar";
+import { SkeletonModule } from "primeng/skeleton";
+import { DatePickerModule } from "primeng/datepicker";
+import { ChartModule } from "primeng/chart";
+import { FormsModule } from "@angular/forms";
 
-import { MonthViewState } from './month-view.state';
-import { LoadMonthView } from './month-view.actions';
-import { EinzahlungDrawer } from './components/einzahlung-drawer';
-import { MonthViewMemberUi } from '@/accounts/domain/month-view.ui-model';
+import { MonthViewState } from "./month-view.state";
+import { LoadMonthView } from "./month-view.actions";
+import { EinzahlungDrawer } from "./components/einzahlung-drawer";
+import { MonthViewMemberUi } from "@/accounts/domain/month-view.ui-model";
+import {
+  currentUtcMonthKey,
+  formatBankDate,
+  formatMonthKey,
+  monthKeyFromPickerDate,
+  pickerDateFromMonthKey,
+  shiftMonthKey,
+} from "@/shared/utils/calendar-picker";
 
 @Component({
-  selector: 'tbf-month-view',
+  selector: "tbf-month-view",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './month-view.html',
-  styleUrl: './month-view.scss',
+  templateUrl: "./month-view.html",
+  styleUrl: "./month-view.scss",
   imports: [
     NgClass,
     NgStyle,
     CurrencyPipe,
-    DatePipe,
     PercentPipe,
     FormsModule,
     ButtonModule,
@@ -63,35 +75,73 @@ export class MonthView implements OnInit {
   protected readonly kpis = select(MonthViewState.kpis);
   protected readonly members = select(MonthViewState.members);
   protected readonly categories = select(MonthViewState.categories);
-  protected readonly contributionBreakdown = select(MonthViewState.contributionBreakdown);
+  protected readonly contributionBreakdown = select(
+    MonthViewState.contributionBreakdown,
+  );
   protected readonly memberIncomes = select(MonthViewState.memberIncomes);
   protected readonly carryovers = select(MonthViewState.carryovers);
   protected readonly selectedMonth = select(MonthViewState.selectedMonth);
+  protected readonly formatBankDate = formatBankDate;
   protected readonly categoryHistory = select(MonthViewState.categoryHistory);
 
   // ── Category palette (deterministic by index, loops for >7 categories) ──────
   private static readonly CATEGORY_COLORS = [
-    { bar: '#14b8a6', dot: '#14b8a6', line: 'rgba(20,184,166,0.9)',   area: 'rgba(20,184,166,0.12)' },  // teal
-    { bar: '#eab308', dot: '#eab308', line: 'rgba(234,179,8,0.9)',    area: 'rgba(234,179,8,0.12)'  },  // yellow
-    { bar: '#a855f7', dot: '#a855f7', line: 'rgba(168,85,247,0.9)',   area: 'rgba(168,85,247,0.12)' },  // purple
-    { bar: '#3b82f6', dot: '#3b82f6', line: 'rgba(59,130,246,0.9)',   area: 'rgba(59,130,246,0.12)' },  // blue
-    { bar: '#f97316', dot: '#f97316', line: 'rgba(249,115,22,0.9)',   area: 'rgba(249,115,22,0.12)' },  // orange
-    { bar: '#ec4899', dot: '#ec4899', line: 'rgba(236,72,153,0.9)',   area: 'rgba(236,72,153,0.12)' },  // pink
-    { bar: '#06b6d4', dot: '#06b6d4', line: 'rgba(6,182,212,0.9)',    area: 'rgba(6,182,212,0.12)'  },  // cyan
+    {
+      bar: "#14b8a6",
+      dot: "#14b8a6",
+      line: "rgba(20,184,166,0.9)",
+      area: "rgba(20,184,166,0.12)",
+    }, // teal
+    {
+      bar: "#eab308",
+      dot: "#eab308",
+      line: "rgba(234,179,8,0.9)",
+      area: "rgba(234,179,8,0.12)",
+    }, // yellow
+    {
+      bar: "#a855f7",
+      dot: "#a855f7",
+      line: "rgba(168,85,247,0.9)",
+      area: "rgba(168,85,247,0.12)",
+    }, // purple
+    {
+      bar: "#3b82f6",
+      dot: "#3b82f6",
+      line: "rgba(59,130,246,0.9)",
+      area: "rgba(59,130,246,0.12)",
+    }, // blue
+    {
+      bar: "#f97316",
+      dot: "#f97316",
+      line: "rgba(249,115,22,0.9)",
+      area: "rgba(249,115,22,0.12)",
+    }, // orange
+    {
+      bar: "#ec4899",
+      dot: "#ec4899",
+      line: "rgba(236,72,153,0.9)",
+      area: "rgba(236,72,153,0.12)",
+    }, // pink
+    {
+      bar: "#06b6d4",
+      dot: "#06b6d4",
+      line: "rgba(6,182,212,0.9)",
+      area: "rgba(6,182,212,0.12)",
+    }, // cyan
   ];
 
   /** Date object bound to the p-datepicker (view only: month+year) */
   protected pickerDate = new Date();
 
   protected readonly accountId = computed(
-    () => this.route.snapshot.params['accountId'] as string,
+    () => this.route.snapshot.params["accountId"] as string,
   );
 
   /** Month label for display e.g. "Aug. 2025" */
   protected readonly monthLabel = computed(() => {
     const m = this.selectedMonth();
-    if (!m) return '—';
-    return DateTime.fromISO(`${m}-01`).setLocale('de').toFormat('MMM. yyyy');
+    if (!m) return "—";
+    return formatMonthKey(m);
   });
 
   /** Balance display: totalPaid − totalSpent */
@@ -104,9 +154,9 @@ export class MonthView implements OnInit {
   /** Responsive grid class for member cards: exactly as many columns as members (max 3). */
   protected readonly memberGridClass = computed(() => {
     const n = this.members().length;
-    if (n <= 1) return 'grid-cols-1';
-    if (n === 2) return 'grid-cols-1 md:grid-cols-2';
-    return 'grid-cols-1 md:grid-cols-3';
+    if (n <= 1) return "grid-cols-1";
+    if (n === 2) return "grid-cols-1 md:grid-cols-2";
+    return "grid-cols-1 md:grid-cols-3";
   });
 
   // ── Member card: deterministic per-member gradient palette ─────────────────
@@ -114,19 +164,23 @@ export class MonthView implements OnInit {
   // All feel cohesive (no harsh rose/red which reads as "error") but are visually
   // distinct enough to tell members apart.
   // Status (bezahlt / offen) has NO influence on the card background.
-  private static readonly MEMBER_PALETTES: Array<{ r: number; g: number; b: number }> = [
-    { r: 16,  g: 185, b: 129 }, // emerald-500  (app primary)
-    { r: 6,   g: 182, b: 212 }, // cyan-500
-    { r: 99,  g: 102, b: 241 }, // indigo-500
-    { r: 20,  g: 184, b: 166 }, // teal-500
-    { r: 139, g: 92,  b: 246 }, // violet-500
-    { r: 14,  g: 165, b: 233 }, // sky-500
+  private static readonly MEMBER_PALETTES: Array<{
+    r: number;
+    g: number;
+    b: number;
+  }> = [
+    { r: 16, g: 185, b: 129 }, // emerald-500  (app primary)
+    { r: 6, g: 182, b: 212 }, // cyan-500
+    { r: 99, g: 102, b: 241 }, // indigo-500
+    { r: 20, g: 184, b: 166 }, // teal-500
+    { r: 139, g: 92, b: 246 }, // violet-500
+    { r: 14, g: 165, b: 233 }, // sky-500
   ];
 
   private hashId(id: string): number {
     let h = 0;
     for (let i = 0; i < id.length; i++) {
-      h = Math.imul(31, h) + id.charCodeAt(i) | 0;
+      h = (Math.imul(31, h) + id.charCodeAt(i)) | 0;
     }
     return Math.abs(h);
   }
@@ -146,17 +200,17 @@ export class MonthView implements OnInit {
 
     // Semantic left-border color
     const accentColor = !hasDue
-      ? 'rgba(255,255,255,0.20)'          // neutral — no contribution this month
+      ? "rgba(255,255,255,0.20)" // neutral — no contribution this month
       : paid
-        ? 'rgba(16, 185, 129, 0.90)'      // emerald — fully paid
-        : 'rgba(245, 158, 11, 0.90)';     // amber   — open
+        ? "rgba(16, 185, 129, 0.90)" // emerald — fully paid
+        : "rgba(245, 158, 11, 0.90)"; // amber   — open
 
     return {
-      background:      `linear-gradient(145deg, rgba(${rgb}, 0.18) 0%, rgba(${rgb}, 0.08) 45%, rgba(255,255,255,0.02) 100%)`,
-      'border-top':    `1px solid rgba(${rgb}, 0.30)`,
-      'border-right':  `1px solid rgba(${rgb}, 0.30)`,
-      'border-bottom': `1px solid rgba(${rgb}, 0.30)`,
-      'border-left':   `3px solid ${accentColor}`,
+      background: `linear-gradient(145deg, rgba(${rgb}, 0.18) 0%, rgba(${rgb}, 0.08) 45%, rgba(255,255,255,0.02) 100%)`,
+      "border-top": `1px solid rgba(${rgb}, 0.30)`,
+      "border-right": `1px solid rgba(${rgb}, 0.30)`,
+      "border-bottom": `1px solid rgba(${rgb}, 0.30)`,
+      "border-left": `3px solid ${accentColor}`,
     };
   }
 
@@ -170,7 +224,9 @@ export class MonthView implements OnInit {
 
   /** Slice of categories shown in the left column (top 5 or all) */
   protected readonly visibleCategories = computed(() =>
-    this.showAllCategories() ? this.categories() : this.categories().slice(0, 5),
+    this.showAllCategories()
+      ? this.categories()
+      : this.categories().slice(0, 5),
   );
 
   /** True when there are more categories than the visible slice */
@@ -184,21 +240,22 @@ export class MonthView implements OnInit {
     const cats = this.categories();
     const selId = this.selectedCategoryId();
 
-    const labels = history.map((h) =>
-      DateTime.fromISO(`${h.month}-01`).setLocale('de').toFormat('MMM'),
-    );
+    const labels = history.map((h) => formatMonthKey(h.month, "MMM"));
 
     if (selId) {
       // Single selected category with optional budget dashed line
       const catIdx = cats.findIndex((c) => c.id === selId);
-      const color = MonthView.CATEGORY_COLORS[catIdx >= 0 ? catIdx % MonthView.CATEGORY_COLORS.length : 0];
+      const color =
+        MonthView.CATEGORY_COLORS[
+          catIdx >= 0 ? catIdx % MonthView.CATEGORY_COLORS.length : 0
+        ];
       const cat = cats.find((c) => c.id === selId);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const datasets: any[] = [
         {
-          label: cat?.name ?? '—',
-          data: history.map((h) => ((h.spentByCategoryId[selId] ?? 0) / 100)),
+          label: cat?.name ?? "—",
+          data: history.map((h) => (h.spentByCategoryId[selId] ?? 0) / 100),
           borderColor: color.line,
           backgroundColor: color.area,
           fill: true,
@@ -212,11 +269,11 @@ export class MonthView implements OnInit {
       // Dashed budget line when a budget is defined for this category
       if (cat?.budgetMinor != null && cat.budgetMinor > 0) {
         datasets.push({
-          label: 'Budget',
+          label: "Budget",
           data: history.map(() => (cat.budgetMinor ?? 0) / 100),
-          borderColor: 'rgba(255,255,255,0.28)',
+          borderColor: "rgba(255,255,255,0.28)",
           borderDash: [5, 4],
-          backgroundColor: 'transparent',
+          backgroundColor: "transparent",
           fill: false,
           tension: 0,
           pointRadius: 0,
@@ -231,17 +288,19 @@ export class MonthView implements OnInit {
       labels,
       datasets: [
         {
-          label: 'Gesamtausgaben',
-          data: history.map((h) =>
-            Object.values(h.spentByCategoryId).reduce((a, b) => a + b, 0) / 100,
+          label: "Gesamtausgaben",
+          data: history.map(
+            (h) =>
+              Object.values(h.spentByCategoryId).reduce((a, b) => a + b, 0) /
+              100,
           ),
-          borderColor: 'rgba(20,184,166,0.9)',
-          backgroundColor: 'rgba(20,184,166,0.08)',
+          borderColor: "rgba(20,184,166,0.9)",
+          backgroundColor: "rgba(20,184,166,0.08)",
           fill: true,
           tension: 0.4,
           pointRadius: 4,
           pointHoverRadius: 6,
-          pointBackgroundColor: '#14b8a6',
+          pointBackgroundColor: "#14b8a6",
         },
       ],
     };
@@ -258,20 +317,20 @@ export class MonthView implements OnInit {
         callbacks: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           label: (ctx: any) =>
-            `${ctx.dataset.label}: ${Number(ctx.parsed.y).toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} €`,
+            `${ctx.dataset.label}: ${Number(ctx.parsed.y).toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} €`,
         },
       },
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255,255,255,0.06)' },
-        ticks: { color: 'rgba(255,255,255,0.50)', font: { size: 11 } },
+        grid: { color: "rgba(255,255,255,0.06)" },
+        ticks: { color: "rgba(255,255,255,0.50)", font: { size: 11 } },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(255,255,255,0.06)' },
+        grid: { color: "rgba(255,255,255,0.06)" },
         ticks: {
-          color: 'rgba(255,255,255,0.50)',
+          color: "rgba(255,255,255,0.50)",
           font: { size: 11 },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           callback: (v: any) => `${v} €`,
@@ -289,32 +348,29 @@ export class MonthView implements OnInit {
   ngOnInit(): void {
     const accountId = this.accountId();
     // Default to current month
-    const month = DateTime.utc().toFormat('yyyy-MM');
-    this.pickerDate = DateTime.fromISO(`${month}-01`).toJSDate();
+    const month = currentUtcMonthKey();
+    this.pickerDate = pickerDateFromMonthKey(month);
     this.store.dispatch(new LoadMonthView(accountId, month));
   }
 
   protected prevMonth(): void {
     const current = this.selectedMonth();
     if (!current) return;
-    const prev = DateTime.fromISO(`${current}-01`).minus({ months: 1 }).toFormat('yyyy-MM');
-    this.loadMonth(prev);
+    this.loadMonth(shiftMonthKey(current, -1));
   }
 
   protected nextMonth(): void {
     const current = this.selectedMonth();
     if (!current) return;
-    const next = DateTime.fromISO(`${current}-01`).plus({ months: 1 }).toFormat('yyyy-MM');
-    this.loadMonth(next);
+    this.loadMonth(shiftMonthKey(current, 1));
   }
 
   protected onPickerMonthSelect(date: Date): void {
-    const month = DateTime.fromJSDate(date).toFormat('yyyy-MM');
-    this.loadMonth(month);
+    this.loadMonth(monthKeyFromPickerDate(date));
   }
 
   private loadMonth(month: string): void {
-    this.pickerDate = DateTime.fromISO(`${month}-01`).toJSDate();
+    this.pickerDate = pickerDateFromMonthKey(month);
     this.store.dispatch(new LoadMonthView(this.accountId(), month));
   }
 
@@ -323,24 +379,32 @@ export class MonthView implements OnInit {
     return (minor ?? 0) / 100;
   }
 
-  protected categoryStatusSeverity(status: string): 'success' | 'warn' | 'danger' | 'secondary' {
+  protected categoryStatusSeverity(
+    status: string,
+  ): "success" | "warn" | "danger" | "secondary" {
     switch (status) {
-      case 'ok': return 'success';
-      case 'over': return 'danger';
-      default: return 'secondary';
+      case "ok":
+        return "success";
+      case "over":
+        return "danger";
+      default:
+        return "secondary";
     }
   }
 
   protected categoryStatusLabel(status: string): string {
     switch (status) {
-      case 'ok': return 'OK';
-      case 'over': return 'Überschritten';
-      default: return 'Kein Budget';
+      case "ok":
+        return "OK";
+      case "over":
+        return "Überschritten";
+      default:
+        return "Kein Budget";
     }
   }
 
   protected memberName(memberId: string): string {
-    return this.members().find(m => m.id === memberId)?.name ?? memberId;
+    return this.members().find((m) => m.id === memberId)?.name ?? memberId;
   }
 
   // ── Phase 9: Beitragslogik-Bereich ────────────────────────────────────────
@@ -353,41 +417,61 @@ export class MonthView implements OnInit {
    */
   protected readonly monthlyRequirementBreakdown = computed(() => {
     const rules = this.contributionBreakdown();
-    const base       = rules.filter(r => r.type === 'base').reduce((s, r) => s + r.amountMinor, 0);
-    const additional = rules.filter(r => r.type === 'additional').reduce((s, r) => s + r.amountMinor, 0);
-    const topup      = rules.filter(r => r.type === 'topup').reduce((s, r) => s + r.amountMinor, 0);
-    const carryover  = this.kpis()?.carryoverTotalMinor ?? 0;
-    const total      = base + additional + topup;
+    const base = rules
+      .filter((r) => r.type === "base")
+      .reduce((s, r) => s + r.amountMinor, 0);
+    const additional = rules
+      .filter((r) => r.type === "additional")
+      .reduce((s, r) => s + r.amountMinor, 0);
+    const topup = rules
+      .filter((r) => r.type === "topup")
+      .reduce((s, r) => s + r.amountMinor, 0);
+    const carryover = this.kpis()?.carryoverTotalMinor ?? 0;
+    const total = base + additional + topup;
     return { base, additional, topup, carryover, total };
   });
 
   /** Task 9.2: Human-readable label for rule type */
   protected ruleTypeLabel(type: string): string {
     switch (type) {
-      case 'base':       return 'Basis';
-      case 'additional': return 'Zusatz';
-      case 'topup':      return 'TopUp';
-      default:           return type;
+      case "base":
+        return "Basis";
+      case "additional":
+        return "Zusatz";
+      case "topup":
+        return "TopUp";
+      default:
+        return type;
     }
   }
 
   /** Task 9.2: PrimeNG tag severity for rule type */
-  protected ruleTypeSeverity(type: string): 'success' | 'info' | 'warn' | 'secondary' {
+  protected ruleTypeSeverity(
+    type: string,
+  ): "success" | "info" | "warn" | "secondary" {
     switch (type) {
-      case 'base':       return 'success';
-      case 'additional': return 'info';
-      case 'topup':      return 'warn';
-      default:           return 'secondary';
+      case "base":
+        return "success";
+      case "additional":
+        return "info";
+      case "topup":
+        return "warn";
+      default:
+        return "secondary";
     }
   }
 
   /** Task 9.2: Human-readable label for distribution mode */
   protected distributionModeLabel(mode: string): string {
     switch (mode) {
-      case 'proRataIncome': return 'ProRata (Einkommen)';
-      case 'perMember':     return 'Pro Mitglied';
-      case 'customSplit':   return 'Individuell';
-      default:              return mode;
+      case "proRataIncome":
+        return "ProRata (Einkommen)";
+      case "perMember":
+        return "Pro Mitglied";
+      case "customSplit":
+        return "Individuell";
+      default:
+        return mode;
     }
   }
 
@@ -401,20 +485,27 @@ export class MonthView implements OnInit {
   protected readonly memberBreakdown = computed(() => {
     const members = this.members();
     const rules = this.contributionBreakdown();
-    return members.map(member => {
+    return members.map((member) => {
       const base = rules
-        .filter(r => r.type === 'base')
+        .filter((r) => r.type === "base")
         .reduce((sum, r) => sum + (r.perMember[member.id] ?? 0), 0);
       const additional = rules
-        .filter(r => r.type === 'additional')
+        .filter((r) => r.type === "additional")
         .reduce((sum, r) => sum + (r.perMember[member.id] ?? 0), 0);
       const topup = rules
-        .filter(r => r.type === 'topup')
+        .filter((r) => r.type === "topup")
         .reduce((sum, r) => sum + (r.perMember[member.id] ?? 0), 0);
       // totalMinor = sum of per-rule distributed amounts (matches dueByMember in backend).
       // Use computed sum so table columns always add up correctly (avoids 1-cent Math.round drift).
       const totalMinor = base + additional + topup;
-      return { memberId: member.id, memberName: member.name, base, additional, topup, totalMinor };
+      return {
+        memberId: member.id,
+        memberName: member.name,
+        base,
+        additional,
+        topup,
+        totalMinor,
+      };
     });
   });
 
@@ -423,12 +514,17 @@ export class MonthView implements OnInit {
    * Controls visibility of the Income-Basis accordion panel.
    */
   protected readonly hasProRata = computed(() =>
-    this.contributionBreakdown().some(r => r.distributionMode === 'proRataIncome'),
+    this.contributionBreakdown().some(
+      (r) => r.distributionMode === "proRataIncome",
+    ),
   );
 
   /** True when data is loaded but no contribution rules are active for this month (setup gap). */
   protected readonly hasNoRules = computed(
-    () => !!this.data() && !this.loading() && this.contributionBreakdown().length === 0,
+    () =>
+      !!this.data() &&
+      !this.loading() &&
+      this.contributionBreakdown().length === 0,
   );
 
   /** True when data is loaded but no members are configured on this account (setup gap). */
@@ -442,12 +538,15 @@ export class MonthView implements OnInit {
   );
 
   /** Deviation label class for Kategorie-Details table */
-  protected deviationClass(spentMinor: number, budgetMinor: number | null): string {
-    if (budgetMinor == null) return 'text-muted-color';
+  protected deviationClass(
+    spentMinor: number,
+    budgetMinor: number | null,
+  ): string {
+    if (budgetMinor == null) return "text-muted-color";
     const diff = spentMinor - budgetMinor;
-    if (diff > 0) return 'text-red-400 font-semibold';
-    if (diff < 0) return 'text-success-600';
-    return 'text-color';
+    if (diff > 0) return "text-red-400 font-semibold";
+    if (diff < 0) return "text-success-600";
+    return "text-color";
   }
 
   /** Opens the Einzahlung-Drawer pre-filled with the given member */
@@ -458,7 +557,7 @@ export class MonthView implements OnInit {
 
   /** Called when the drawer emits (saved) — reloads the month view */
   protected onDrawerSaved(): void {
-    const month = this.selectedMonth() ?? DateTime.utc().toFormat('yyyy-MM');
+    const month = this.selectedMonth() ?? currentUtcMonthKey();
     this.store.dispatch(new LoadMonthView(this.accountId(), month));
   }
 
@@ -482,4 +581,3 @@ export class MonthView implements OnInit {
     return this.categories().find((c) => c.id === catId)?.name ?? catId;
   }
 }
-

@@ -53,7 +53,7 @@ export const mockAccountsSummary = [
     memberCount: 2,
     currentBalanceMinor: 250000,
     balanceHistoryMinor: [200000, 220000, 250000],
-    currentMonth: "2026-02",
+    currentMonth: "2026-02-01T00:00:00.000Z",
     stalenessDays: 0,
     isStale: false,
     missingMonths: [],
@@ -64,7 +64,7 @@ export const mockAccountOverview = {
   account: {
     id: ACCOUNT_ID,
     name: "E2E Konto",
-    currentMonth: "2026-02",
+    currentMonth: "2026-02-01T00:00:00.000Z",
     currentBalanceMinor: 250000,
     balanceChangePct: 5,
     forecastMinor: 263000,

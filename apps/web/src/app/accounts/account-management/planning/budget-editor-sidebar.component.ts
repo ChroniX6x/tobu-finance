@@ -5,29 +5,34 @@ import {
   effect,
   inject,
   signal,
-} from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Store, select } from '@ngxs/store';
-import { DateTime } from 'luxon';
-import { DrawerModule } from 'primeng/drawer';
-import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { SelectModule } from 'primeng/select';
-import { MessageModule } from 'primeng/message';
-import { FluidModule } from 'primeng/fluid';
-import { DatePickerModule } from 'primeng/datepicker';
-import { TooltipModule } from 'primeng/tooltip';
-import { PlanningPageSelectors } from './state/planning.selectors';
+} from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { Store, select } from "@ngxs/store";
+import {
+  currentUtcMonthKey,
+  monthKeyFromPickerDate,
+  pickerDateFromMonthKey,
+  toMonthKey,
+} from "@/shared/utils/calendar-picker";
+import { DrawerModule } from "primeng/drawer";
+import { ButtonModule } from "primeng/button";
+import { InputNumberModule } from "primeng/inputnumber";
+import { SelectModule } from "primeng/select";
+import { MessageModule } from "primeng/message";
+import { FluidModule } from "primeng/fluid";
+import { DatePickerModule } from "primeng/datepicker";
+import { TooltipModule } from "primeng/tooltip";
+import { PlanningPageSelectors } from "./state/planning.selectors";
 import {
   ClosePlanningSidebar,
   CreateBudget,
   DeleteBudget,
   UpdateBudget,
-} from './state/planning.actions';
-import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
+} from "./state/planning.actions";
+import { CreateBudgetPayload, UpdateBudgetPayload } from "./planning.models";
 
 @Component({
-  selector: 'tbf-budget-editor-sidebar',
+  selector: "tbf-budget-editor-sidebar",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
@@ -46,27 +51,32 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
       [header]="isCreate() ? 'Budget hinzufügen' : 'Budget bearbeiten'"
       position="right"
       styleClass="!w-full lg:!w-[480px]"
-      (onHide)="close()">
-
+      (onHide)="close()"
+    >
       <form (ngSubmit)="save()" class="flex flex-col gap-5 h-full">
-
         @if (saveError()) {
-          <p-message severity="error" [text]="saveError()!" styleClass="w-full" />
+          <p-message
+            severity="error"
+            [text]="saveError()!"
+            styleClass="w-full"
+          />
         }
 
         @if (isRetroactive()) {
           <p-message
             severity="warn"
             text="Dieser Zeitraum beginnt in der Vergangenheit. Bestehende Monatsansichten können rückwirkend beeinflusst werden."
-            styleClass="w-full" />
+            styleClass="w-full"
+          />
         }
 
         <p-fluid>
           <div class="flex flex-col gap-4">
-
             <!-- Kategorie -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="bud-cat">Kategorie *</label>
+              <label class="text-sm font-medium text-color" for="bud-cat"
+                >Kategorie *</label
+              >
               @if (isCreate()) {
                 <p-select
                   inputId="bud-cat"
@@ -79,17 +89,20 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
                   placeholder="Kategorie wählen …"
                   [filter]="true"
                   filterPlaceholder="Suchen"
-                  styleClass="w-full" />
+                  styleClass="w-full"
+                />
               } @else {
                 <span class="text-sm text-color py-2 pl-1">
-                  {{ currentBudget()?.categoryName ?? '—' }}
+                  {{ currentBudget()?.categoryName ?? "—" }}
                 </span>
               }
             </div>
 
             <!-- Betrag -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="bud-amt">Monatliches Budget *</label>
+              <label class="text-sm font-medium text-color" for="bud-amt"
+                >Monatliches Budget *</label
+              >
               <p-inputnumber
                 inputId="bud-amt"
                 name="amountEur"
@@ -101,12 +114,15 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
                 [min]="1"
                 suffix=" €"
                 styleClass="w-full"
-                placeholder="z.B. 500" />
+                placeholder="z.B. 500"
+              />
             </div>
 
             <!-- Gültig ab -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="bud-from">Gültig ab *</label>
+              <label class="text-sm font-medium text-color" for="bud-from"
+                >Gültig ab *</label
+              >
               <p-datepicker
                 inputId="bud-from"
                 name="fromMonth"
@@ -115,12 +131,15 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
                 view="month"
                 dateFormat="M yy"
                 [readonlyInput]="true"
-                styleClass="w-full" />
+                styleClass="w-full"
+              />
             </div>
 
             <!-- Gültig bis -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color">Gültig bis (optional)</label>
+              <label class="text-sm font-medium text-color"
+                >Gültig bis (optional)</label
+              >
               <div class="flex gap-2 items-center">
                 <p-datepicker
                   name="toMonth"
@@ -129,7 +148,8 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
                   view="month"
                   dateFormat="M yy"
                   [readonlyInput]="true"
-                  styleClass="flex-1" />
+                  styleClass="flex-1"
+                />
                 @if (toMonthDate()) {
                   <p-button
                     type="button"
@@ -138,14 +158,16 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
                     severity="secondary"
                     size="small"
                     (onClick)="clearToMonth()"
-                    pTooltip="Kein Ablaufdatum" />
+                    pTooltip="Kein Ablaufdatum"
+                  />
                 }
               </div>
               @if (toMonthLabel() && toMonthLabel()! < fromMonthLabel()) {
-                <span class="text-xs text-red-500 dark:text-red-400">Muss nach dem Startdatum liegen.</span>
+                <span class="text-xs text-red-500 dark:text-red-400"
+                  >Muss nach dem Startdatum liegen.</span
+                >
               }
             </div>
-
           </div>
         </p-fluid>
 
@@ -160,13 +182,15 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
                 severity="danger"
                 [text]="true"
                 size="small"
-                (onClick)="showDeleteConfirm.set(true)" />
+                (onClick)="showDeleteConfirm.set(true)"
+              />
             } @else {
               <div class="flex flex-col gap-3">
                 <p-message
                   severity="warn"
                   text="Diese Änderung kann bereits berechnete Monatsansichten rückwirkend verändern. Budget trotzdem löschen?"
-                  styleClass="w-full" />
+                  styleClass="w-full"
+                />
                 <div class="flex gap-2">
                   <p-button
                     type="button"
@@ -175,14 +199,16 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
                     severity="danger"
                     size="small"
                     [loading]="saving()"
-                    (onClick)="deleteBudget()" />
+                    (onClick)="deleteBudget()"
+                  />
                   <p-button
                     type="button"
                     label="Abbrechen"
                     severity="secondary"
                     [text]="true"
                     size="small"
-                    (onClick)="showDeleteConfirm.set(false)" />
+                    (onClick)="showDeleteConfirm.set(false)"
+                  />
                 </div>
               </div>
             }
@@ -190,21 +216,24 @@ import { CreateBudgetPayload, UpdateBudgetPayload } from './planning.models';
         }
 
         <!-- Footer -->
-        <div class="mt-auto flex gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <div
+          class="mt-auto flex gap-3 pt-4 border-t border-surface-200 dark:border-surface-700"
+        >
           <p-button
             type="submit"
             [label]="isCreate() ? 'Anlegen' : 'Speichern'"
             icon="pi pi-check"
             [disabled]="isInvalid()"
-            [loading]="saving()" />
+            [loading]="saving()"
+          />
           <p-button
             type="button"
             label="Abbrechen"
             severity="secondary"
             [text]="true"
-            (onClick)="close()" />
+            (onClick)="close()"
+          />
         </div>
-
       </form>
     </p-drawer>
   `,
@@ -222,33 +251,33 @@ export class BudgetEditorSidebarComponent {
   protected readonly showDeleteConfirm = signal(false);
 
   // Form fields
-  protected readonly categoryId = signal<string>('');
+  protected readonly categoryId = signal<string>("");
   protected readonly amountEur = signal<number | null>(null);
   protected readonly fromMonthDate = signal<Date>(
-    DateTime.now().startOf('month').toJSDate(),
+    pickerDateFromMonthKey(currentUtcMonthKey()),
   );
   protected readonly toMonthDate = signal<Date | null>(null);
 
-  protected readonly isOpen = computed(() => this.editor()?.kind === 'budget');
+  protected readonly isOpen = computed(() => this.editor()?.kind === "budget");
   protected readonly isCreate = computed(
-    () => this.editor()?.kind === 'budget' && this.editor()!.mode === 'create',
+    () => this.editor()?.kind === "budget" && this.editor()!.mode === "create",
   );
   protected readonly currentBudget = computed(() => {
     const ed = this.editor();
-    if (ed?.kind !== 'budget' || !ed.budgetId) return null;
-    return this.allBudgets().find(b => b.budgetId === ed.budgetId) ?? null;
+    if (ed?.kind !== "budget" || !ed.budgetId) return null;
+    return this.allBudgets().find((b) => b.budgetId === ed.budgetId) ?? null;
   });
 
   protected readonly fromMonthLabel = computed(() =>
-    DateTime.fromJSDate(this.fromMonthDate()).toFormat('yyyy-MM'),
+    monthKeyFromPickerDate(this.fromMonthDate()),
   );
   protected readonly toMonthLabel = computed(() => {
     const d = this.toMonthDate();
-    return d ? DateTime.fromJSDate(d).toFormat('yyyy-MM') : null;
+    return d ? monthKeyFromPickerDate(d) : null;
   });
 
   protected readonly isRetroactive = computed(() => {
-    const currentMonth = DateTime.now().startOf('month').toFormat('yyyy-MM');
+    const currentMonth = currentUtcMonthKey();
     return this.fromMonthLabel() < currentMonth;
   });
 
@@ -264,31 +293,28 @@ export class BudgetEditorSidebarComponent {
   constructor() {
     effect(() => {
       const ed = this.editor();
-      if (ed?.kind !== 'budget') return;
+      if (ed?.kind !== "budget") return;
 
       this.saveError.set(null);
       this.showDeleteConfirm.set(false);
 
-      if (ed.mode === 'edit') {
+      if (ed.mode === "edit") {
         const budget = this.currentBudget();
         if (!budget) return;
         this.categoryId.set(budget.categoryId);
         this.amountEur.set(budget.amountMinor / 100);
-        const fromLabel = budget.fromMonth === 'open'
-          ? DateTime.now().toFormat('yyyy-MM')
-          : budget.fromMonth;
-        this.fromMonthDate.set(
-          DateTime.fromFormat(fromLabel, 'yyyy-MM').startOf('month').toJSDate(),
-        );
+        const fromLabel =
+          budget.fromMonth === "open" ? currentUtcMonthKey() : budget.fromMonth;
+        this.fromMonthDate.set(pickerDateFromMonthKey(toMonthKey(fromLabel)));
         this.toMonthDate.set(
           budget.toMonth
-            ? DateTime.fromFormat(budget.toMonth, 'yyyy-MM').startOf('month').toJSDate()
+            ? pickerDateFromMonthKey(toMonthKey(budget.toMonth))
             : null,
         );
       } else {
-        this.categoryId.set(ed.categoryId ?? '');
+        this.categoryId.set(ed.categoryId ?? "");
         this.amountEur.set(null);
-        this.fromMonthDate.set(DateTime.now().startOf('month').toJSDate());
+        this.fromMonthDate.set(pickerDateFromMonthKey(currentUtcMonthKey()));
         this.toMonthDate.set(null);
       }
     });
@@ -321,7 +347,7 @@ export class BudgetEditorSidebarComponent {
 
     if (this.isCreate()) {
       const payload: CreateBudgetPayload = {
-        accountId: this.vm()?.accountId ?? '',
+        accountId: this.vm()?.accountId ?? "",
         categoryId: this.categoryId(),
         amountMinor,
         fromMonth,
@@ -330,30 +356,44 @@ export class BudgetEditorSidebarComponent {
       this.store.dispatch(new CreateBudget(payload)).subscribe({
         error: (err: unknown) => {
           this.saving.set(false);
-          const body = (err as { error?: { code?: string; message?: string } })?.error;
-          if (body?.code === 'BUDGET_OVERLAP') {
+          const body = (err as { error?: { code?: string; message?: string } })
+            ?.error;
+          if (body?.code === "BUDGET_OVERLAP") {
             this.saveError.set(
-              'Für diese Kategorie existiert bereits ein Budget mit überschneidendem Zeitraum.',
+              "Für diese Kategorie existiert bereits ein Budget mit überschneidendem Zeitraum.",
             );
           } else {
-            this.saveError.set(body?.message ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
+            this.saveError.set(
+              body?.message ??
+                "Speichern fehlgeschlagen – bitte erneut versuchen.",
+            );
           }
         },
         complete: () => this.saving.set(false),
       });
     } else {
-      const budgetId = (this.editor() as { kind: 'budget'; mode: 'edit'; budgetId?: string }).budgetId!;
-      const payload: UpdateBudgetPayload = { amountMinor, fromMonth, toMonth };
+      const budgetId = (
+        this.editor() as { kind: "budget"; mode: "edit"; budgetId?: string }
+      ).budgetId!;
+      const payload: UpdateBudgetPayload = {
+        amountMinor,
+        fromMonth,
+        toMonth: toMonth ?? null,
+      };
       this.store.dispatch(new UpdateBudget(budgetId, payload)).subscribe({
         error: (err: unknown) => {
           this.saving.set(false);
-          const body = (err as { error?: { code?: string; message?: string } })?.error;
-          if (body?.code === 'BUDGET_OVERLAP') {
+          const body = (err as { error?: { code?: string; message?: string } })
+            ?.error;
+          if (body?.code === "BUDGET_OVERLAP") {
             this.saveError.set(
-              'Für diese Kategorie existiert bereits ein Budget mit überschneidendem Zeitraum.',
+              "Für diese Kategorie existiert bereits ein Budget mit überschneidendem Zeitraum.",
             );
           } else {
-            this.saveError.set(body?.message ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
+            this.saveError.set(
+              body?.message ??
+                "Speichern fehlgeschlagen – bitte erneut versuchen.",
+            );
           }
         },
         complete: () => this.saving.set(false),
@@ -362,14 +402,18 @@ export class BudgetEditorSidebarComponent {
   }
 
   protected deleteBudget(): void {
-    const budgetId = (this.editor() as { kind: 'budget'; mode: 'edit'; budgetId?: string }).budgetId;
+    const budgetId = (
+      this.editor() as { kind: "budget"; mode: "edit"; budgetId?: string }
+    ).budgetId;
     if (!budgetId) return;
     this.saving.set(true);
     this.store.dispatch(new DeleteBudget(budgetId)).subscribe({
       error: (err: unknown) => {
         this.saving.set(false);
         const msg = (err as { error?: { message?: string } })?.error?.message;
-        this.saveError.set(msg ?? 'Löschen fehlgeschlagen – bitte erneut versuchen.');
+        this.saveError.set(
+          msg ?? "Löschen fehlgeschlagen – bitte erneut versuchen.",
+        );
         this.showDeleteConfirm.set(false);
       },
       complete: () => this.saving.set(false),

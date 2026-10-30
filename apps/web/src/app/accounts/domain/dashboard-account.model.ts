@@ -8,9 +8,9 @@ export interface DashboardAccountModel {
   balanceHistoryMinor: number[]; // z. B. letzte 5 Monate
 
   // NEU (vom Backend)
-  currentMonthIso: string;    // "2025-08"
-  stalenessDays: number;      // z. B. 12
-  isStale: boolean;           // true/false
+  currentMonthIso: string; // MonthKey "2025-08" or UTC month anchor "2025-08-01T00:00:00.000Z" (the API returns the anchor); render via formatMonthValue
+  stalenessDays: number; // z. B. 12
+  isStale: boolean; // true/false
   missingMonthsIso?: string[]; // optional, z. B. ["2025-09"]
 
   // recentTransactions: {

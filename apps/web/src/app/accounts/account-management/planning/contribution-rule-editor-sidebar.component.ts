@@ -5,41 +5,46 @@ import {
   effect,
   inject,
   signal,
-} from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Store, select } from '@ngxs/store';
-import { DateTime } from 'luxon';
-import { DrawerModule } from 'primeng/drawer';
-import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { MessageModule } from 'primeng/message';
-import { FluidModule } from 'primeng/fluid';
-import { DatePickerModule } from 'primeng/datepicker';
-import { TooltipModule } from 'primeng/tooltip';
-import { PlanningPageSelectors } from './state/planning.selectors';
+} from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { Store, select } from "@ngxs/store";
+import {
+  currentUtcMonthKey,
+  monthKeyFromPickerDate,
+  pickerDateFromMonthKey,
+  toMonthKey,
+} from "@/shared/utils/calendar-picker";
+import { DrawerModule } from "primeng/drawer";
+import { ButtonModule } from "primeng/button";
+import { InputNumberModule } from "primeng/inputnumber";
+import { InputTextModule } from "primeng/inputtext";
+import { SelectButtonModule } from "primeng/selectbutton";
+import { ToggleSwitchModule } from "primeng/toggleswitch";
+import { MessageModule } from "primeng/message";
+import { FluidModule } from "primeng/fluid";
+import { DatePickerModule } from "primeng/datepicker";
+import { TooltipModule } from "primeng/tooltip";
+import { PlanningPageSelectors } from "./state/planning.selectors";
 import {
   ClosePlanningSidebar,
   CreateContributionRule,
   DeleteContributionRule,
   UpdateContributionRule,
-} from './state/planning.actions';
+} from "./state/planning.actions";
 import {
   ContributionBlockVm,
   CreateContributionRulePayload,
   UpdateContributionRulePayload,
-} from './planning.models';
+} from "./planning.models";
 import {
   DistributionEditorComponent,
   DistributionMemberOption,
-} from './distribution-editor.component';
+} from "./distribution-editor.component";
 
-type Distribution = ContributionBlockVm['distribution'];
+type Distribution = ContributionBlockVm["distribution"];
 
 @Component({
-  selector: 'tbf-contribution-rule-editor-sidebar',
+  selector: "tbf-contribution-rule-editor-sidebar",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
@@ -58,34 +63,40 @@ type Distribution = ContributionBlockVm['distribution'];
   template: `
     <p-drawer
       [visible]="isOpen()"
-      [header]="isCreate() ? 'Beitragsregel hinzufügen' : 'Beitragsregel bearbeiten'"
+      [header]="
+        isCreate() ? 'Beitragsregel hinzufügen' : 'Beitragsregel bearbeiten'
+      "
       position="right"
       styleClass="!w-full lg:!w-[540px]"
-      (onHide)="close()">
-
+      (onHide)="close()"
+    >
       <form (ngSubmit)="save()" class="flex flex-col gap-5 h-full">
-
         @if (saveError()) {
-          <p-message severity="error" [text]="saveError()!" styleClass="w-full" />
+          <p-message
+            severity="error"
+            [text]="saveError()!"
+            styleClass="w-full"
+          />
         }
 
         @if (isRetroactive()) {
           <p-message
             severity="warn"
             text="Dieser Zeitraum beginnt in der Vergangenheit. Bestehende Monatsansichten können rückwirkend beeinflusst werden."
-            styleClass="w-full" />
+            styleClass="w-full"
+          />
         }
 
         @if (proRataIncomplete()) {
           <p-message
             severity="warn"
             text="Nicht alle Mitglieder haben ein aktives Einkommen. ProRata-Verteilung ist unvollständig und kann nicht gespeichert werden."
-            styleClass="w-full" />
+            styleClass="w-full"
+          />
         }
 
         <p-fluid>
           <div class="flex flex-col gap-4">
-
             <!-- Typ (Create: Auswahl; Edit: read-only) -->
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-medium text-color">Typ</label>
@@ -97,17 +108,20 @@ type Distribution = ContributionBlockVm['distribution'];
                   [options]="typeOptions"
                   optionLabel="label"
                   optionValue="value"
-                  styleClass="w-full" />
+                  styleClass="w-full"
+                />
               } @else {
                 <span class="text-sm text-color py-2 pl-1">
-                  {{ ruleType() === 'additional' ? 'Zusatzbeitrag' : 'TopUp' }}
+                  {{ ruleType() === "additional" ? "Zusatzbeitrag" : "TopUp" }}
                 </span>
               }
             </div>
 
             <!-- Bezeichnung -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="rule-desc">Bezeichnung *</label>
+              <label class="text-sm font-medium text-color" for="rule-desc"
+                >Bezeichnung *</label
+              >
               <input
                 id="rule-desc"
                 pInputText
@@ -115,12 +129,15 @@ type Distribution = ContributionBlockVm['distribution'];
                 [ngModel]="description()"
                 (ngModelChange)="description.set($event)"
                 placeholder="z.B. Strom-Anteil, Haushaltsgeld …"
-                class="w-full" />
+                class="w-full"
+              />
             </div>
 
             <!-- Betrag -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="rule-amt">Betrag *</label>
+              <label class="text-sm font-medium text-color" for="rule-amt"
+                >Betrag *</label
+              >
               <p-inputnumber
                 inputId="rule-amt"
                 name="amountEur"
@@ -132,7 +149,8 @@ type Distribution = ContributionBlockVm['distribution'];
                 [min]="1"
                 suffix=" €"
                 styleClass="w-full"
-                placeholder="z.B. 200" />
+                placeholder="z.B. 200"
+              />
             </div>
 
             <!-- Wiederkehrend -->
@@ -140,16 +158,21 @@ type Distribution = ContributionBlockVm['distribution'];
               <p-toggleswitch
                 name="recurring"
                 [ngModel]="recurring()"
-                (ngModelChange)="recurring.set($event)" />
+                (ngModelChange)="recurring.set($event)"
+              />
               <span class="text-sm text-color">Wiederkehrend</span>
               @if (!recurring()) {
-                <span class="text-xs text-muted-color">(gilt nur für Gültig-ab Monat)</span>
+                <span class="text-xs text-muted-color"
+                  >(gilt nur für Gültig-ab Monat)</span
+                >
               }
             </div>
 
             <!-- Gültig ab -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="rule-from">Gültig ab *</label>
+              <label class="text-sm font-medium text-color" for="rule-from"
+                >Gültig ab *</label
+              >
               <p-datepicker
                 inputId="rule-from"
                 name="fromMonth"
@@ -158,13 +181,16 @@ type Distribution = ContributionBlockVm['distribution'];
                 view="month"
                 dateFormat="M yy"
                 [readonlyInput]="true"
-                styleClass="w-full" />
+                styleClass="w-full"
+              />
             </div>
 
             <!-- Gültig bis (nur wenn wiederkehrend) -->
             @if (recurring()) {
               <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-color">Gültig bis (optional)</label>
+                <label class="text-sm font-medium text-color"
+                  >Gültig bis (optional)</label
+                >
                 <div class="flex gap-2 items-center">
                   <p-datepicker
                     name="toMonth"
@@ -173,7 +199,8 @@ type Distribution = ContributionBlockVm['distribution'];
                     view="month"
                     dateFormat="M yy"
                     [readonlyInput]="true"
-                    styleClass="flex-1" />
+                    styleClass="flex-1"
+                  />
                   @if (toMonthDate()) {
                     <p-button
                       type="button"
@@ -182,17 +209,24 @@ type Distribution = ContributionBlockVm['distribution'];
                       severity="secondary"
                       size="small"
                       (onClick)="clearToMonth()"
-                      pTooltip="Kein Ablaufdatum" />
+                      pTooltip="Kein Ablaufdatum"
+                    />
                   }
                 </div>
                 @if (toMonthLabel() && toMonthLabel()! < fromMonthLabel()) {
-                  <span class="text-xs text-red-500 dark:text-red-400">Muss nach dem Startdatum liegen.</span>
+                  <span class="text-xs text-red-500 dark:text-red-400"
+                    >Muss nach dem Startdatum liegen.</span
+                  >
                 }
               </div>
             } @else {
               <div class="flex flex-col gap-1">
-                <span class="text-sm font-medium text-muted-color">Gültig bis</span>
-                <span class="text-sm text-color">{{ fromMonthLabel() }} (automatisch = Gültig ab)</span>
+                <span class="text-sm font-medium text-muted-color"
+                  >Gültig bis</span
+                >
+                <span class="text-sm text-color"
+                  >{{ fromMonthLabel() }} (automatisch = Gültig ab)</span
+                >
               </div>
             }
 
@@ -201,9 +235,9 @@ type Distribution = ContributionBlockVm['distribution'];
               <tbf-distribution-editor
                 [distribution]="currentDistribution()"
                 [members]="memberOptions()"
-                (distributionChange)="currentDistribution.set($event)" />
+                (distributionChange)="currentDistribution.set($event)"
+              />
             </div>
-
           </div>
         </p-fluid>
 
@@ -218,13 +252,15 @@ type Distribution = ContributionBlockVm['distribution'];
                 severity="danger"
                 [text]="true"
                 size="small"
-                (onClick)="showDeleteConfirm.set(true)" />
+                (onClick)="showDeleteConfirm.set(true)"
+              />
             } @else {
               <div class="flex flex-col gap-3">
                 <p-message
                   severity="warn"
                   text="Diese Regel fließt in die monatlichen Sollwerte ein. Beitragsbaustein trotzdem löschen?"
-                  styleClass="w-full" />
+                  styleClass="w-full"
+                />
                 <div class="flex gap-2">
                   <p-button
                     type="button"
@@ -233,14 +269,16 @@ type Distribution = ContributionBlockVm['distribution'];
                     severity="danger"
                     size="small"
                     [loading]="saving()"
-                    (onClick)="deleteRule()" />
+                    (onClick)="deleteRule()"
+                  />
                   <p-button
                     type="button"
                     label="Abbrechen"
                     severity="secondary"
                     [text]="true"
                     size="small"
-                    (onClick)="showDeleteConfirm.set(false)" />
+                    (onClick)="showDeleteConfirm.set(false)"
+                  />
                 </div>
               </div>
             }
@@ -248,21 +286,24 @@ type Distribution = ContributionBlockVm['distribution'];
         }
 
         <!-- Footer -->
-        <div class="mt-auto flex gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <div
+          class="mt-auto flex gap-3 pt-4 border-t border-surface-200 dark:border-surface-700"
+        >
           <p-button
             type="submit"
             [label]="isCreate() ? 'Anlegen' : 'Speichern'"
             icon="pi pi-check"
             [disabled]="isInvalid()"
-            [loading]="saving()" />
+            [loading]="saving()"
+          />
           <p-button
             type="button"
             label="Abbrechen"
             severity="secondary"
             [text]="true"
-            (onClick)="close()" />
+            (onClick)="close()"
+          />
         </div>
-
       </form>
     </p-drawer>
   `,
@@ -279,36 +320,42 @@ export class ContributionRuleEditorSidebarComponent {
   protected readonly showDeleteConfirm = signal(false);
 
   // Form fields
-  protected readonly ruleType = signal<'additional' | 'topup'>('additional');
-  protected readonly description = signal('');
+  protected readonly ruleType = signal<"additional" | "topup">("additional");
+  protected readonly description = signal("");
   protected readonly amountEur = signal<number | null>(null);
   protected readonly recurring = signal(true);
-  protected readonly fromMonthDate = signal<Date>(DateTime.now().startOf('month').toJSDate());
+  protected readonly fromMonthDate = signal<Date>(
+    pickerDateFromMonthKey(currentUtcMonthKey()),
+  );
   protected readonly toMonthDate = signal<Date | null>(null);
-  protected readonly currentDistribution = signal<Distribution>({ mode: 'proRataIncome' });
+  protected readonly currentDistribution = signal<Distribution>({
+    mode: "proRataIncome",
+  });
 
   protected readonly typeOptions = [
-    { label: 'Zusatzbeitrag', value: 'additional' },
-    { label: 'TopUp', value: 'topup' },
+    { label: "Zusatzbeitrag", value: "additional" },
+    { label: "TopUp", value: "topup" },
   ];
 
-  protected readonly isOpen = computed(() => this.editor()?.kind === 'rule');
+  protected readonly isOpen = computed(() => this.editor()?.kind === "rule");
   protected readonly isCreate = computed(
-    () => this.editor()?.kind === 'rule' && this.editor()!.mode === 'create',
+    () => this.editor()?.kind === "rule" && this.editor()!.mode === "create",
   );
 
   protected readonly currentRule = computed(() => {
     const ed = this.editor();
-    if (ed?.kind !== 'rule' || !ed.ruleId) return null;
+    if (ed?.kind !== "rule" || !ed.ruleId) return null;
     const v = this.vm();
     if (!v) return null;
     return (
-      [...v.contributionBlocks, ...v.specialBlocks].find(b => b.ruleId === ed.ruleId) ?? null
+      [...v.contributionBlocks, ...v.specialBlocks].find(
+        (b) => b.ruleId === ed.ruleId,
+      ) ?? null
     );
   });
 
   protected readonly memberOptions = computed((): DistributionMemberOption[] =>
-    this.allIncomes().map(m => ({
+    this.allIncomes().map((m) => ({
       memberId: m.memberId,
       memberName: m.memberName ?? m.memberId,
       incomeSharePct: m.incomeSharePct,
@@ -316,11 +363,11 @@ export class ContributionRuleEditorSidebarComponent {
   );
 
   protected readonly fromMonthLabel = computed(() =>
-    DateTime.fromJSDate(this.fromMonthDate()).toFormat('yyyy-MM'),
+    monthKeyFromPickerDate(this.fromMonthDate()),
   );
   protected readonly toMonthLabel = computed(() => {
     const d = this.toMonthDate();
-    return d ? DateTime.fromJSDate(d).toFormat('yyyy-MM') : null;
+    return d ? monthKeyFromPickerDate(d) : null;
   });
 
   protected readonly effectiveToMonth = computed(() => {
@@ -329,13 +376,13 @@ export class ContributionRuleEditorSidebarComponent {
   });
 
   protected readonly isRetroactive = computed(() => {
-    const currentMonth = DateTime.now().startOf('month').toFormat('yyyy-MM');
+    const currentMonth = currentUtcMonthKey();
     return this.fromMonthLabel() < currentMonth;
   });
 
   protected readonly proRataIncomplete = computed(() => {
-    if (this.currentDistribution().mode !== 'proRataIncome') return false;
-    return this.allIncomes().some(m => m.missingForProRata);
+    if (this.currentDistribution().mode !== "proRataIncome") return false;
+    return this.allIncomes().some((m) => m.missingForProRata);
   });
 
   protected readonly isInvalid = computed(() => {
@@ -346,8 +393,8 @@ export class ContributionRuleEditorSidebarComponent {
     if (to && to < this.fromMonthLabel()) return true;
     if (this.proRataIncomplete()) return true;
     const dist = this.currentDistribution();
-    if (dist.mode === 'perMember' && !dist.memberId) return true;
-    if (dist.mode === 'customSplit') {
+    if (dist.mode === "perMember" && !dist.memberId) return true;
+    if (dist.mode === "customSplit") {
       const sum = (dist.customSplit ?? []).reduce((s, r) => s + r.split, 0);
       if (sum !== 100) return true;
     }
@@ -357,37 +404,41 @@ export class ContributionRuleEditorSidebarComponent {
   constructor() {
     effect(() => {
       const ed = this.editor();
-      if (ed?.kind !== 'rule') return;
+      if (ed?.kind !== "rule") return;
 
       this.saveError.set(null);
       this.showDeleteConfirm.set(false);
 
-      if (ed.mode === 'edit') {
+      if (ed.mode === "edit") {
         const rule = this.currentRule();
         if (!rule) return;
-        this.ruleType.set(rule.type as 'additional' | 'topup');
-        this.description.set(rule.description ?? '');
+        this.ruleType.set(rule.type as "additional" | "topup");
+        this.description.set(rule.description ?? "");
         this.amountEur.set(rule.amountMinor / 100);
         this.recurring.set(rule.recurring);
-        const fromLabel = rule.fromMonth ?? DateTime.now().toFormat('yyyy-MM');
-        this.fromMonthDate.set(
-          DateTime.fromFormat(fromLabel, 'yyyy-MM').startOf('month').toJSDate(),
-        );
+        const fromLabel = rule.fromMonth ?? currentUtcMonthKey();
+        this.fromMonthDate.set(pickerDateFromMonthKey(toMonthKey(fromLabel)));
         this.toMonthDate.set(
           rule.toMonth
-            ? DateTime.fromFormat(rule.toMonth, 'yyyy-MM').startOf('month').toJSDate()
+            ? pickerDateFromMonthKey(toMonthKey(rule.toMonth))
             : null,
         );
         this.currentDistribution.set({ ...rule.distribution });
       } else {
-        const presetType = (ed as { kind: 'rule'; mode: 'create'; ruleType?: 'additional' | 'topup' }).ruleType;
-        this.ruleType.set(presetType ?? 'additional');
-        this.description.set('');
+        const presetType = (
+          ed as {
+            kind: "rule";
+            mode: "create";
+            ruleType?: "additional" | "topup";
+          }
+        ).ruleType;
+        this.ruleType.set(presetType ?? "additional");
+        this.description.set("");
         this.amountEur.set(null);
         this.recurring.set(true);
-        this.fromMonthDate.set(DateTime.now().startOf('month').toJSDate());
+        this.fromMonthDate.set(pickerDateFromMonthKey(currentUtcMonthKey()));
         this.toMonthDate.set(null);
-        this.currentDistribution.set({ mode: 'proRataIncome' });
+        this.currentDistribution.set({ mode: "proRataIncome" });
       }
     });
   }
@@ -421,7 +472,7 @@ export class ContributionRuleEditorSidebarComponent {
 
     if (this.isCreate()) {
       const payload: CreateContributionRulePayload = {
-        accountId: this.vm()?.accountId ?? '',
+        accountId: this.vm()?.accountId ?? "",
         title: desc,
         description: desc,
         amountMinor,
@@ -435,43 +486,54 @@ export class ContributionRuleEditorSidebarComponent {
         error: (err: unknown) => {
           this.saving.set(false);
           const msg = (err as { error?: { message?: string } })?.error?.message;
-          this.saveError.set(msg ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
+          this.saveError.set(
+            msg ?? "Speichern fehlgeschlagen – bitte erneut versuchen.",
+          );
         },
         complete: () => this.saving.set(false),
       });
     } else {
       const ed = this.editor();
-      const ruleId = (ed as { kind: 'rule'; mode: 'edit'; ruleId?: string }).ruleId!;
+      const ruleId = (ed as { kind: "rule"; mode: "edit"; ruleId?: string })
+        .ruleId!;
       const payload: UpdateContributionRulePayload = {
         title: desc,
         description: desc,
         amountMinor,
         recurring: this.recurring(),
         fromMonth,
-        toMonth,
+        toMonth: toMonth ?? null,
         distribution,
       };
-      this.store.dispatch(new UpdateContributionRule(ruleId, payload)).subscribe({
-        error: (err: unknown) => {
-          this.saving.set(false);
-          const msg = (err as { error?: { message?: string } })?.error?.message;
-          this.saveError.set(msg ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
-        },
-        complete: () => this.saving.set(false),
-      });
+      this.store
+        .dispatch(new UpdateContributionRule(ruleId, payload))
+        .subscribe({
+          error: (err: unknown) => {
+            this.saving.set(false);
+            const msg = (err as { error?: { message?: string } })?.error
+              ?.message;
+            this.saveError.set(
+              msg ?? "Speichern fehlgeschlagen – bitte erneut versuchen.",
+            );
+          },
+          complete: () => this.saving.set(false),
+        });
     }
   }
 
   protected deleteRule(): void {
     const ed = this.editor();
-    const ruleId = (ed as { kind: 'rule'; mode: 'edit'; ruleId?: string }).ruleId;
+    const ruleId = (ed as { kind: "rule"; mode: "edit"; ruleId?: string })
+      .ruleId;
     if (!ruleId) return;
     this.saving.set(true);
     this.store.dispatch(new DeleteContributionRule(ruleId)).subscribe({
       error: (err: unknown) => {
         this.saving.set(false);
         const msg = (err as { error?: { message?: string } })?.error?.message;
-        this.saveError.set(msg ?? 'Löschen fehlgeschlagen – bitte erneut versuchen.');
+        this.saveError.set(
+          msg ?? "Löschen fehlgeschlagen – bitte erneut versuchen.",
+        );
         this.showDeleteConfirm.set(false);
       },
       complete: () => this.saving.set(false),
