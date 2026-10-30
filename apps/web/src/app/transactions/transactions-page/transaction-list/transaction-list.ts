@@ -4,41 +4,42 @@ import {
   inject,
   input,
   output,
-} from '@angular/core';
-import { Store, select } from '@ngxs/store';
-import * as _ from 'lodash';
-import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
-import { BadgeModule } from 'primeng/badge';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { ToastModule } from 'primeng/toast';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { TransactionPageState } from '../../state/transaction-page.state';
-import { TransactionCaptureState } from '../../state/transaction-capture.state';
-import { CategoriesState } from '@/shared/state/categories.state';
+} from "@angular/core";
+import { Store, select } from "@ngxs/store";
+import * as _ from "lodash";
+import { TableModule } from "primeng/table";
+import { ButtonModule } from "primeng/button";
+import { BadgeModule } from "primeng/badge";
+import { TagModule } from "primeng/tag";
+import { TooltipModule } from "primeng/tooltip";
+import { ConfirmDialogModule } from "primeng/confirmdialog";
+import { ProgressBarModule } from "primeng/progressbar";
+import { ToastModule } from "primeng/toast";
+import { ConfirmationService, MessageService } from "primeng/api";
+import { TransactionPageState } from "../../state/transaction-page.state";
+import { TransactionCaptureState } from "../../state/transaction-capture.state";
+import { CategoriesState } from "@/shared/state/categories.state";
 import {
   DeleteTransactionConfirmed,
   DeleteTransactionOptimistic,
   SetPage,
   UndoDeleteTransaction,
-} from '../../state/transaction-page.actions';
+} from "../../state/transaction-page.actions";
 import {
   AddDraft,
   SetCaptureMode,
   ToggleDock,
-} from '../../state/transaction-capture.actions';
-import { TransactionModel } from '../../domain/transaction.model';
-import { SplitMeta } from '../../domain/transaction.model';
-import { TransactionsApiService } from '../../domain/transactions-api.service';
-import { catchError, of } from 'rxjs';
+} from "../../state/transaction-capture.actions";
+import { TransactionModel } from "../../domain/transaction.model";
+import { SplitMeta } from "../../domain/transaction.model";
+import { TransactionsApiService } from "../../domain/transactions-api.service";
+import { catchError, of } from "rxjs";
+import { formatBankDate } from "@/shared/utils/calendar-picker";
 
 @Component({
-  selector: 'tbf-transaction-list',
-  templateUrl: './transaction-list.html',
-  styleUrl: './transaction-list.scss',
+  selector: "tbf-transaction-list",
+  templateUrl: "./transaction-list.html",
+  styleUrl: "./transaction-list.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService, MessageService],
   imports: [
@@ -67,10 +68,13 @@ export class TransactionList {
   protected loading = select(TransactionPageState.loading);
   protected error = select(TransactionPageState.error);
   protected splitMetaMap = select(TransactionPageState.splitMetaMap);
-  protected childrenByParentId = select(TransactionPageState.childrenByParentId);
+  protected childrenByParentId = select(
+    TransactionPageState.childrenByParentId,
+  );
   protected total = select(TransactionPageState.total);
   protected filters = select(TransactionPageState.filters);
   protected categories = select(CategoriesState.categories);
+  protected readonly formatBankDate = formatBankDate;
 
   protected getSplitMeta(parentId: string): SplitMeta | null {
     return this.splitMetaMap()[parentId] ?? null;
@@ -90,11 +94,11 @@ export class TransactionList {
   }
 
   protected getCategoryName(categoryId: string | null | undefined): string {
-    if (!categoryId) return 'Nicht kategorisiert';
+    if (!categoryId) return "Nicht kategorisiert";
     const cats = this.categories();
-    if (!cats || cats.length === 0) return 'Nicht kategorisiert';
+    if (!cats || cats.length === 0) return "Nicht kategorisiert";
     const category = cats.find((c) => c._id === categoryId);
-    return category?.name ?? 'Nicht kategorisiert';
+    return category?.name ?? "Nicht kategorisiert";
   }
 
   protected selectRow(tx: TransactionModel): void {
@@ -110,20 +114,20 @@ export class TransactionList {
     if (hasChildren) {
       this.confirmationService.confirm({
         target: event.target as EventTarget,
-        message: `Parent + ${children.length} Teiltransaktion${children.length > 1 ? 'en' : ''} löschen?`,
-        header: 'Buchung löschen',
-        icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Löschen',
-        rejectLabel: 'Abbrechen',
-        acceptButtonStyleClass: 'p-button-danger',
+        message: `Parent + ${children.length} Teiltransaktion${children.length > 1 ? "en" : ""} löschen?`,
+        header: "Buchung löschen",
+        icon: "pi pi-exclamation-triangle",
+        acceptLabel: "Löschen",
+        rejectLabel: "Abbrechen",
+        acceptButtonStyleClass: "p-button-danger",
         accept: () => this.deleteParentWithChildren(tx),
       });
     } else {
       // Optimistic delete + undo toast
       this.store.dispatch(new DeleteTransactionOptimistic(tx._id));
       this.messageService.add({
-        severity: 'info',
-        summary: 'Gelöscht',
+        severity: "info",
+        summary: "Gelöscht",
         detail: `„${tx.title}" wurde gelöscht.`,
         life: 5000,
         sticky: false,
@@ -133,25 +137,28 @@ export class TransactionList {
   }
 
   private deleteParentWithChildren(tx: TransactionModel): void {
-    this.api.deleteTransaction(tx._id).pipe(
-      catchError((err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Fehler',
-          detail: err?.message ?? 'Löschen fehlgeschlagen',
-        });
-        return of(null);
-      })
-    ).subscribe((result) => {
-      if (result !== null || result === undefined) {
-        this.store.dispatch(new DeleteTransactionConfirmed(tx._id));
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Gelöscht',
-          detail: `„${tx.title}" + ${this.getChildren(tx._id).length} Teile gelöscht.`,
-        });
-      }
-    });
+    this.api
+      .deleteTransaction(tx._id)
+      .pipe(
+        catchError((err) => {
+          this.messageService.add({
+            severity: "error",
+            summary: "Fehler",
+            detail: err?.message ?? "Löschen fehlgeschlagen",
+          });
+          return of(null);
+        }),
+      )
+      .subscribe((result) => {
+        if (result !== null || result === undefined) {
+          this.store.dispatch(new DeleteTransactionConfirmed(tx._id));
+          this.messageService.add({
+            severity: "success",
+            summary: "Gelöscht",
+            detail: `„${tx.title}" + ${this.getChildren(tx._id).length} Teile gelöscht.`,
+          });
+        }
+      });
   }
 
   protected undoDelete(): void {
@@ -161,7 +168,7 @@ export class TransactionList {
   protected addSplit(parent: TransactionModel, event: Event): void {
     event.stopPropagation();
     this.store.dispatch([
-      new SetCaptureMode('split'),
+      new SetCaptureMode("split"),
       new AddDraft({
         accountId: this.accountId(),
         parentTransactionId: parent._id,

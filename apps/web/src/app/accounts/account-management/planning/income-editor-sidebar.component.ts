@@ -5,29 +5,34 @@ import {
   effect,
   inject,
   signal,
-} from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Store, select } from '@ngxs/store';
-import { DateTime } from 'luxon';
-import { DrawerModule } from 'primeng/drawer';
-import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { SelectModule } from 'primeng/select';
-import { MessageModule } from 'primeng/message';
-import { FluidModule } from 'primeng/fluid';
-import { DatePickerModule } from 'primeng/datepicker';
-import { TooltipModule } from 'primeng/tooltip';
-import { PlanningPageSelectors } from './state/planning.selectors';
+} from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { Store, select } from "@ngxs/store";
+import {
+  currentUtcMonthKey,
+  monthKeyFromPickerDate,
+  pickerDateFromMonthKey,
+  toMonthKey,
+} from "@/shared/utils/calendar-picker";
+import { DrawerModule } from "primeng/drawer";
+import { ButtonModule } from "primeng/button";
+import { InputNumberModule } from "primeng/inputnumber";
+import { SelectModule } from "primeng/select";
+import { MessageModule } from "primeng/message";
+import { FluidModule } from "primeng/fluid";
+import { DatePickerModule } from "primeng/datepicker";
+import { TooltipModule } from "primeng/tooltip";
+import { PlanningPageSelectors } from "./state/planning.selectors";
 import {
   ClosePlanningSidebar,
   CreateIncome,
   DeleteIncome,
   UpdateIncome,
-} from './state/planning.actions';
-import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
+} from "./state/planning.actions";
+import { CreateIncomePayload, UpdateIncomePayload } from "./planning.models";
 
 @Component({
-  selector: 'tbf-income-editor-sidebar',
+  selector: "tbf-income-editor-sidebar",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
@@ -46,27 +51,32 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
       [header]="isCreate() ? 'Einkommen hinzufügen' : 'Einkommen bearbeiten'"
       position="right"
       styleClass="!w-full lg:!w-[480px]"
-      (onHide)="close()">
-
+      (onHide)="close()"
+    >
       <form (ngSubmit)="save()" class="flex flex-col gap-5 h-full">
-
         @if (saveError()) {
-          <p-message severity="error" [text]="saveError()!" styleClass="w-full" />
+          <p-message
+            severity="error"
+            [text]="saveError()!"
+            styleClass="w-full"
+          />
         }
 
         @if (isRetroactive()) {
           <p-message
             severity="warn"
             text="Dieser Zeitraum beginnt in der Vergangenheit. Bestehende Monatsansichten können rückwirkend beeinflusst werden."
-            styleClass="w-full" />
+            styleClass="w-full"
+          />
         }
 
         <p-fluid>
           <div class="flex flex-col gap-4">
-
             <!-- Mitglied -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="inc-member">Mitglied *</label>
+              <label class="text-sm font-medium text-color" for="inc-member"
+                >Mitglied *</label
+              >
               @if (isCreate()) {
                 <p-select
                   inputId="inc-member"
@@ -77,17 +87,20 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
                   optionLabel="label"
                   optionValue="value"
                   placeholder="Mitglied wählen …"
-                  styleClass="w-full" />
+                  styleClass="w-full"
+                />
               } @else {
                 <span class="text-sm text-color py-2 pl-1">
-                  {{ currentIncome()?.memberName ?? '—' }}
+                  {{ currentIncome()?.memberName ?? "—" }}
                 </span>
               }
             </div>
 
             <!-- Betrag -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="inc-amt">Monatliches Einkommen *</label>
+              <label class="text-sm font-medium text-color" for="inc-amt"
+                >Monatliches Einkommen *</label
+              >
               <p-inputnumber
                 inputId="inc-amt"
                 name="amountEur"
@@ -99,12 +112,15 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
                 [min]="1"
                 suffix=" €"
                 styleClass="w-full"
-                placeholder="z.B. 2000" />
+                placeholder="z.B. 2000"
+              />
             </div>
 
             <!-- Gültig ab -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="inc-from">Gültig ab *</label>
+              <label class="text-sm font-medium text-color" for="inc-from"
+                >Gültig ab *</label
+              >
               <p-datepicker
                 inputId="inc-from"
                 name="fromMonth"
@@ -113,12 +129,15 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
                 view="month"
                 dateFormat="M yy"
                 [readonlyInput]="true"
-                styleClass="w-full" />
+                styleClass="w-full"
+              />
             </div>
 
             <!-- Gültig bis -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color">Gültig bis (optional)</label>
+              <label class="text-sm font-medium text-color"
+                >Gültig bis (optional)</label
+              >
               <div class="flex gap-2 items-center">
                 <p-datepicker
                   name="toMonth"
@@ -127,7 +146,8 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
                   view="month"
                   dateFormat="M yy"
                   [readonlyInput]="true"
-                  styleClass="flex-1" />
+                  styleClass="flex-1"
+                />
                 @if (toMonthDate()) {
                   <p-button
                     type="button"
@@ -136,14 +156,16 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
                     severity="secondary"
                     size="small"
                     (onClick)="clearToMonth()"
-                    pTooltip="Kein Ablaufdatum" />
+                    pTooltip="Kein Ablaufdatum"
+                  />
                 }
               </div>
               @if (toMonthLabel() && toMonthLabel()! < fromMonthLabel()) {
-                <span class="text-xs text-red-500 dark:text-red-400">Muss nach dem Startdatum liegen.</span>
+                <span class="text-xs text-red-500 dark:text-red-400"
+                  >Muss nach dem Startdatum liegen.</span
+                >
               }
             </div>
-
           </div>
         </p-fluid>
 
@@ -158,13 +180,15 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
                 severity="danger"
                 [text]="true"
                 size="small"
-                (onClick)="showDeleteConfirm.set(true)" />
+                (onClick)="showDeleteConfirm.set(true)"
+              />
             } @else {
               <div class="flex flex-col gap-3">
                 <p-message
                   severity="warn"
                   text="Wenn dadurch eine ProRata-Verteilung nicht mehr berechenbar ist, erscheint ein Planungs-Hinweis. Einkommen trotzdem löschen?"
-                  styleClass="w-full" />
+                  styleClass="w-full"
+                />
                 <div class="flex gap-2">
                   <p-button
                     type="button"
@@ -173,14 +197,16 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
                     severity="danger"
                     size="small"
                     [loading]="saving()"
-                    (onClick)="deleteIncome()" />
+                    (onClick)="deleteIncome()"
+                  />
                   <p-button
                     type="button"
                     label="Abbrechen"
                     severity="secondary"
                     [text]="true"
                     size="small"
-                    (onClick)="showDeleteConfirm.set(false)" />
+                    (onClick)="showDeleteConfirm.set(false)"
+                  />
                 </div>
               </div>
             }
@@ -188,21 +214,24 @@ import { CreateIncomePayload, UpdateIncomePayload } from './planning.models';
         }
 
         <!-- Footer -->
-        <div class="mt-auto flex gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <div
+          class="mt-auto flex gap-3 pt-4 border-t border-surface-200 dark:border-surface-700"
+        >
           <p-button
             type="submit"
             [label]="isCreate() ? 'Anlegen' : 'Speichern'"
             icon="pi pi-check"
             [disabled]="isInvalid()"
-            [loading]="saving()" />
+            [loading]="saving()"
+          />
           <p-button
             type="button"
             label="Abbrechen"
             severity="secondary"
             [text]="true"
-            (onClick)="close()" />
+            (onClick)="close()"
+          />
         </div>
-
       </form>
     </p-drawer>
   `,
@@ -219,46 +248,54 @@ export class IncomeEditorSidebarComponent {
   protected readonly showDeleteConfirm = signal(false);
 
   // Form fields
-  protected readonly memberId = signal<string>('');
+  protected readonly memberId = signal<string>("");
   protected readonly amountEur = signal<number | null>(null);
   protected readonly fromMonthDate = signal<Date>(
-    DateTime.now().startOf('month').toJSDate(),
+    pickerDateFromMonthKey(currentUtcMonthKey()),
   );
   protected readonly toMonthDate = signal<Date | null>(null);
 
-  protected readonly isOpen = computed(() => this.editor()?.kind === 'income');
+  protected readonly isOpen = computed(() => this.editor()?.kind === "income");
   protected readonly isCreate = computed(
-    () => this.editor()?.kind === 'income' && this.editor()!.mode === 'create',
+    () => this.editor()?.kind === "income" && this.editor()!.mode === "create",
   );
 
   /** Sucht das Income-Objekt anhand der incomeId in activeIncome + history aller Members */
   protected readonly currentIncome = computed(() => {
     const ed = this.editor();
-    if (ed?.kind !== 'income' || !ed.incomeId) return null;
+    if (ed?.kind !== "income" || !ed.incomeId) return null;
     for (const m of this.allIncomes()) {
       if (m.activeIncome?.incomeId === ed.incomeId) {
-        return { ...m.activeIncome, memberId: m.memberId, memberName: m.memberName };
+        return {
+          ...m.activeIncome,
+          memberId: m.memberId,
+          memberName: m.memberName,
+        };
       }
-      const hist = m.history.find(h => h.incomeId === ed.incomeId);
-      if (hist) return { ...hist, memberId: m.memberId, memberName: m.memberName };
+      const hist = m.history.find((h) => h.incomeId === ed.incomeId);
+      if (hist)
+        return { ...hist, memberId: m.memberId, memberName: m.memberName };
     }
     return null;
   });
 
   protected readonly memberOptions = computed(() =>
-    this.allIncomes().map(m => ({ label: m.memberName ?? m.memberId, value: m.memberId })),
+    this.allIncomes().map((m) => ({
+      label: m.memberName ?? m.memberId,
+      value: m.memberId,
+    })),
   );
 
   protected readonly fromMonthLabel = computed(() =>
-    DateTime.fromJSDate(this.fromMonthDate()).toFormat('yyyy-MM'),
+    monthKeyFromPickerDate(this.fromMonthDate()),
   );
   protected readonly toMonthLabel = computed(() => {
     const d = this.toMonthDate();
-    return d ? DateTime.fromJSDate(d).toFormat('yyyy-MM') : null;
+    return d ? monthKeyFromPickerDate(d) : null;
   });
 
   protected readonly isRetroactive = computed(() => {
-    const currentMonth = DateTime.now().startOf('month').toFormat('yyyy-MM');
+    const currentMonth = currentUtcMonthKey();
     return this.fromMonthLabel() < currentMonth;
   });
 
@@ -274,32 +311,29 @@ export class IncomeEditorSidebarComponent {
   constructor() {
     effect(() => {
       const ed = this.editor();
-      if (ed?.kind !== 'income') return;
+      if (ed?.kind !== "income") return;
 
       this.saveError.set(null);
       this.showDeleteConfirm.set(false);
 
-      if (ed.mode === 'edit') {
+      if (ed.mode === "edit") {
         const income = this.currentIncome();
         if (!income) return;
         this.memberId.set(income.memberId);
         this.amountEur.set(income.amountMinor / 100);
-        const fromLabel = income.fromMonth === 'open'
-          ? DateTime.now().toFormat('yyyy-MM')
-          : income.fromMonth;
-        this.fromMonthDate.set(
-          DateTime.fromFormat(fromLabel, 'yyyy-MM').startOf('month').toJSDate(),
-        );
+        const fromLabel =
+          income.fromMonth === "open" ? currentUtcMonthKey() : income.fromMonth;
+        this.fromMonthDate.set(pickerDateFromMonthKey(toMonthKey(fromLabel)));
         this.toMonthDate.set(
           income.toMonth
-            ? DateTime.fromFormat(income.toMonth, 'yyyy-MM').startOf('month').toJSDate()
+            ? pickerDateFromMonthKey(toMonthKey(income.toMonth))
             : null,
         );
       } else {
         // Create: ggf. memberId vorbelegen wenn über "Einkommen ergänzen" geöffnet
-        this.memberId.set(ed.memberId ?? '');
+        this.memberId.set(ed.memberId ?? "");
         this.amountEur.set(null);
-        this.fromMonthDate.set(DateTime.now().startOf('month').toJSDate());
+        this.fromMonthDate.set(pickerDateFromMonthKey(currentUtcMonthKey()));
         this.toMonthDate.set(null);
       }
     });
@@ -332,7 +366,7 @@ export class IncomeEditorSidebarComponent {
 
     if (this.isCreate()) {
       const payload: CreateIncomePayload = {
-        accountId: this.vm()?.accountId ?? '',
+        accountId: this.vm()?.accountId ?? "",
         memberId: this.memberId(),
         amountMinor,
         fromMonth,
@@ -341,31 +375,45 @@ export class IncomeEditorSidebarComponent {
       this.store.dispatch(new CreateIncome(payload)).subscribe({
         error: (err: unknown) => {
           this.saving.set(false);
-          const body = (err as { error?: { code?: string; message?: string } })?.error;
-          if (body?.code === 'INCOME_OVERLAP') {
+          const body = (err as { error?: { code?: string; message?: string } })
+            ?.error;
+          if (body?.code === "INCOME_OVERLAP") {
             this.saveError.set(
-              'Für dieses Mitglied existiert bereits ein Einkommen mit überschneidendem Zeitraum.',
+              "Für dieses Mitglied existiert bereits ein Einkommen mit überschneidendem Zeitraum.",
             );
           } else {
-            this.saveError.set(body?.message ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
+            this.saveError.set(
+              body?.message ??
+                "Speichern fehlgeschlagen – bitte erneut versuchen.",
+            );
           }
         },
         complete: () => this.saving.set(false),
       });
     } else {
       const ed = this.editor();
-      const incomeId = (ed as { kind: 'income'; mode: 'edit'; incomeId?: string }).incomeId!;
-      const payload: UpdateIncomePayload = { amountMinor, fromMonth, toMonth };
+      const incomeId = (
+        ed as { kind: "income"; mode: "edit"; incomeId?: string }
+      ).incomeId!;
+      const payload: UpdateIncomePayload = {
+        amountMinor,
+        fromMonth,
+        toMonth: toMonth ?? null,
+      };
       this.store.dispatch(new UpdateIncome(incomeId, payload)).subscribe({
         error: (err: unknown) => {
           this.saving.set(false);
-          const body = (err as { error?: { code?: string; message?: string } })?.error;
-          if (body?.code === 'INCOME_OVERLAP') {
+          const body = (err as { error?: { code?: string; message?: string } })
+            ?.error;
+          if (body?.code === "INCOME_OVERLAP") {
             this.saveError.set(
-              'Für dieses Mitglied existiert bereits ein Einkommen mit überschneidendem Zeitraum.',
+              "Für dieses Mitglied existiert bereits ein Einkommen mit überschneidendem Zeitraum.",
             );
           } else {
-            this.saveError.set(body?.message ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.');
+            this.saveError.set(
+              body?.message ??
+                "Speichern fehlgeschlagen – bitte erneut versuchen.",
+            );
           }
         },
         complete: () => this.saving.set(false),
@@ -375,14 +423,17 @@ export class IncomeEditorSidebarComponent {
 
   protected deleteIncome(): void {
     const ed = this.editor();
-    const incomeId = (ed as { kind: 'income'; mode: 'edit'; incomeId?: string }).incomeId;
+    const incomeId = (ed as { kind: "income"; mode: "edit"; incomeId?: string })
+      .incomeId;
     if (!incomeId) return;
     this.saving.set(true);
     this.store.dispatch(new DeleteIncome(incomeId)).subscribe({
       error: (err: unknown) => {
         this.saving.set(false);
         const msg = (err as { error?: { message?: string } })?.error?.message;
-        this.saveError.set(msg ?? 'Löschen fehlgeschlagen – bitte erneut versuchen.');
+        this.saveError.set(
+          msg ?? "Löschen fehlgeschlagen – bitte erneut versuchen.",
+        );
         this.showDeleteConfirm.set(false);
       },
       complete: () => this.saving.set(false),

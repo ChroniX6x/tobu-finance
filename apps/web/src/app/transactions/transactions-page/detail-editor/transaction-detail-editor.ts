@@ -8,7 +8,12 @@ import {
   signal,
 } from "@angular/core";
 import { Store, select } from "@ngxs/store";
-import { DateTime } from "luxon";
+import { bankDateToCarrier } from "@tobu/contracts/calendar";
+import {
+  bankDateFromPickerDate,
+  bankDateOfStoredValue,
+  pickerDateFromBankDateOrCarrier,
+} from "@/shared/utils/calendar-picker";
 import { ButtonModule } from "primeng/button";
 import { InputTextModule } from "primeng/inputtext";
 import { InputNumberModule } from "primeng/inputnumber";
@@ -87,7 +92,7 @@ function txToFormModel(tx: TransactionModel): TxFormModel {
     categoryId: tx.categoryId ?? null,
     isFromSharedAccount: tx.isFromSharedAccount,
     paidByMemberId: tx.paidByMemberId ?? null,
-    bookDate: tx.bookDate ? DateTime.fromISO(tx.bookDate).toJSDate() : null,
+    bookDate: tx.bookDate ? pickerDateFromBankDateOrCarrier(tx.bookDate) : null,
     month: tx.month.slice(0, 7),
     status: tx.status,
   };
@@ -266,11 +271,9 @@ export class TransactionDetailEditor {
     if (!m.bookDate && m.month !== tx.month.slice(0, 7)) return true;
     const newDate =
       m.bookDate instanceof Date
-        ? DateTime.fromJSDate(m.bookDate).toISODate()
+        ? bankDateFromPickerDate(m.bookDate)
         : m.bookDate;
-    const txDate = tx.bookDate
-      ? DateTime.fromISO(tx.bookDate).toISODate()
-      : null;
+    const txDate = tx.bookDate ? bankDateOfStoredValue(tx.bookDate) : null;
     return newDate !== txDate;
   });
 
@@ -305,15 +308,13 @@ export class TransactionDetailEditor {
 
     const rawDate = m.bookDate;
     const newBookDateStr =
-      rawDate instanceof Date
-        ? DateTime.fromJSDate(rawDate).toISODate()
-        : rawDate;
+      rawDate instanceof Date ? bankDateFromPickerDate(rawDate) : rawDate;
     const oldBookDateStr = tx.bookDate
-      ? DateTime.fromISO(tx.bookDate).toISODate()
+      ? bankDateOfStoredValue(tx.bookDate)
       : null;
     if (newBookDateStr !== oldBookDateStr) {
       patch.bookDate = newBookDateStr
-        ? `${newBookDateStr}T00:00:00.000Z`
+        ? bankDateToCarrier(newBookDateStr)
         : null;
     }
     if (
@@ -351,9 +352,9 @@ export class TransactionDetailEditor {
     const bookDateRaw = m.bookDate;
     const isoDate =
       bookDateRaw instanceof Date
-        ? DateTime.fromJSDate(bookDateRaw).toISODate()
+        ? bankDateFromPickerDate(bookDateRaw)
         : bookDateRaw;
-    const bookDate = isoDate ? `${isoDate}T00:00:00.000Z` : null;
+    const bookDate = isoDate ? bankDateToCarrier(isoDate) : null;
 
     const dto: CreateTransactionDto = {
       accountId: this.accountId(),

@@ -1,20 +1,31 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { select, Store } from '@ngxs/store';
-import { map } from 'rxjs';
-import { DateTime } from 'luxon';
-import { v4 as uuidv4 } from 'uuid';
-import { ButtonModule } from 'primeng/button';
-import { BadgeModule } from 'primeng/badge';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { SelectModule } from 'primeng/select';
-import { DatePickerModule } from 'primeng/datepicker';
-import { AutoCompleteModule } from 'primeng/autocomplete';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { TransactionCaptureState } from '../../state/transaction-capture.state';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  signal,
+} from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { select, Store } from "@ngxs/store";
+import { map } from "rxjs";
+import {
+  bankDateFromPickerDate,
+  pickerDateFromBankDateOrCarrier,
+} from "@/shared/utils/calendar-picker";
+import { v4 as uuidv4 } from "uuid";
+import { ButtonModule } from "primeng/button";
+import { BadgeModule } from "primeng/badge";
+import { InputTextModule } from "primeng/inputtext";
+import { InputNumberModule } from "primeng/inputnumber";
+import { SelectButtonModule } from "primeng/selectbutton";
+import { SelectModule } from "primeng/select";
+import { DatePickerModule } from "primeng/datepicker";
+import { AutoCompleteModule } from "primeng/autocomplete";
+import { TagModule } from "primeng/tag";
+import { TooltipModule } from "primeng/tooltip";
+import { TransactionCaptureState } from "../../state/transaction-capture.state";
 import {
   AddDraft,
   CaptureMode,
@@ -28,19 +39,37 @@ import {
   TransactionDraft,
   UndoDraftRemove,
   computeDraftStatus,
-} from '../../state/transaction-capture.actions';
-import { CategoriesState } from '@/shared/state/categories.state';
-import { AccountState } from '@/shared/state/account.state';
-import { TransactionModel, TransactionType } from '../../domain/transaction.model';
-import { TransactionsApiService } from '../../domain/transactions-api.service';
-import { disabled, form, FormField, min, minLength, maxLength, required, validate } from '@angular/forms/signals';
+} from "../../state/transaction-capture.actions";
+import { CategoriesState } from "@/shared/state/categories.state";
+import { AccountState } from "@/shared/state/account.state";
+import {
+  TransactionModel,
+  TransactionType,
+} from "../../domain/transaction.model";
+import { TransactionsApiService } from "../../domain/transactions-api.service";
+import {
+  disabled,
+  form,
+  FormField,
+  min,
+  minLength,
+  maxLength,
+  required,
+  validate,
+} from "@angular/forms/signals";
 
 type ParentSuggestion = Pick<
   TransactionModel,
-  '_id' | 'title' | 'amountMinor' | 'type' | 'isFromSharedAccount' | 'paidByMemberId' | 'bookDate'
+  | "_id"
+  | "title"
+  | "amountMinor"
+  | "type"
+  | "isFromSharedAccount"
+  | "paidByMemberId"
+  | "bookDate"
 > & { restMinor: number };
 
-type DraftStatusSeverity = 'secondary' | 'warn' | 'success' | 'info' | 'danger';
+type DraftStatusSeverity = "secondary" | "warn" | "success" | "info" | "danger";
 
 interface CaptureFormModel {
   amount: number | null;
@@ -57,10 +86,10 @@ interface CaptureFormModel {
 function freshCaptureModel(): CaptureFormModel {
   return {
     amount: null,
-    title: '',
+    title: "",
     categoryId: null,
     notes: null,
-    type: 'expense',
+    type: "expense",
     isFromSharedAccount: true,
     paidByMemberId: null,
     bookDate: new Date(),
@@ -69,13 +98,13 @@ function freshCaptureModel(): CaptureFormModel {
 }
 
 @Component({
-  selector: 'tbf-transactions-dock',
+  selector: "tbf-transactions-dock",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(document:keydown)': 'onDocumentKeydown($event)',
+    "(document:keydown)": "onDocumentKeydown($event)",
   },
-  templateUrl: './transactions-dock.html',
-  styleUrl: './transactions-dock.scss',
+  templateUrl: "./transactions-dock.html",
+  styleUrl: "./transactions-dock.scss",
   imports: [
     FormsModule,
     FormField,
@@ -109,78 +138,90 @@ export class TransactionsDock {
   protected account = select(AccountState.account);
 
   protected modeOptions = [
-    { label: 'Normal', value: 'normal' as const },
-    { label: 'Teil', value: 'split' as const },
+    { label: "Normal", value: "normal" as const },
+    { label: "Teil", value: "split" as const },
   ];
 
   protected typeOptions = [
-    { label: 'Ausgabe', value: 'expense' as const },
-    { label: 'Einnahme', value: 'income' as const },
+    { label: "Ausgabe", value: "expense" as const },
+    { label: "Einnahme", value: "income" as const },
   ];
 
   protected sourceOptions = [
-    { label: 'Gemeinschaft', value: true },
-    { label: 'Privat', value: false },
+    { label: "Gemeinschaft", value: true },
+    { label: "Privat", value: false },
   ];
 
   protected categoryOptions = computed(() => [
-    { label: 'Nicht kategorisiert', value: null as string | null },
-    ...this.categories().map((category) => ({ label: category.name, value: category._id })),
+    { label: "Nicht kategorisiert", value: null as string | null },
+    ...this.categories().map((category) => ({
+      label: category.name,
+      value: category._id,
+    })),
   ]);
 
   protected memberOptions = computed(() =>
-    (this.account()?.members ?? []).map((member) => ({ label: member.name, value: member.id }))
+    (this.account()?.members ?? []).map((member) => ({
+      label: member.name,
+      value: member.id,
+    })),
   );
 
   protected parentSuggestions = signal<ParentSuggestion[]>([]);
 
   // Derives from captureInput so it stays in sync without a separate signal
-  protected readonly selectedParent = computed(() => this.captureInput().parent);
+  protected readonly selectedParent = computed(
+    () => this.captureInput().parent,
+  );
 
   // Shows validation errors after a submit attempt even if fields are untouched
   protected readonly submitted = signal(false);
 
-  protected readonly captureInput = signal<CaptureFormModel>(freshCaptureModel());
+  protected readonly captureInput =
+    signal<CaptureFormModel>(freshCaptureModel());
 
   protected readonly captureForm = form(this.captureInput, (p) => {
-    required(p.amount, { message: 'Pflichtfeld' });
-    min(p.amount, 0, { message: 'Muss \u2265 0 sein' });
-    required(p.title, { message: 'Pflichtfeld' });
-    minLength(p.title, 2, { message: 'Mind. 2 Zeichen' });
-    maxLength(p.title, 80, { message: 'Max. 80 Zeichen' });
-    required(p.bookDate, { message: 'Pflichtfeld' });
+    required(p.amount, { message: "Pflichtfeld" });
+    min(p.amount, 0, { message: "Muss \u2265 0 sein" });
+    required(p.title, { message: "Pflichtfeld" });
+    minLength(p.title, 2, { message: "Mind. 2 Zeichen" });
+    maxLength(p.title, 80, { message: "Max. 80 Zeichen" });
+    required(p.bookDate, { message: "Pflichtfeld" });
     validate(p.paidByMemberId, ({ value, valueOf }) => {
       if (valueOf(p.isFromSharedAccount) === false && !value()) {
-        return { kind: 'required', message: 'Pflicht bei Privat' };
+        return { kind: "required", message: "Pflicht bei Privat" };
       }
       return null;
     });
     validate(p.parent, ({ value }) => {
-      if (this.captureMode() === 'split' && !value()) {
-        return { kind: 'required', message: 'Parent erforderlich' };
+      if (this.captureMode() === "split" && !value()) {
+        return { kind: "required", message: "Parent erforderlich" };
       }
       return null;
     });
     validate(p.amount, ({ value, valueOf }) => {
       const parent = valueOf(p.parent) as ParentSuggestion | null;
-      if (parent && this.captureMode() === 'split') {
+      if (parent && this.captureMode() === "split") {
         const minor = Math.round((value() ?? 0) * 100);
         if (minor > parent.restMinor) {
-          return { kind: 'restExceeded', message: 'Betrag \u00fcberschreitet verf\u00fcgbaren Rest' };
+          return {
+            kind: "restExceeded",
+            message: "Betrag \u00fcberschreitet verf\u00fcgbaren Rest",
+          };
         }
       }
       return null;
     });
-    disabled(p.type, () => this.captureMode() === 'split');
-    disabled(p.isFromSharedAccount, () => this.captureMode() === 'split');
-    disabled(p.paidByMemberId, () => this.captureMode() === 'split');
-    disabled(p.bookDate, () => this.captureMode() === 'split');
-    disabled(p.parent, () => this.captureMode() !== 'split');
+    disabled(p.type, () => this.captureMode() === "split");
+    disabled(p.isFromSharedAccount, () => this.captureMode() === "split");
+    disabled(p.paidByMemberId, () => this.captureMode() === "split");
+    disabled(p.bookDate, () => this.captureMode() === "split");
+    disabled(p.parent, () => this.captureMode() !== "split");
   });
 
   protected setMode(mode: CaptureMode): void {
     this.store.dispatch(new SetCaptureMode(mode));
-    if (mode !== 'split') {
+    if (mode !== "split") {
       this.parentSuggestions.set([]);
     }
     this.resetForm(mode);
@@ -192,24 +233,26 @@ export class TransactionsDock {
 
   /** Called when the user picks a parent suggestion from the autocomplete. */
   protected onParentSelect(parent: ParentSuggestion): void {
-    if (this.captureMode() === 'split') {
-      this.captureInput.update(m => ({
+    if (this.captureMode() === "split") {
+      this.captureInput.update((m) => ({
         ...m,
         parent,
         type: parent.type,
         isFromSharedAccount: parent.isFromSharedAccount,
         paidByMemberId: parent.paidByMemberId ?? null,
-        bookDate: parent.bookDate ? new Date(parent.bookDate) : new Date(),
+        bookDate: parent.bookDate
+          ? pickerDateFromBankDateOrCarrier(parent.bookDate)
+          : new Date(),
       }));
     }
   }
 
   /** Called when the user clears the parent autocomplete. */
   protected onParentClear(): void {
-    this.captureInput.update(m => ({
+    this.captureInput.update((m) => ({
       ...m,
       parent: null,
-      type: 'expense',
+      type: "expense",
       isFromSharedAccount: true,
       paidByMemberId: null,
       bookDate: new Date(),
@@ -217,34 +260,42 @@ export class TransactionsDock {
   }
 
   protected searchParents(event: { query: string }): void {
-    const query = event.query?.trim() ?? '';
+    const query = event.query?.trim() ?? "";
     if (!this.accountId()) {
       this.parentSuggestions.set([]);
       return;
     }
 
-    this.api.getTransactions({
-      accountId: this.accountId(),
-      parentTransactionId: 'null',
-      q: query || undefined,
-      page: 1,
-      pageSize: 20,
-      sort: 'bookDateDesc',
-    })
+    this.api
+      .getTransactions({
+        accountId: this.accountId(),
+        parentTransactionId: "null",
+        q: query || undefined,
+        page: 1,
+        pageSize: 20,
+        sort: "bookDateDesc",
+      })
       .pipe(
-        map((response) => response.items.map((parent) => {
-          const assigned = (parent.children ?? []).reduce((sum, child) => sum + child.amountMinor, 0);
-          return {
-            _id: parent._id,
-            title: parent.title,
-            amountMinor: parent.amountMinor,
-            restMinor: Math.max(0, parent.amountMinor - assigned),
-            type: parent.type,
-            isFromSharedAccount: parent.isFromSharedAccount,
-            paidByMemberId: parent.paidByMemberId,
-            bookDate: parent.bookDate,
-          } as ParentSuggestion;
-        }).filter((candidate) => candidate.restMinor > 0))
+        map((response) =>
+          response.items
+            .map((parent) => {
+              const assigned = (parent.children ?? []).reduce(
+                (sum, child) => sum + child.amountMinor,
+                0,
+              );
+              return {
+                _id: parent._id,
+                title: parent.title,
+                amountMinor: parent.amountMinor,
+                restMinor: Math.max(0, parent.amountMinor - assigned),
+                type: parent.type,
+                isFromSharedAccount: parent.isFromSharedAccount,
+                paidByMemberId: parent.paidByMemberId,
+                bookDate: parent.bookDate,
+              } as ParentSuggestion;
+            })
+            .filter((candidate) => candidate.restMinor > 0),
+        ),
       )
       .subscribe((suggestions) => {
         this.parentSuggestions.set(suggestions);
@@ -285,28 +336,40 @@ export class TransactionsDock {
     this.store.dispatch(new FinalizeDraft(id));
   }
 
-  protected draftSeverity(status: TransactionDraft['draftStatus']): DraftStatusSeverity {
+  protected draftSeverity(
+    status: TransactionDraft["draftStatus"],
+  ): DraftStatusSeverity {
     switch (status) {
-      case 'ready': return 'success';
-      case 'needsReview': return 'warn';
-      case 'saving': return 'info';
-      case 'error': return 'danger';
-      default: return 'secondary';
+      case "ready":
+        return "success";
+      case "needsReview":
+        return "warn";
+      case "saving":
+        return "info";
+      case "error":
+        return "danger";
+      default:
+        return "secondary";
     }
   }
 
-  protected draftStatusLabel(status: TransactionDraft['draftStatus']): string {
+  protected draftStatusLabel(status: TransactionDraft["draftStatus"]): string {
     switch (status) {
-      case 'needsReview': return 'Pr\u00fcfen';
-      case 'ready': return 'Bereit';
-      case 'saving': return 'Speichert';
-      case 'error': return 'Fehler';
-      default: return 'Entwurf';
+      case "needsReview":
+        return "Pr\u00fcfen";
+      case "ready":
+        return "Bereit";
+      case "saving":
+        return "Speichert";
+      case "error":
+        return "Fehler";
+      default:
+        return "Entwurf";
     }
   }
 
   protected toMajor(minor: number | null): string {
-    if (minor == null) return '-';
+    if (minor == null) return "-";
     return (minor / 100).toFixed(2);
   }
 
@@ -315,14 +378,14 @@ export class TransactionsDock {
   }
 
   protected hasFailedDrafts(): boolean {
-    return this.drafts().some((draft) => draft.draftStatus === 'error');
+    return this.drafts().some((draft) => draft.draftStatus === "error");
   }
 
   protected onDocumentKeydown(event: KeyboardEvent): void {
     if (!this.dockOpen()) return;
 
     const key = event.key.toLowerCase();
-    const isSaveShortcut = (event.ctrlKey || event.metaKey) && key === 's';
+    const isSaveShortcut = (event.ctrlKey || event.metaKey) && key === "s";
     if (isSaveShortcut) {
       event.preventDefault();
       if (this.canSaveAll()) this.saveAllReady();
@@ -332,17 +395,18 @@ export class TransactionsDock {
     const eventTarget = event.target as HTMLElement | null;
     const activeElement = document.activeElement as HTMLElement | null;
     const focusNode = activeElement ?? eventTarget;
-    const focusedInsideDock = !!focusNode && this.hostElement.nativeElement.contains(focusNode);
+    const focusedInsideDock =
+      !!focusNode && this.hostElement.nativeElement.contains(focusNode);
     if (!focusedInsideDock) return;
 
-    if (event.key === 'Escape') {
+    if (event.key === "Escape") {
       event.preventDefault();
       this.resetForm(this.captureMode());
       return;
     }
 
-    if (event.key === 'Enter') {
-      if (focusNode?.tagName === 'TEXTAREA') return;
+    if (event.key === "Enter") {
+      if (focusNode?.tagName === "TEXTAREA") return;
       event.preventDefault();
       const added = this.submitDraft(false);
       if (added) this.focusAmountInput();
@@ -358,7 +422,7 @@ export class TransactionsDock {
     const m = this.captureInput();
     const parent = m.parent;
 
-    if (this.captureMode() === 'split' && !parent) return false;
+    if (this.captureMode() === "split" && !parent) return false;
 
     const amountMajor = m.amount;
     if (amountMajor == null) return false;
@@ -368,23 +432,24 @@ export class TransactionsDock {
     if (parent && amountMinor > parent.restMinor) return false;
 
     const id = uuidv4();
-    const isSplit = this.captureMode() === 'split' && !!parent;
+    const isSplit = this.captureMode() === "split" && !!parent;
     const type = isSplit ? parent!.type : m.type;
-    const isFromShared = isSplit ? parent!.isFromSharedAccount : m.isFromSharedAccount;
+    const isFromShared = isSplit
+      ? parent!.isFromSharedAccount
+      : m.isFromSharedAccount;
     const paidByMemberId = isSplit ? parent!.paidByMemberId : m.paidByMemberId;
-    const bookDateRaw = isSplit
-      ? (parent!.bookDate ? new Date(parent!.bookDate) : new Date())
-      : m.bookDate;
+    // A split child inherits the parent's stored bookDate unchanged (the server requires an exact match, also for legacy values).
+    const bookDateRaw = isSplit ? (parent!.bookDate ?? new Date()) : m.bookDate;
 
-    // Bug fix: send YYYY-MM-DD format, not a full ISO timestamp
-    const bookDateIso = bookDateRaw instanceof Date
-      ? DateTime.fromJSDate(bookDateRaw).toISODate()
-      : bookDateRaw;
+    const bookDateIso =
+      bookDateRaw instanceof Date
+        ? bankDateFromPickerDate(bookDateRaw)
+        : bookDateRaw;
 
     const draftPayload: TransactionDraft = {
       id,
-      draftStatus: 'needsReview',
-      source: 'manual',
+      draftStatus: "needsReview",
+      source: "manual",
       accountId: this.accountId(),
       amountMinor,
       title: m.title.trim(),
@@ -398,11 +463,16 @@ export class TransactionsDock {
       errorMessage: null,
     };
 
-    draftPayload.draftStatus = computeDraftStatus(draftPayload, parent?.restMinor);
+    draftPayload.draftStatus = computeDraftStatus(
+      draftPayload,
+      parent?.restMinor,
+    );
 
-    this.store.dispatch(new AddDraft({ ...draftPayload, accountId: this.accountId() }));
+    this.store.dispatch(
+      new AddDraft({ ...draftPayload, accountId: this.accountId() }),
+    );
 
-    if (finalizeImmediately && draftPayload.draftStatus === 'ready') {
+    if (finalizeImmediately && draftPayload.draftStatus === "ready") {
       this.store.dispatch(new FinalizeDraft(id));
     }
 
@@ -411,19 +481,24 @@ export class TransactionsDock {
   }
 
   private resetForm(mode: CaptureMode): void {
-    const parent = mode === 'split' ? this.captureInput().parent : null;
+    const parent = mode === "split" ? this.captureInput().parent : null;
     this.submitted.set(false);
     this.captureInput.set({
       amount: null,
-      title: '',
+      title: "",
       categoryId: null,
       notes: null,
-      type: mode === 'split' && parent ? parent.type : 'expense',
-      isFromSharedAccount: mode === 'split' && parent ? parent.isFromSharedAccount : true,
-      paidByMemberId: mode === 'split' && parent ? (parent.paidByMemberId ?? null) : null,
-      bookDate: mode === 'split' && parent
-        ? (parent.bookDate ? new Date(parent.bookDate) : new Date())
-        : new Date(),
+      type: mode === "split" && parent ? parent.type : "expense",
+      isFromSharedAccount:
+        mode === "split" && parent ? parent.isFromSharedAccount : true,
+      paidByMemberId:
+        mode === "split" && parent ? (parent.paidByMemberId ?? null) : null,
+      bookDate:
+        mode === "split" && parent
+          ? parent.bookDate
+            ? pickerDateFromBankDateOrCarrier(parent.bookDate)
+            : new Date()
+          : new Date(),
       parent,
     });
   }
@@ -431,11 +506,10 @@ export class TransactionsDock {
   private focusAmountInput(): void {
     queueMicrotask(() => {
       const amountInput = this.hostElement.nativeElement.querySelector(
-        '.amount-field input'
+        ".amount-field input",
       ) as HTMLInputElement | null;
       amountInput?.focus();
       amountInput?.select();
     });
   }
 }
-
