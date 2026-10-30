@@ -126,6 +126,13 @@ Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chro
 
 Ohne jeden Browser warnt der Wrapper und Karma schlägt fehl; es wird nichts übersprungen. Manuell: PowerShell `$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")`, Linux/Bash `export CHROME_BIN="$(node -p "require('@playwright/test').chromium.executablePath()")"`. Die CI setzt `CHROME_BIN` selbst (Linux: System-Chrome wegen Sandbox, Windows: Playwright-Chromium); Playwright installiert in Linux-CI zusätzlich die Systemabhängigkeiten mit `--with-deps`. Direkte Aufrufe von `npm run test:unit --workspace=@tobu/web` nutzen die Automatik nicht.
 
+Playwright-Version und Upgrades:
+
+- Das Projekt verwendet Playwright 1.61.0. Erst ab 1.61 kennt Playwright Ubuntu 26.04 (`ubuntu-latest`); ältere Versionen scheitern bei `playwright install --with-deps`.
+- Playwright 1.64.1 (Chromium 156) wurde geprüft, ist aber vorerst nicht freigegeben: Karma-`ChromeHeadless` startet damit unter Windows mit der Standard-Sandbox nicht (nur mit `--no-sandbox`).
+- Nach einem Playwright-Upgrade das passende Chromium neu installieren (der Befehl oben).
+- Bewusste Upgrades gepinnter Basis-Abhängigkeiten stehen mit Datum und Grund in `docs/migration/evidence/approved-dependency-upgrades.json`. `npm run check:workspace` blockiert jede nicht dort freigegebene Abweichung. Änderungen an dieser Datei brauchen ein Review.
+
 Der Umfang der Quellcode-/Formatprüfungen sowie offene Punkte stehen im [Phase-5-Bericht](migration/phase-5-results.md). Gebaute Pakete: `npm run build`, `npm run package:artifact`; siehe [Artefaktanleitung](production-artifact.md). Der dortige lokale Webserver liefert die gebauten Angular-Dateien mit API-Proxy aus; er ersetzt kein produktives Hosting.
 
 ## Strukturänderungen der Datenbank
