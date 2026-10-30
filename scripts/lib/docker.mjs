@@ -74,7 +74,8 @@ export async function temporaryDatabase(signal) {
     signal?.throwIfAborted();
     const name = `tobu-test-${randomUUID()}`;
     try {
-        await capture('docker', ['run', '--detach', '--name', name, '--label', 'tobu.test=true', '--publish', '127.0.0.1::27017', MONGO_IMAGE, 'mongod', '--replSet', LOCAL_REPLICA_SET, '--bind_ip_all']);
+        // enableTestCommands only exists in this disposable test container; it allows server-side failpoints (failCommand).
+        await capture('docker', ['run', '--detach', '--name', name, '--label', 'tobu.test=true', '--publish', '127.0.0.1::27017', MONGO_IMAGE, 'mongod', '--replSet', LOCAL_REPLICA_SET, '--bind_ip_all', '--setParameter', 'enableTestCommands=1']);
         signal?.throwIfAborted();
         const mapping = JSON.parse(await capture('docker', ['inspect', '--format', '{{json .NetworkSettings.Ports}}', name]));
         const port = mapping['27017/tcp'][0].HostPort;
