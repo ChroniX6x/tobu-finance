@@ -23,9 +23,11 @@
     "test": "tsc -p tests/tsconfig.json && node --test tests/*.test.mjs"
   },
   "dependencies": {
+    "luxon": "3.7.1",
     "zod": "4.1.12"
   },
   "devDependencies": {
+    "@types/luxon": "3.7.1",
     "typescript": "5.9.3"
   }
 }

@@ -418,7 +418,7 @@ paths:
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
       responses:
         "200":
           description: Success
@@ -860,7 +860,7 @@ paths:
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
       responses:
         "200":
           description: Success
@@ -1916,13 +1916,13 @@ paths:
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
         - name: to
           in: query
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
         - name: status
           in: query
           required: false
@@ -3134,19 +3134,19 @@ paths:
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
         - name: monthFrom
           in: query
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
         - name: monthTo
           in: query
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
         - name: status
           in: query
           required: false
@@ -3452,7 +3452,7 @@ paths:
                   maximum: 9007199254740991
                 month:
                   type: string
-                  pattern: ^\d{4}-(0[1-9]|1[0-2])$
+                  pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
                 bookDate:
                   anyOf:
                     - type: string
@@ -3633,7 +3633,7 @@ paths:
                   maximum: 9007199254740991
                 month:
                   type: string
-                  pattern: ^\d{4}-(0[1-9]|1[0-2])$
+                  pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
                 bookDate:
                   anyOf:
                     - type: string
@@ -3796,7 +3796,7 @@ paths:
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
         - name: nextFrom
           in: query
           required: false
@@ -3957,12 +3957,12 @@ paths:
                 activeFrom:
                   anyOf:
                     - type: string
-                      pattern: ^\d{4}-(0[1-9]|1[0-2])$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
                     - type: "null"
                 activeUntil:
                   anyOf:
                     - type: string
-                      pattern: ^\d{4}-(0[1-9]|1[0-2])$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
                     - type: "null"
                 createdByMemberId:
                   anyOf:
@@ -4137,12 +4137,12 @@ paths:
                 activeFrom:
                   anyOf:
                     - type: string
-                      pattern: ^\d{4}-(0[1-9]|1[0-2])$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
                     - type: "null"
                 activeUntil:
                   anyOf:
                     - type: string
-                      pattern: ^\d{4}-(0[1-9]|1[0-2])$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
                     - type: "null"
                 createdByMemberId:
                   anyOf:
@@ -4378,14 +4378,12 @@ paths:
                 fromMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
                 toMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
               required:
                 - accountId
@@ -4469,14 +4467,12 @@ paths:
                 fromMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
                 toMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
       responses:
         "200":
@@ -4650,14 +4646,12 @@ paths:
                 fromMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
                 toMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
               required:
                 - accountId
@@ -4741,14 +4735,12 @@ paths:
                 fromMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
                 toMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
       responses:
         "200":
@@ -4971,14 +4963,12 @@ paths:
                 fromMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
                 toMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
                 createdByMemberId:
                   anyOf:
@@ -5121,14 +5111,12 @@ paths:
                 fromMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
                 toMonth:
                   anyOf:
                     - type: string
-                      format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])(-01T00:00:00\.000Z)?$
                     - type: "null"
                 createdByMemberId:
                   anyOf:
@@ -5275,13 +5263,13 @@ paths:
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
         - name: to
           in: query
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
       responses:
         "200":
           description: Success
@@ -5341,7 +5329,7 @@ paths:
                   pattern: ^[a-f\d]{24}$
                 month:
                   type: string
-                  pattern: ^\d{4}-(0[1-9]|1[0-2])$
+                  pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
                 closingBalanceMinor:
                   type: integer
                   minimum: 0
@@ -5441,13 +5429,13 @@ paths:
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
         - name: to
           in: query
           required: false
           schema:
             type: string
-            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
       responses:
         "200":
           description: Success
@@ -5519,7 +5507,7 @@ paths:
                   pattern: ^[a-f\d]{24}$
                 month:
                   type: string
-                  pattern: ^\d{4}-(0[1-9]|1[0-2])$
+                  pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
                 amountMinor:
                   type: integer
                   minimum: -9007199254740991
