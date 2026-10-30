@@ -116,7 +116,15 @@ Für die Mock-E2E gelten auf ausdrücklichen Nutzerwunsch 60 Sekunden pro Test u
 
 `npm run quality` prüft Quellen, Typen, Verträge, Builds, Units und Mock-E2E. `npm run quality:full` (Alias `npm run verify:phase5`) ergänzt Docker-Integration, echte Browserabläufe, Start/Stop/Persistenz und eine saubere Produktionsinstallation. Docker und Paketdownloads müssen dafür verfügbar sein. Fehlende Voraussetzungen führen zu einem Fehler; der Bericht liegt in `test-results/quality.json`.
 
-Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren. Für Karma in PowerShell bei fehlendem lokalen Chrome: `$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")`. Unter Linux/Bash entsprechend `export CHROME_BIN="$(node -p "require('@playwright/test').chromium.executablePath()")"`; in Linux-CI installiert Playwright außerdem die Systemabhängigkeiten mit `--with-deps`. Playwright ist ab 1.61 für Ubuntu 26.04 (`ubuntu-latest`) geeignet; das Projekt verwendet 1.61.0. Playwright 1.64.1 (Chromium 156) wurde geprüft, ist aber vorerst nicht freigegeben: Karma-`ChromeHeadless` startet damit unter Windows mit der Standard-Sandbox nicht (nur mit `--no-sandbox`). Nach einem Playwright-Upgrade das passende Chromium neu installieren (der Befehl oben). Bewusste Upgrades gepinnter Basis-Abhängigkeiten stehen mit Datum und Grund in `docs/migration/evidence/approved-dependency-upgrades.json`; `npm run check:workspace` blockiert weiterhin jede nicht dort freigegebene Abweichung.
+Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren.
+
+`npm run test:web` (Karma, `ChromeHeadless`) wählt den Browser in dieser Reihenfolge:
+
+1. ein explizit gesetztes `CHROME_BIN` (bleibt unverändert, auch wenn die Datei fehlt; Karma meldet das selbst);
+2. ein installiertes System-Chrome an den Orten, die Karma selbst prüft (Windows: `Program Files`/`LOCALAPPDATA`; macOS: `/Applications`; Linux: `google-chrome` oder `google-chrome-stable` im `PATH`). Chromium zählt hier nicht, `ChromeHeadless` verwendet es nur über `CHROME_BIN`;
+3. sonst automatisch das installierte Playwright-Chromium; der Lauf meldet das ausdrücklich.
+
+Ohne jeden Browser warnt der Wrapper und Karma schlägt fehl; es wird nichts übersprungen. Manuell: PowerShell `$env:CHROME_BIN = (node -p "require('@playwright/test').chromium.executablePath()")`, Linux/Bash `export CHROME_BIN="$(node -p "require('@playwright/test').chromium.executablePath()")"`. Die CI setzt `CHROME_BIN` selbst (Linux: System-Chrome wegen Sandbox, Windows: Playwright-Chromium); Playwright installiert in Linux-CI zusätzlich die Systemabhängigkeiten mit `--with-deps`. Direkte Aufrufe von `npm run test:unit --workspace=@tobu/web` nutzen die Automatik nicht.
 
 Playwright-Version und Upgrades:
 

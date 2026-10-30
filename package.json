@@ -23,7 +23,7 @@
     "typecheck": "npm run build:contracts && npm run typecheck --workspace=@tobu/api && npm run typecheck --workspace=@tobu/web",
     "test": "npm run test:api && npm run test:web",
     "test:api": "npm run test --workspace=@tobu/api",
-    "test:web": "npm run test:unit --workspace=@tobu/web",
+    "test:web": "node scripts/test-web.mjs",
     "test:integration": "npm run build:api && node scripts/test-stack.mjs integration",
     "e2e": "npm run e2e --workspace=@tobu/web",
     "e2e:real": "npm run build:api && node scripts/test-stack.mjs browser",
