@@ -80,6 +80,14 @@ const adapted = new Set([
     'src/routes/member-incomes.ts',
     'src/routes/category-budgets.ts',
     'src/routes/contribution-rules.ts',
+    // H03: month semantics (UTC, half-open ranges, central helpers on calendar.ts, testable clock)
+    'src/lib/month.ts',
+    'src/utils/date.ts',
+    'src/routes/accounts.ts',
+    'src/routes/accounts-summary.ts',
+    'src/routes/account-overview.ts',
+    'src/services/insights.ts',
+    'src/services/contribution-rule-generator.ts',
     ...['account-balances', 'accounts-summary', 'accounts', 'carryovers', 'categories', 'category-budgets', 'common', 'contribution-rules', 'member-incomes', 'members', 'recurrences', 'transactions'].map((name) => `src/validation/${name}.ts`)
 ]);
 for (const item of manifest.files) {

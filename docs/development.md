@@ -112,6 +112,8 @@ Siehe [Vertragsarchitektur](architecture/contracts.md). `npm run dev` baut und �
 
 ## Qualitätsprüfung und Artefakte
 
+Die Integrationstests dürfen die Server-Uhr einfrieren: Mit `NODE_ENV=test` und `TOBU_TEST_NOW=<ISO-Zeitpunkt>` liefert `apps/api/src/lib/clock.ts` diesen Zeitpunkt. In jedem anderen Modus wird die Variable ignoriert; sie gehört nicht in `.env` oder ins Deployment. Damit werden Monatsgrenzen reproduzierbar getestet (siehe `apps/api/tests/integration/month-intervals.test.mjs`, drei API-Prozesse in verschiedenen Prozess-Zeitzonen).
+
 Für die Mock-E2E gelten auf ausdrücklichen Nutzerwunsch 60 Sekunden pro Test und 15 Sekunden für wiederholte Assertions (zuvor 30/5 Sekunden). Erfolgreiche Schritte warten diese Budgets nicht ab. Parallelität und Videoaufzeichnung bleiben aktiv; fehlgeschlagene Tests behalten zusätzlich einen Trace, ohne automatische Wiederholungen. Der längere Real-API-CRUD-Test behält sein bestehendes 90-Sekunden-Budget. Die Wizard-Prüfungen verwenden das gemeinsame Assertion-Budget statt kürzerer lokaler Überschreibungen. Falls für einen Diagnoseversuch `$env:PLAYWRIGHT_VIDEO = "off"` gesetzt wurde, vor dem nächsten Lauf in PowerShell `Remove-Item Env:PLAYWRIGHT_VIDEO -ErrorAction SilentlyContinue` ausführen. Diese Zeitbudgets sind keine Garantie bei beliebiger Rechnerüberlastung.
 
 `npm run quality` prüft Quellen, Typen, Verträge, Builds, Units und Mock-E2E. `npm run quality:full` (Alias `npm run verify:phase5`) ergänzt Docker-Integration, echte Browserabläufe, Start/Stop/Persistenz und eine saubere Produktionsinstallation. Docker und Paketdownloads müssen dafür verfügbar sein. Fehlende Voraussetzungen führen zu einem Fehler; der Bericht liegt in `test-results/quality.json`.
