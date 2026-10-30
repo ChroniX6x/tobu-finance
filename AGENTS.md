@@ -6,7 +6,7 @@
 - Read `docs/development.md`, `docs/architecture/contracts.md` and `docs/migration/open-issues.md` before changing the relevant area. `docs/migration/phase-6-handover.md` records acceptance, not blanket approval for new work.
 - For database work start with `docs/database/migration-handover.md`: it links authoring, production operation, recovery, test evidence and remaining deployment limitations. User-reported local acceptance does not imply CI success for a newer commit or authorize production deployment.
 - Inspect branch, working tree and relevant diffs first. Preserve user changes. Work within the requested scope; do not push, merge, archive repositories or reset databases without authorization.
-- Use Node 24.13.1 and npm 11.8.0. Install from the root with `npm ci`; the root `package-lock.json` is the only active lockfile. Do not casually upgrade pinned dependencies or use `npm audit fix --force`.
+- Use Node 24.13.1 and npm 11.8.0. Install from the root with `npm ci`; the root `package-lock.json` is the only active lockfile. Do not casually upgrade pinned dependencies or use `npm audit fix --force`. A deliberate upgrade of a baseline dependency needs the owner's approval and an entry (exact version, date, reason) in `docs/migration/evidence/approved-dependency-upgrades.json`; never edit the phase 2 baseline to hide drift.
 
 ## Invariants to preserve
 
