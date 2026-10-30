@@ -18,13 +18,16 @@ for (const { method, path: suffix } of implementedRoutes(read('apps/api/src/auth
 assert.deepEqual(actual.sort(), endpoints.map((e) => `${e.method} ${e.path}`).sort(), 'Every implemented API route must have exactly one shared contract');
 for (const filename of readdirSync(resolve(root, 'packages/contracts/src'))) {
     const source = read('packages/contracts/src/' + filename);
+    // Only calendar.ts may use Luxon (the apps' date library); every other contract file stays zod-only.
+    const allowed = filename === 'calendar.ts' ? ['zod', 'luxon'] : ['zod'];
     for (const [, specifier] of source.matchAll(/(?:from\s*|import\s*)['"]([^'"]+)['"]/g)) {
-        assert.ok(specifier === 'zod' || specifier.startsWith('./'), `Server dependency in contracts: ${specifier}`);
+        assert.ok(allowed.includes(specifier) || specifier.startsWith('./'), `Server dependency in contracts: ${specifier}`);
     }
     assert.doesNotMatch(source, /\brequire\s*\(|\bimport\s*\(|\bprocess\.|\bBuffer\b/, 'Contracts must be browser-compatible');
 }
 const pkg = JSON.parse(read('packages/contracts/package.json'));
-assert.deepEqual(pkg.dependencies, { zod: '4.1.12' });
+assert.deepEqual(pkg.dependencies, { luxon: '3.7.1', zod: '4.1.12' });
+for (const app of ['web', 'api']) assert.equal(JSON.parse(read(`apps/${app}/package.json`)).dependencies.luxon, pkg.dependencies.luxon, `Luxon version must match in contracts and ${app}`);
 const lock = JSON.parse(read('package-lock.json'));
 assert.equal(lock.packages['node_modules/@tobu/contracts'].link, true);
 for (const app of ['web', 'api']) assert.equal(JSON.parse(read(`apps/${app}/package.json`)).dependencies['@tobu/contracts'], '0.0.0');
