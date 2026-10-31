@@ -47,12 +47,12 @@ Der Rollout ist ein **eigener technischer Schritt** (Plan P04 und TZ-01–15) mi
 Die Änderungen H01–H06 sind Code und Tests ohne Schemaänderung, Migration oder Datenumschreibung (H05: Audit nur lesend). Es gibt keine Automatik für Produktion.
 
 - **Rollout:** regulärer Build/Deploy der Anwendung nach den bestehenden Gates (`quality:full`, Artefakt-Test) und ausdrücklicher Freigabe des Eigentümers. Vorher einmal `audit-calendar` read-only gegen die eigene Datenbank ausführen (Aufruf in [development.md](../development.md)); bei `REVIEW` oder `STOP-DATA` nicht ausrollen, sondern gesondert entscheiden. Dieser Befund liegt für Echtdaten noch nicht vor.
-- **Backout:** vorheriges Artefakt/Commit wieder einsetzen. Weil nichts migriert wurde, bleiben die Daten gültig; vom neuen Code geschriebene Werte (Monatsanker, UTC-Mitternacht-Träger) sind für den alten Code lesbar. Ein Backout verlangt kein Restore und darf keines auslösen.
+- **Backout:** vorheriges Artefakt/Commit wieder einsetzen, **API und Web gemeinsam** (der neue Drawer sendet keinen `month`; ob eine alte API das akzeptiert, ist nicht belegt, daher kein gemischter Rollback). Weil nichts migriert wurde, bleiben die Daten gültig; vom neuen Code geschriebene Werte (Monatsanker, UTC-Mitternacht-Träger) sind für den alten Code lesbar. Ein Backout verlangt kein Restore und darf keines auslösen.
 - **Nicht Teil dieses Rollouts:** Kontozone, ACL der Kalender-Routen (AUTH-001/002, P02), Datenbereinigung, Recurrence-Funktionen.
 
 ## Fundstellen A01–A36 und W01–W26
 
-Status: **DONE** (umgesetzt und durch Test belegt), **NOT-APPLICABLE** (kein Änderungsbedarf oder inaktiv, mit Grund), **SEPARATE-TICKET** (bewusst nicht in H01–H06, mit Grund). Testkürzel: CT `packages/contracts/tests/calendar.test.mjs`, UM `apps/api/tests/unit/month-helpers.test.mjs`, UT `apps/api/tests/unit/transaction-dates.test.mjs`, TD `apps/api/tests/integration/transaction-dates.test.mjs`, MI `apps/api/tests/integration/month-intervals.test.mjs`, CA `apps/api/tests/integration/calendar-audit.test.mjs`, XZ `apps/web/tests/e2e/calendar-cross-zone.spec.ts`, FL `calendar-flows.spec.ts`, RQ `calendar-qa.real.spec.ts`, RL `calendar.real.spec.ts`, PK `apps/web/src/app/shared/utils/calendar-picker.spec.ts`. Der Status entspricht dem Stand von `develop` bei Erstellung (Code `b3ead17`); er beruht auf Code- und Testsichtung, nicht auf einer erneuten Einzelverifikation jeder Zeile.
+Status: **DONE** (umgesetzt und durch Test belegt), **NOT-APPLICABLE** (kein Änderungsbedarf oder inaktiv, mit Grund), **SEPARATE-TICKET** (bewusst nicht in H01–H06, mit Grund). Testkürzel: CT `packages/contracts/tests/calendar.test.mjs`, UM `apps/api/tests/unit/month-helpers.test.mjs`, UT `apps/api/tests/unit/transaction-dates.test.mjs`, TD `apps/api/tests/integration/transaction-dates.test.mjs`, MI `apps/api/tests/integration/month-intervals.test.mjs`, CA `apps/api/tests/integration/calendar-audit.test.mjs`, XZ `apps/web/tests/e2e/calendar-cross-zone.spec.ts`, FL `calendar-flows.spec.ts`, RQ `calendar-qa.real.spec.ts`, RL `calendar.real.spec.ts`, PK `apps/web/src/app/shared/utils/calendar-picker.spec.ts`. Der Status entspricht dem Code-Stand `b3ead17` (seitdem nur Berichte geändert; Gate auf `8c41488`); er beruht auf Code- und Testsichtung, nicht auf einer erneuten Einzelverifikation jeder Zeile.
 
 ### API / Contracts
 
@@ -83,7 +83,7 @@ Status: **DONE** (umgesetzt und durch Test belegt), **NOT-APPLICABLE** (kein Än
 | A23 | DONE | MI (CAL-15–17, CAL-18) |
 | A24 | DONE | `monthKeyOfUtcDate` statt zonenloser Konvertierung; MI (CAL-19 in UTC/Tokyo/LA) |
 | A25 | DONE | halboffene Aktivität über `lib/month.ts`; MI (CAL-18/20) |
-| A26 | DONE | UTC-Monat und Snapshot-Monat getrennt typisiert; MI (CAL-21). Additives Kalendermonat-Feld bewusst nicht ergänzt (siehe A11) |
+| A26 | DONE | UTC-Monat und Snapshot-Monat semantisch getrennt (im Schema nicht typisiert, siehe A11); MI (CAL-21). Additives Kalendermonat-Feld bewusst nicht ergänzt |
 | A27 | DONE | Fallback ohne Snapshot ist der Monatsanker; MI (CAL-21) |
 | A28 | DONE | Bereiche halboffen (`$lt range.end`); MI (CAL-18) |
 | A29 | DONE | Uhr aus `lib/clock.ts`, halboffene Aktivität, keine Rückwirkung; MI (CAL-20 Generator) |
@@ -102,7 +102,7 @@ Status: **DONE** (umgesetzt und durch Test belegt), **NOT-APPLICABLE** (kein Än
 | W01 | DONE | Monatsansicht startet mit dem UTC-Monat; XZ, RQ (CAL-08/23) |
 | W02 | DONE | Anzeige über `formatBankDate`/`formatMonthValue`; PK, XZ (Monatsnavigation) |
 | W03 | DONE | MonthKey in State/Service/UI-Modell; XZ, RQ |
-| W04 | DONE | Drawer sendet Träger, kein `month`; FL, RQ (CAL-24). Ein echter Mausklick auf „Speichern“ ist nicht belegt (PrimeNG-Maske fängt Automationsklicks, Test per `requestSubmit`) |
+| W04 | DONE | Drawer sendet Träger, kein `month`; XZ, RQ (CAL-24). Ein echter Mausklick auf „Speichern“ ist nicht belegt (PrimeNG-Maske fängt Automationsklicks, Test per `requestSubmit`) |
 | W05 | DONE | `todayBankDate` aus lokalen Kalenderteilen; PK (nur eine Browserzone) |
 | W06 | DONE | Dock-Split sendet das Parent-`bookDate` unverändert; FL. Dock-Create ohne eigenen Test; pending Parent ohne `bookDate` bleibt Altverhalten (Server lehnt ab) |
 | W07 | DONE | Detail-Editor ohne Phantom-Diff und ohne PATCH beim Öffnen; XZ, RQ (CAL-25) |
@@ -123,7 +123,7 @@ Status: **DONE** (umgesetzt und durch Test belegt), **NOT-APPLICABLE** (kein Än
 | W22 | DONE | Drawer sendet keinen `month` mehr, zeigt Fehler über `saveError`; XZ. Kein eigener Test für den 400/409-Pfad |
 | W23 | NOT-APPLICABLE | Bestehende Typen/Contracts genügen; keine parallelen DTOs angelegt. Typschärfe siehe A11 |
 | W24 | NOT-APPLICABLE | Stammdaten-Seite enthält keine Datums-/Monatslogik |
-| W25 | NOT-APPLICABLE | `/calculation` liest statische Demo-Dateien (`/test/…`), keine Finanz-API, kein persistiertes Datum; enthält zonenlose Luxon-Aufrufe. Bei Produktivierung eigenes Ticket |
+| W25 | NOT-APPLICABLE | `/calculation` ist eine erreichbare Route, liest aber nur statische Demo-Dateien (`/test/…`): keine Finanz-API, kein persistiertes Fach-Datum. Sie enthält zonenlose Luxon-Aufrufe (`DateTime.now()`, `fromISO`), die gegen die Regel verstoßen; bewusst nicht umgestellt, bei Produktivierung eigenes Ticket (auch unter „Restpunkte“) |
 | W26 | DONE | Mock-`currentMonth` als Anker wie die echte API; der Mock-Guard lehnt unmockte Aufrufe ab |
 
 ## Bekannte Restpunkte (nicht verschwiegen)
@@ -132,4 +132,5 @@ Status: **DONE** (umgesetzt und durch Test belegt), **NOT-APPLICABLE** (kein Än
 - Echte Nutzerdaten sind nicht auditiert (H05). Kein Aufräum-/Zuordnungsweg für geblockte Altkonten.
 - Nicht abgedeckt: DST-Frühling, Dock-Create und echter Klick im Drawer, Planungs-UI gegen die echte API, CAL-21 mit Snapshot im Browser, CAL-22 gegen echte API.
 - Planungsseite, Drawer und Monatsansicht können bei Browserzone vor UTC über Monatsgrenzen auseinanderlaufen (siehe oben).
+- Die zonenlosen Luxon-Aufrufe in `/calculation` (W25) bleiben bestehen.
 - CI-Ergebnisse der PRs #8–#12 wurden nicht eingesehen.
