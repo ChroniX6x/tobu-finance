@@ -182,6 +182,19 @@ for (const timezoneId of ZONES) {
         expect(created.bookDate).toBe(`${localDay}T00:00:00.000Z`);
         expect(created.month).toBe(anchor(localDay.slice(0, 7)));
         expect(created.status).toBe("booked");
+        expect(created.amountMinor).toBe(
+          response.request().postDataJSON().amountMinor,
+        );
+        expect(created.amountMinor).toBeGreaterThan(0);
+
+        const booked = await page.request.get(
+          `/api/accounts/${account._id}/month-view?month=${localDay.slice(0, 7)}`,
+          { headers },
+        );
+        expect(booked.status()).toBe(200);
+        expect((await booked.json()).kpis.totalPaidMinor).toBe(
+          created.amountMinor,
+        );
       });
 
       await test.step("parent and split children keep one BankDate and no PATCH is sent on open (CAL-25)", async () => {
@@ -243,9 +256,16 @@ for (const timezoneId of ZONES) {
         const stored = items.find((t) => t._id === parent._id)!;
         expect(stored.bookDate).toBe(`${day}T00:00:00.000Z`);
         expect(stored.amountMinor).toBe(1000);
-        for (const c of stored.children ?? []) {
-          expect(c.bookDate).toBe(stored.bookDate);
-        }
+        const storedChild = [
+          ...items,
+          ...items.flatMap((t) => t.children ?? []),
+        ].find((t) => t._id === child._id);
+        expect(storedChild, "the split child is listed").toBeDefined();
+        expect(storedChild!.bookDate).toBe(stored.bookDate);
+        expect(storedChild!.amountMinor).toBe(333);
+        // a late phantom PATCH after the editor settled would still be a passive write
+        await page.waitForLoadState("networkidle");
+        expect(patches).toBe(0);
       });
     });
   });
