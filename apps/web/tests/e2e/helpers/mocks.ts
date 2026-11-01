@@ -138,6 +138,9 @@ export const mockTransaction = {
 
 // ─── Route mock helpers ──────────────────────────────────────────────────────
 
+/** Unsigned JWT-shaped token: the wizard reads the signed-in user's id and e-mail from its claims. */
+const E2E_ACCESS_TOKEN = `e30.${Buffer.from(JSON.stringify({ sub: "000000000000000000000abc", email: "e2e@example.test" })).toString("base64url")}.e2e`;
+
 /** Mock the auth/refresh endpoint so the app initializer sets a token and the auth guard passes. */
 export async function mockAuth(page: Page, useMocks = true): Promise<void> {
   if (!useMocks) return; // real-api mode: rely on the storageState refresh cookie
@@ -145,7 +148,7 @@ export async function mockAuth(page: Page, useMocks = true): Promise<void> {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ accessToken: "e2e-token" }),
+      body: JSON.stringify({ accessToken: E2E_ACCESS_TOKEN }),
     }),
   );
 }
