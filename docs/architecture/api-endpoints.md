@@ -55,4 +55,4 @@ Quelle: packages/contracts/src/endpoints.ts. Keine weiteren API-Verbraucher sind
 | POST | /api/auth/refresh | public | — | — | 200 |
 | POST | /api/auth/logout | public | — | — | 204 |
 
-Fehler: bestehende JSON-Varianten (error oder code/message), teilweise text/plain bei 404. Bearer bedeutet Authentifizierung; die vollständige Kontoberechtigungsprüfung bleibt separat offen (Stand H08-FIX-ACL: Kontomitgliedschaft wird auf Kalender-Routen, `accounts` und `members` mit 404 für Fremde erzwungen; `categories` und `recurrences` noch nicht). Neue Fehler: 422 `REFERENCE_NOT_IN_ACCOUNT`, `MEMBER_NOT_ASSIGNABLE`, `CREATOR_MEMBER_REQUIRED`; 403 `USER_LINK_FORBIDDEN`; 409 `MEMBER_LINKED`, `MEMBER_IN_USE`, `CALLER_WOULD_LOSE_ACCESS`.
+Fehler: bestehende JSON-Varianten (error oder code/message), teilweise text/plain bei 404. Bearer bedeutet Authentifizierung; die vollständige Kontoberechtigungsprüfung bleibt separat offen.
