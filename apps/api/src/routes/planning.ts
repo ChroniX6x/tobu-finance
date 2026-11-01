@@ -5,6 +5,7 @@ import { QueryPlanning } from '@tobu/contracts/read-queries';
 import { monthKeyOfUtcDate } from '@tobu/contracts/calendar';
 
 import Account from '../models/Account.js';
+import { requireAccountAccess } from '../auth/account-access.js';
 import Member from '../models/Member.js';
 import Category from '../models/Category.js';
 import CategoryBudget from '../models/CategoryBudget.js';
@@ -29,6 +30,7 @@ r.get('/:accountId/planning', validateQuery(QueryPlanning), async (req, res) => 
     const { accountId } = req.params;
     if (!accountId || !/^[a-f\d]{24}$/i.test(accountId)) return res.status(400).json({ error: 'INVALID_ID' });
 
+    if (!(await requireAccountAccess(req, res, accountId))) return;
     const account = await Account.findById(accountId).lean();
     if (!account) return res.sendStatus(404);
 

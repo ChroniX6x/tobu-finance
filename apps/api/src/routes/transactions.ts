@@ -1,4 +1,4 @@
-import { Router, type Response } from 'express';
+import { Router, type Request, type Response } from 'express';
 import mongoose, { Types, type ClientSession } from 'mongoose';
 import Transaction from '../models/Transaction.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
@@ -6,8 +6,29 @@ import { CreateTx, PatchTx, QueryTx, monthFromYYYYMM } from '../validation/trans
 import Event from '../models/Event.js';
 import { DateTime } from 'luxon';
 import { childDatesAgree, resolveCreateDates, resolvePatchDates, type MonthRuleError } from '../lib/transaction-dates.js';
+import { foreignReference, isObjectId, requireAccountAccess } from '../auth/account-access.js';
+import Recurrence from '../models/Recurrence.js';
 
 const r = Router();
+
+/** The transaction must exist and belong to an account of the caller; otherwise 404 (indistinguishable). */
+async function loadAuthorizedTransaction(req: Request, res: Response, id: unknown) {
+    const target = isObjectId(id) ? await Transaction.findById(id, { accountId: 1, parentTransactionId: 1, categoryId: 1 }).lean() : null;
+    if (!target) {
+        res.sendStatus(404);
+        return null;
+    }
+    return (await requireAccountAccess(req, res, target.accountId)) ? target : null;
+}
+
+/** Category, payer and recurrence of a write must belong to the same account. Answers 422 and returns false otherwise. */
+async function referencesBelongToAccount(res: Response, accountId: unknown, refs: { categoryId?: unknown; paidByMemberId?: unknown; recurrenceId?: unknown }): Promise<boolean> {
+    let field = await foreignReference(accountId, { categoryId: refs.categoryId, memberIds: { paidByMemberId: refs.paidByMemberId } });
+    if (!field && refs.recurrenceId && !(await Recurrence.exists({ _id: refs.recurrenceId, accountId }))) field = 'recurrenceId';
+    if (!field) return true;
+    res.status(422).json({ error: 'REFERENCE_NOT_IN_ACCOUNT', field });
+    return false;
+}
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -61,6 +82,7 @@ async function sumChildren(parentId: Types.ObjectId, session: ClientSession, exc
 
 r.get('/', validateQuery(QueryTx), async (req, res) => {
     const { accountId, month, monthFrom, monthTo, status, q: search, parentTransactionId: ptxId, categoryIds, page, pageSize, sort } = (req as any).q;
+    if (!(await requireAccountAccess(req, res, accountId))) return;
 
     // Determine mode: parent-list mode (default) vs. child-list mode (explicit ObjectId)
     const isParentMode = !ptxId || ptxId === 'null';
@@ -167,11 +189,13 @@ r.get('/', validateQuery(QueryTx), async (req, res) => {
 r.post('/', validateBody(CreateTx), async (req, res) => {
     const b = (req as any).data;
     const isChild = !!b.parentTransactionId;
+    if (!(await requireAccountAccess(req, res, b.accountId))) return;
     const dates = resolveCreateDates(b.bookDate, b.month);
     if (!dates.ok) {
         const { status, body } = monthRuleStatus(dates.error);
         return res.status(status).json(body);
     }
+    if (!(await referencesBelongToAccount(res, b.accountId, { categoryId: b.categoryId, paidByMemberId: b.paidByMemberId, recurrenceId: b.recurrenceId }))) return;
 
     return writeAtomically(res, async (session) => {
         let parentDoc: InstanceType<typeof Transaction> | null = null;
@@ -242,6 +266,10 @@ r.post('/', validateBody(CreateTx), async (req, res) => {
 r.patch('/:id', validateBody(PatchTx), async (req, res) => {
     const { id } = req.params;
     const b = (req as any).data;
+
+    const target = await loadAuthorizedTransaction(req, res, id);
+    if (!target) return;
+    if (!(await referencesBelongToAccount(res, target.accountId, { categoryId: b.categoryId, paidByMemberId: b.paidByMemberId, recurrenceId: b.recurrenceId }))) return;
 
     return writeAtomically(res, async (session) => {
         const prev = await Transaction.findById(id).session(session);
@@ -364,6 +392,7 @@ r.patch('/:id', validateBody(PatchTx), async (req, res) => {
 
 r.delete('/:id', async (req, res) => {
     const { id } = req.params;
+    if (!(await loadAuthorizedTransaction(req, res, id))) return;
     const target = await Transaction.findById(id);
     if (!target) return res.sendStatus(404);
 

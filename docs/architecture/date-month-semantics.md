@@ -48,7 +48,7 @@ Die Änderungen H01–H06 sind Code und Tests ohne Schemaänderung, Migration od
 
 - **Rollout:** regulärer Build/Deploy der Anwendung nach den bestehenden Gates (`quality:full`, Artefakt-Test) und ausdrücklicher Freigabe des Eigentümers. Vorher einmal `audit-calendar` read-only gegen die eigene Datenbank ausführen (Aufruf in [development.md](../development.md)); bei `REVIEW` oder `STOP-DATA` nicht ausrollen, sondern gesondert entscheiden. Dieser Befund liegt für Echtdaten noch nicht vor.
 - **Backout:** vorheriges Artefakt/Commit wieder einsetzen, **API und Web gemeinsam** (der neue Drawer sendet keinen `month`; ob eine alte API das akzeptiert, ist nicht belegt, daher kein gemischter Rollback). Weil nichts migriert wurde, bleiben die Daten gültig; vom neuen Code geschriebene Werte (Monatsanker, UTC-Mitternacht-Träger) sind für den alten Code lesbar. Ein Backout verlangt kein Restore und darf keines auslösen.
-- **Nicht Teil dieses Rollouts:** Kontozone, ACL der Kalender-Routen (AUTH-001/002, P02), Datenbereinigung, Recurrence-Funktionen.
+- **Nicht Teil dieses Rollouts:** Kontozone, Datenbereinigung, Recurrence-Funktionen. Die Mitgliedschaftsprüfung der Kalender-Routen kam mit H08-FIX-ACL (siehe unten, AUTH-001/002).
 
 ## Fundstellen A01–A36 und W01–W26
 
@@ -128,7 +128,7 @@ Status: **DONE** (umgesetzt und durch Test belegt), **NOT-APPLICABLE** (kein Än
 
 ## Bekannte Restpunkte (nicht verschwiegen)
 
-- Kalender-Routen prüfen keine Account-Mitgliedschaft (AUTH-001/002; CAL-28 ACL-Teil BLOCKED, Entscheidung 404 und Altkonten blockieren, Umsetzung in P02, offen ob P02 diese Routen abdeckt).
+- Kalender-Routen prüfen seit H08-FIX-ACL die Account-Mitgliedschaft (404 für Nichtmitglied, unbekanntes Konto und Altkonto; [H08-FIX-ACL](../agents/runs/H08-FIX-ACL.md)). `categories` und `recurrences` sind davon ausgenommen und weiterhin ungeschützt (AUTH-001 offen).
 - Echte Nutzerdaten sind nicht auditiert (H05). Kein Aufräum-/Zuordnungsweg für geblockte Altkonten.
 - Nicht abgedeckt: DST-Frühling, Dock-Create und echter Klick im Drawer, Planungs-UI gegen die echte API, CAL-21 mit Snapshot im Browser, CAL-22 gegen echte API.
 - Planungsseite, Drawer und Monatsansicht können bei Browserzone vor UTC über Monatsgrenzen auseinanderlaufen (siehe oben).
