@@ -17,16 +17,32 @@ const r = Router();
 
 type Outcome = { status: number; body?: unknown };
 
+class Rejected extends Error {
+    constructor(readonly outcome: Outcome) {
+        super(`rejected ${outcome.status}`);
+    }
+}
+
 /**
  * Budget, event and the rebuilt base rules commit together or not at all. A write to the account document first
  * serializes concurrent budget writes of one account (MongoDB aborts and reruns one of them against the committed
- * state), so the base rules always match the final set of budgets.
+ * state), so the base rules always match the final set of budgets. A rejected request (409, 404, ...) aborts the
+ * transaction, so not even that serializing write is kept: rejected requests write nothing.
  */
 async function writeAtomically(res: Response, accountId: Types.ObjectId, work: (session: ClientSession) => Promise<Outcome>) {
-    const outcome = await mongoose.connection.transaction(async (session) => {
-        await Account.updateOne({ _id: accountId }, { $set: { updatedAt: new Date() } }, { session, timestamps: false });
-        return work(session);
-    });
+    let outcome: Outcome;
+    try {
+        outcome = await mongoose.connection.transaction(async (session) => {
+            const lock = await Account.updateOne({ _id: accountId }, { $set: { updatedAt: new Date() } }, { session, timestamps: false });
+            if (lock.matchedCount === 0) throw new Rejected({ status: 404 });
+            const result = await work(session);
+            if (result.status >= 400) throw new Rejected(result);
+            return result;
+        });
+    } catch (error) {
+        if (!(error instanceof Rejected)) throw error;
+        outcome = error.outcome;
+    }
     return outcome.body === undefined ? res.sendStatus(outcome.status) : res.status(outcome.status).json(outcome.body);
 }
 

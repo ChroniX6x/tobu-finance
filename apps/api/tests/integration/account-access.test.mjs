@@ -133,13 +133,15 @@ test('account membership: two real users on a real replica set, 404 for everythi
         const budget = await call(who.token, 'POST', '/api/category-budgets', { accountId: acc, categoryId: category._id, amountMinor: 1000, fromMonth: '2026-11', toMonth: '2026-12' });
         const income = await call(who.token, 'POST', '/api/member-incomes', { accountId: acc, memberId: member._id, amountMinor: 20000, fromMonth: '2026-11', toMonth: '2026-12' });
         const rule = await call(who.token, 'POST', '/api/contribution-rules', { accountId: acc, type: 'additional', recurring: false, amountMinor: 500, distribution: { mode: 'perMember', memberId: member._id }, fromMonth: '2026-11' });
-        for (const [name, response] of Object.entries({ balance, carry, budget, income, rule })) assert.ok([200, 201].includes(response.status), `${label} ${name}: ${response.text}`);
+        const rec = await call(who.token, 'POST', '/api/recurrences', { accountId: acc, type: 'expense', amountMinor: 100, title: `${label} rent`, categoryId: category._id, createdByMemberId: member._id });
+        for (const [name, response] of Object.entries({ balance, carry, budget, income, rule, rec })) assert.ok([200, 201].includes(response.status), `${label} ${name}: ${response.text}`);
         return {
             acc,
             member: member._id,
             partner: partner._id,
             spare: spare._id,
             category: category._id,
+            rec: rec.json._id,
             tx: parent.json._id,
             child: child.json._id,
             balance: balance.json._id,
@@ -158,7 +160,9 @@ test('account membership: two real users on a real replica set, 404 for everythi
     const L = { acc: String(legacyAccount), member: String(legacyMember), partner: String(legacyMember), spare: String(new ObjectId()), category: String(new ObjectId()) };
     await db.collection('members').insertOne({ _id: legacyMember, name: 'Legacy', email: 'legacy@example.test', userId: null });
     await db.collection('accounts').insertOne({ _id: legacyAccount, name: 'Legacy', currency: 'EUR', members: [{ memberId: legacyMember, role: 'owner' }] });
+    await db.collection('categories').insertOne({ _id: new ObjectId(L.category), accountId: legacyAccount, name: 'Legacy cat', customSplit: [] });
     for (const [key, collection, doc] of [
+        ['rec', 'recurrences', { accountId: legacyAccount, categoryId: new ObjectId(L.category), title: 'Legacy rent', type: 'expense', amountMinor: 1, schedule: { freq: 'monthly', dayOfMonth: 1 }, activeFrom: new Date(NOV), activeUntil: null }],
         [
             'tx',
             'transactions',
@@ -174,7 +178,7 @@ test('account membership: two real users on a real replica set, 404 for everythi
         L[key] = String(insertedId);
     }
     // A completely unknown account and unknown documents.
-    const U = Object.fromEntries(['acc', 'member', 'partner', 'spare', 'category', 'tx', 'balance', 'carry', 'budget', 'income', 'rule'].map((key) => [key, String(new ObjectId())]));
+    const U = Object.fromEntries(['acc', 'member', 'partner', 'spare', 'category', 'rec', 'tx', 'balance', 'carry', 'budget', 'income', 'rule'].map((key) => [key, String(new ObjectId())]));
 
     // One entry per route and method. Bodies are valid for the target so that only authorization can reject them.
     const month = '2026-11';
@@ -211,9 +215,19 @@ test('account membership: two real users on a real replica set, 404 for everythi
         ['GET /api/contribution-rules', 'GET', `/api/contribution-rules?accountId=${x.acc}`],
         ['POST /api/contribution-rules', 'POST', '/api/contribution-rules', { accountId: x.acc, type: 'additional', recurring: false, amountMinor: 1, distribution: { mode: 'perMember', memberId: x.member }, fromMonth: '2027-01' }],
         ['PATCH /api/contribution-rules/:id', 'PATCH', `/api/contribution-rules/${x.rule}`, { amountMinor: 2 }],
-        ['DELETE /api/contribution-rules/:id', 'DELETE', `/api/contribution-rules/${x.rule}`]
+        ['DELETE /api/contribution-rules/:id', 'DELETE', `/api/contribution-rules/${x.rule}`],
+        ['GET /api/categories', 'GET', `/api/categories?accountId=${x.acc}`],
+        ['POST /api/categories', 'POST', '/api/categories', { accountId: x.acc, name: 'nn' }],
+        ['PATCH /api/categories/:id', 'PATCH', `/api/categories/${x.category}`, { name: 'changed' }],
+        ['DELETE /api/categories/:id', 'DELETE', `/api/categories/${x.category}`],
+        ['PATCH /api/categories/:id (accountId of the caller)', 'PATCH', `/api/categories/${x.category}`, { accountId: A.acc, name: 'changed' }],
+        ['PATCH /api/recurrences/:id (accountId of the caller)', 'PATCH', `/api/recurrences/${x.rec}`, { accountId: A.acc, title: 'changed' }],
+        ['GET /api/recurrences', 'GET', `/api/recurrences?accountId=${x.acc}`],
+        ['POST /api/recurrences', 'POST', '/api/recurrences', { accountId: x.acc, type: 'expense', amountMinor: 1, title: 'nn' }],
+        ['PATCH /api/recurrences/:id', 'PATCH', `/api/recurrences/${x.rec}`, { title: 'changed' }],
+        ['DELETE /api/recurrences/:id', 'DELETE', `/api/recurrences/${x.rec}`]
     ];
-    assert.equal(matrix(B).length, 33);
+    assert.equal(matrix(B).length, 43);
 
     const expectNoWrites = async (label, work, check) => {
         const before = await snapshot();
@@ -319,12 +333,25 @@ test('account membership: two real users on a real replica set, 404 for everythi
         );
         await ok('PATCH', `/api/contribution-rules/${rule.json._id}`, { amountMinor: 3 }, 200);
         await ok('DELETE', `/api/contribution-rules/${rule.json._id}`, undefined, 204);
+        // categories and recurrences: same rules, own account only
+        const listedCategories = await ok('GET', `/api/categories?accountId=${A.acc}`, undefined, 200);
+        assert.ok(listedCategories.json.length >= 1 && listedCategories.json.every((c) => String(c.accountId) === A.acc));
+        const cat = await ok('POST', '/api/categories', { accountId: A.acc, name: 'own cat', customSplit: [{ memberId: A.member, split: 100 }] }, 201);
+        await ok('PATCH', `/api/categories/${cat.json._id}`, { name: 'own cat renamed', customSplit: [{ memberId: A.partner, split: 100 }] }, 200);
+        const sameAccount = await ok('PATCH', `/api/categories/${cat.json._id}`, { accountId: A.acc, name: 'same account is accepted and ignored' }, 200);
+        assert.equal(String(sameAccount.json.accountId), A.acc);
+        await ok('DELETE', `/api/categories/${cat.json._id}`, undefined, 204);
+        const listedRecurrences = await ok('GET', `/api/recurrences?accountId=${A.acc}`, undefined, 200);
+        assert.ok(listedRecurrences.json.length >= 1 && listedRecurrences.json.every((c) => String(c.accountId) === A.acc));
+        const recurrence = await ok('POST', '/api/recurrences', { accountId: A.acc, type: 'expense', amountMinor: 5, title: 'own rec', categoryId: A.category, createdByMemberId: A.partner }, 201);
+        await ok('PATCH', `/api/recurrences/${recurrence.json._id}`, { title: 'renamed', categoryId: A.category, accountId: A.acc }, 200);
+        await ok('DELETE', `/api/recurrences/${recurrence.json._id}`, undefined, 204);
         await ok('DELETE', `/api/account-balances/${A.balance}`, undefined, 204);
         await ok('DELETE', `/api/carryovers/${A.carry}`, undefined, 204);
     });
 
     await t.test('list routes without accountId only show the caller’s accounts', async () => {
-        for (const path of ['account-balances', 'carryovers', 'category-budgets', 'member-incomes', 'contribution-rules']) {
+        for (const path of ['account-balances', 'carryovers', 'category-budgets', 'member-incomes', 'contribution-rules', 'categories', 'recurrences']) {
             const r = await call(bob.token, 'GET', `/api/${path}`);
             assert.equal(r.status, 200);
             assert.ok(r.json.length >= 1 && r.json.every((d) => String(d.accountId) === B.acc), `${path}: ${r.text}`);
@@ -335,7 +362,7 @@ test('account membership: two real users on a real replica set, 404 for everythi
             [B.acc]
         );
         const nobody = await register('nobody');
-        for (const path of ['accounts', 'members', 'account-balances', 'carryovers', 'category-budgets', 'member-incomes', 'contribution-rules']) {
+        for (const path of ['accounts', 'members', 'account-balances', 'carryovers', 'category-budgets', 'member-incomes', 'contribution-rules', 'categories', 'recurrences', 'accounts/summary']) {
             const r = await call(nobody.token, 'GET', `/api/${path}`);
             assert.deepEqual([r.status, r.json], [200, []], path);
         }
@@ -355,7 +382,24 @@ test('account membership: two real users on a real replica set, 404 for everythi
         const tx = { accountId: A.acc, title: 'xx', type: 'expense', amountMinor: 10, isFromSharedAccount: true, month: '2026-11' };
         await rejected('foreign categoryId', 'POST', '/api/transactions', { ...tx, categoryId: B.category }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
         await rejected('foreign paidByMemberId', 'POST', '/api/transactions', { ...tx, paidByMemberId: B.member }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
-        await rejected('foreign recurrenceId', 'POST', '/api/transactions', { ...tx, recurrenceId: String(new ObjectId()) }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('foreign recurrenceId', 'POST', '/api/transactions', { ...tx, recurrenceId: B.rec }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('unknown recurrenceId', 'POST', '/api/transactions', { ...tx, recurrenceId: String(new ObjectId()) }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('patch with foreign recurrence', 'PATCH', `/api/transactions/${A.tx}`, { recurrenceId: B.rec }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        // categories and recurrences: nothing can be moved between accounts or point at foreign objects
+        await rejected('category: delete a category that is still referenced', 'DELETE', `/api/categories/${A.category}`, undefined, 409, 'CATEGORY_REFERENCED');
+        await rejected('category: take over a foreign category by accountId', 'PATCH', `/api/categories/${B.category}`, { accountId: A.acc }, 404);
+        await rejected('category: move an own category to a foreign account', 'PATCH', `/api/categories/${A.category}`, { accountId: B.acc }, 422, 'ACCOUNT_IMMUTABLE');
+        await rejected('category: create in a foreign account', 'POST', '/api/categories', { accountId: B.acc, name: 'xx' }, 404);
+        await rejected('category: customSplit with a foreign member (create)', 'POST', '/api/categories', { accountId: A.acc, name: 'xx', customSplit: [{ memberId: B.member, split: 100 }] }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('category: customSplit with a foreign member (patch)', 'PATCH', `/api/categories/${A.category}`, { customSplit: [{ memberId: B.partner, split: 100 }] }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('recurrence: take over a foreign recurrence by accountId', 'PATCH', `/api/recurrences/${B.rec}`, { accountId: A.acc }, 404);
+        await rejected('recurrence: move an own recurrence to a foreign account', 'PATCH', `/api/recurrences/${A.rec}`, { accountId: B.acc }, 422, 'ACCOUNT_IMMUTABLE');
+        await rejected('recurrence: create in a foreign account', 'POST', '/api/recurrences', { accountId: B.acc, type: 'expense', amountMinor: 1 }, 404);
+        await rejected('recurrence: foreign category (create)', 'POST', '/api/recurrences', { accountId: A.acc, type: 'expense', amountMinor: 1, categoryId: B.category }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('recurrence: foreign member (create)', 'POST', '/api/recurrences', { accountId: A.acc, type: 'expense', amountMinor: 1, createdByMemberId: B.member }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('recurrence: foreign category (patch)', 'PATCH', `/api/recurrences/${A.rec}`, { categoryId: B.category }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('recurrence: foreign member (patch)', 'PATCH', `/api/recurrences/${A.rec}`, { createdByMemberId: B.partner }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('recurrence: validation error', 'POST', '/api/recurrences', { accountId: A.acc, type: 'nope' }, 400);
         await rejected('foreign parent in own account', 'POST', '/api/transactions', { ...tx, parentTransactionId: B.tx }, 422, 'PARENT_NOT_FOUND');
         await rejected('own parent in foreign account', 'POST', '/api/transactions', { ...tx, accountId: B.acc, parentTransactionId: A.tx }, 404);
         await rejected('patch with foreign category', 'PATCH', `/api/transactions/${A.tx}`, { categoryId: B.category }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
@@ -492,6 +536,41 @@ test('account membership: two real users on a real replica set, 404 for everythi
         assert.equal((await call(alice.token, 'DELETE', `/api/accounts/${A.acc}/members/${extra._id}`)).status, 200);
         // Removed from the account, the unlinked member is an orphan nobody can reach any more.
         assert.equal((await call(alice.token, 'DELETE', `/api/members/${extra._id}`)).status, 404);
+    });
+
+    await t.test('category-budgets: rejected requests (409 BUDGET_OVERLAP, 404, 422, 400) write nothing, not even accounts.updatedAt, and emit no event', async () => {
+        const extra = await call(alice.token, 'POST', '/api/category-budgets', { accountId: A.acc, categoryId: A.category, amountMinor: 50, fromMonth: '2027-01', toMonth: '2027-02' });
+        assert.equal(extra.status, 201, extra.text);
+        const rejected = async (label, method, path, body, status, code) =>
+            expectNoWrites(
+                label,
+                () => call(alice.token, method, path, body),
+                (r) => {
+                    assert.equal(r.status, status, `${label}: ${r.status} ${r.text}`);
+                    if (code) assert.equal(r.json.code ?? r.json.error, code, label);
+                }
+            );
+        await rejected('POST overlapping an existing budget', 'POST', '/api/category-budgets', { accountId: A.acc, categoryId: A.category, amountMinor: 1, fromMonth: '2026-12', toMonth: '2027-01' }, 409, 'BUDGET_OVERLAP');
+        await rejected('PATCH into an overlap', 'PATCH', `/api/category-budgets/${extra.json._id}`, { fromMonth: '2026-12' }, 409, 'BUDGET_OVERLAP');
+        await rejected('PATCH of an unknown budget', 'PATCH', `/api/category-budgets/${new ObjectId()}`, { amountMinor: 2 }, 404);
+        await rejected('DELETE of an unknown budget', 'DELETE', `/api/category-budgets/${new ObjectId()}`, undefined, 404);
+        await rejected('POST with a foreign category', 'POST', '/api/category-budgets', { accountId: A.acc, categoryId: B.category, amountMinor: 1, fromMonth: '2028-01' }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('POST with invalid months', 'POST', '/api/category-budgets', { accountId: A.acc, categoryId: A.category, amountMinor: 1, fromMonth: '2028-13' }, 400);
+        // An accepted write still changes exactly what it should.
+        const before = await snapshot();
+        assert.equal((await call(alice.token, 'PATCH', `/api/category-budgets/${extra.json._id}`, { amountMinor: 60 })).status, 200);
+        assert.notDeepEqual(await snapshot(), before);
+    });
+
+    await t.test('summary: GET /api/accounts/summary lists only the caller’s accounts; 401 without a token', async () => {
+        const ids = async (who) => (await call(who.token, 'GET', '/api/accounts/summary')).json.map((s) => s.id);
+        assert.deepEqual(await ids(alice), [A.acc]);
+        assert.deepEqual(await ids(bob), [B.acc]);
+        assert.deepEqual(await ids(admin), []);
+        assert.equal((await call(undefined, 'GET', '/api/accounts/summary')).status, 401);
+        assert.equal((await call('invalid', 'GET', '/api/accounts/summary')).status, 401);
+        const all = JSON.stringify(await call(alice.token, 'GET', '/api/accounts/summary'));
+        assert.ok(!all.includes(B.acc) && !all.includes(L.acc));
     });
 
     await t.test('summary and the quoted foreign data stay untouched by all of the above', async () => {

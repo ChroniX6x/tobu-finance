@@ -335,22 +335,20 @@ test('transaction dates: BankDate/month rules and atomic parent/child/event writ
         const parallelAccount = (await request('POST', '/api/accounts', { name: 'Parallel', members: [{ memberId: member._id, role: 'owner' }] })).json._id;
         const categories = await Promise.all(['p1', 'p2', 'p3', 'p4', 'p5'].map(async (name) => (await request('POST', '/api/categories', { accountId: parallelAccount, name })).json._id));
         const results = await Promise.all(categories.map((categoryId, i) => request('POST', '/api/category-budgets', { accountId: parallelAccount, categoryId, amountMinor: 100 * (i + 1), fromMonth: '2020-01' })));
-        const ok = results.filter((r) => r.status === 201).length;
-        assert.ok(ok >= 1);
-        for (const r of results) assert.ok([201, 500].includes(r.status), `status ${r.status}`);
+        assert.deepEqual(
+            results.map((r) => r.status),
+            [201, 201, 201, 201, 201],
+            'no request fails under contention (no 500)'
+        );
         const stored = await client
             .db(dbName)
             .collection('category_budgets')
             .find({ accountId: new ObjectId(parallelAccount) })
             .toArray();
-        assert.equal(stored.length, ok, 'every acknowledged budget is stored, nothing else');
+        assert.equal(stored.length, 5, 'every budget is stored');
         const base = await rules.find({ accountId: new ObjectId(parallelAccount), type: 'base' }).toArray();
         assert.equal(base.length, 1, 'exactly one base rule, no duplicates');
-        assert.equal(
-            base[0].amountMinor,
-            stored.reduce((sum, b) => sum + b.amountMinor, 0),
-            'the rule equals the sum of the stored budgets'
-        );
+        assert.equal(base[0].amountMinor, 1500, 'the rule equals the sum of the stored budgets (100+200+300+400+500)');
     });
 
     await t.test('CAL-12 concurrent date changes never leave parent and children apart', async () => {
