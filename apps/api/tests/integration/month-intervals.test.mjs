@@ -310,11 +310,8 @@ test('month intervals, UTC semantics and frozen clock across server time zones (
         }
     });
 
-    await t.test('CAL-20 generator: the base rule counts only budgets that are active in the (frozen) current month', async () => {
-        for (const [server, expectedBase] of [
-            [tokyo, 11100],
-            [la, 22200]
-        ]) {
+    await t.test('CAL-20 generator: base rules follow the budget periods month by month, independent of the server clock and zone', async () => {
+        for (const server of [tokyo, la, utc]) {
             const genAccountId = (await utc.call('POST', '/api/accounts', { name: `Gen ${server.label}`, members: [{ memberId: member._id, role: 'owner' }] })).json._id;
             const genCategory = (await utc.call('POST', '/api/categories', { accountId: genAccountId, name: 'g' })).json._id;
             for (const extra of [
@@ -326,13 +323,78 @@ test('month intervals, UTC semantics and frozen clock across server time zones (
             const base = await db
                 .collection('contribution_rules')
                 .find({ accountId: new ObjectId(genAccountId), type: 'base' })
+                .sort({ fromMonth: 1 })
                 .toArray();
             assert.deepEqual(
-                base.map((b) => b.amountMinor),
-                [expectedBase],
+                base.map((b) => [b.amountMinor, iso(b.fromMonth), iso(b.toMonth)]),
+                [
+                    [11100, anchor('2026-01'), anchor('2026-11')],
+                    [22200, anchor('2026-12'), null]
+                ],
                 `${server.label}`
             );
         }
+    });
+
+    await t.test('A29: a month only counts the budgets valid in that month; a later or ended budget never changes other months', async () => {
+        const accId = (await utc.call('POST', '/api/accounts', { name: 'Retro', members: [{ memberId: member._id, role: 'owner' }] })).json._id;
+        const split = [{ memberId: member._id, split: 100 }];
+        const cat = async (name) => (await utc.call('POST', '/api/categories', { accountId: accId, name, customSplit: split })).json._id;
+        const [catA, catB, catC] = [await cat('ra'), await cat('rb'), await cat('rc')];
+        const due = async (month) => (await utc.call('GET', `/api/accounts/${accId}/month-view?month=${month}`)).json.kpis.totalDueMinor;
+        const months = ['2025-12', '2026-01', '2026-03', '2026-06', '2026-10', '2026-11', '2026-12', '2027-03'];
+        const all = async () => Object.fromEntries(await Promise.all(months.map(async (m) => [m, await due(m)])));
+        const post = (categoryId, amountMinor, fromMonth, toMonth = null) => utc.call('POST', '/api/category-budgets', { accountId: accId, categoryId, amountMinor, fromMonth, toMonth });
+        assert.equal((await post(catA, 10000, '2026-01')).status, 201);
+        const first = await all();
+        assert.deepEqual(first, { '2025-12': 0, '2026-01': 10000, '2026-03': 10000, '2026-06': 10000, '2026-10': 10000, '2026-11': 10000, '2026-12': 10000, '2027-03': 10000 });
+        // Budget B starts in 2026-11: nothing before it may change.
+        const b = await post(catB, 5000, '2026-11');
+        assert.equal(b.status, 201);
+        const second = await all();
+        for (const m of ['2025-12', '2026-01', '2026-03', '2026-06', '2026-10']) assert.equal(second[m], first[m], `${m} unchanged by a later budget`);
+        assert.deepEqual([second['2026-11'], second['2026-12'], second['2027-03']], [15000, 15000, 15000]);
+        // Budget C is limited to 2026-03..2026-06 with a different amount: only those months change.
+        const c = await post(catC, 700, '2026-03', '2026-06');
+        assert.equal(c.status, 201);
+        const third = await all();
+        assert.deepEqual(third, { ...second, '2026-03': 10700, '2026-06': 10700 });
+        // Ending budget A in 2026-10 only affects months after it; deleting C restores March/June.
+        assert.equal((await utc.call('PATCH', `/api/category-budgets/${(await db.collection('category_budgets').findOne({ accountId: new ObjectId(accId), amountMinor: 10000 }))._id}`, { toMonth: '2026-10' })).status, 200);
+        const fourth = await all();
+        assert.deepEqual(fourth, { ...third, '2026-11': 5000, '2026-12': 5000, '2027-03': 5000 });
+        assert.equal((await utc.call('DELETE', `/api/category-budgets/${c.json._id}`)).status, 204);
+        assert.deepEqual(await all(), { ...fourth, '2026-03': 10000, '2026-06': 10000 });
+        // The stored rules are contiguous, non-overlapping periods.
+        const base = await db
+            .collection('contribution_rules')
+            .find({ accountId: new ObjectId(accId), type: 'base' })
+            .sort({ fromMonth: 1 })
+            .toArray();
+        assert.deepEqual(
+            base.map((r) => [r.amountMinor, iso(r.fromMonth), iso(r.toMonth)]),
+            [
+                [10000, anchor('2026-01'), anchor('2026-10')],
+                [5000, anchor('2026-11'), null]
+            ]
+        );
+    });
+
+    await t.test('A29: a budget write only rebuilds the base rules of its own account', async () => {
+        const [one, two] = await Promise.all(['one', 'two'].map(async (name) => (await utc.call('POST', '/api/accounts', { name, members: [{ memberId: member._id, role: 'owner' }] })).json._id));
+        const categoryOf = async (acc) => (await utc.call('POST', '/api/categories', { accountId: acc, name: 'k' })).json._id;
+        for (const acc of [one, two]) assert.equal((await utc.call('POST', '/api/category-budgets', { accountId: acc, categoryId: await categoryOf(acc), amountMinor: 100, fromMonth: '2026-01' })).status, 201);
+        const rulesOf = async (acc) =>
+            JSON.stringify(
+                await db
+                    .collection('contribution_rules')
+                    .find({ accountId: new ObjectId(acc) })
+                    .sort({ _id: 1 })
+                    .toArray()
+            );
+        const untouched = await rulesOf(two);
+        assert.equal((await utc.call('POST', '/api/category-budgets', { accountId: one, categoryId: await categoryOf(one), amountMinor: 50, fromMonth: '2026-05' })).status, 201);
+        assert.equal(await rulesOf(two), untouched, 'the other account keeps its stored rules byte for byte');
     });
 
     await t.test('invalid month filters are answered with 400 and nothing leaks as a server error', async () => {

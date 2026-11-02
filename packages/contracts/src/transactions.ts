@@ -1,11 +1,21 @@
 import { z } from 'zod';
 import { ObjId, MoneyMinor, Month } from './common.js';
-import { monthKeyOfUtcDate, monthKeyToAnchor } from './calendar.js';
+import { BankDateCarrierSchema, monthKeyOfUtcDate, monthKeyToAnchor } from './calendar.js';
 // ─── shared field definitions ───────────────────────────────────────────────
 const TxTitle = z.string().min(2).max(80);
 const TxNotes = z.string().max(1000).nullish();
 const TxType = z.enum(['income', 'expense']);
 const TxStatus = z.enum(['booked', 'pending']);
+/**
+ * Write format of `bookDate`: the BankDate carrier `YYYY-MM-DDT00:00:00.000Z` (an existing calendar day).
+ *
+ * Transition rule (older clients and rows stored before the carrier was enforced): any other ISO instant is let
+ * through by the schema only so that the server can recognise an unchanged stored value. The server accepts such a
+ * value solely as an exact echo of the value that is already stored (PATCH of the same transaction, or a split child
+ * of a parent that stores exactly this value); every other non-carrier is answered with 422 BOOKDATE_NOT_CARRIER and
+ * nothing is written. Stored values are never rewritten, normalized or re-derived on read or by an unchanged PATCH.
+ */
+export const BookDateWriteSchema = BankDateCarrierSchema.or(z.string().datetime());
 // ─── helpers ─────────────────────────────────────────────────────────────────
 /** Derive the month anchor (YYYY-MM-01T00:00:00.000Z) from an ISO bookDate string (UTC month of the value). */
 export function monthFromBookDate(bookDate: string): Date {
@@ -26,7 +36,7 @@ const CreateTxBase = z
         amountMinor: MoneyMinor,
         /** Required when bookDate is absent (i.e. status=pending without bookDate). */
         month: Month.optional(),
-        bookDate: z.string().datetime().nullish(),
+        bookDate: BookDateWriteSchema.nullish(),
         status: TxStatus.default('pending'),
         isFromSharedAccount: z.boolean(),
         paidByMemberId: ObjId.nullish(),
@@ -46,7 +56,7 @@ export const PatchTx = z.object({
     type: TxType.optional(),
     amountMinor: MoneyMinor.optional(),
     month: Month.optional(),
-    bookDate: z.string().datetime().nullish(),
+    bookDate: BookDateWriteSchema.nullish(),
     status: TxStatus.optional(),
     isFromSharedAccount: z.boolean().optional(),
     paidByMemberId: ObjId.nullish(),

@@ -18,10 +18,21 @@ test('create: the bookDate decides the month, a conflicting month and a missing 
     assert.deepEqual([pending.value.bookDate, iso(pending.value.month)], [null, '2027-01-01T00:00:00.000Z']);
 });
 
-test('create: the UTC month of a legacy instant is kept (no guessing of a local calendar day)', () => {
-    const result = resolveCreateDates('2026-10-31T23:00:00.000Z', null);
-    assert.ok(result.ok);
-    assert.equal(iso(result.value.month), '2026-10-01T00:00:00.000Z');
+test('create: only a BankDate carrier is accepted; another instant is rejected, except as an exact echo of the parent', () => {
+    const instant = '2026-10-31T23:30:00.000Z';
+    assert.deepEqual(resolveCreateDates(instant, null), { ok: false, error: 'BOOKDATE_NOT_CARRIER' });
+    assert.deepEqual(resolveCreateDates('2026-11-01T10:00:00.000Z', '2026-11'), { ok: false, error: 'BOOKDATE_NOT_CARRIER' });
+    assert.deepEqual(resolveCreateDates(instant, null, new Date('2026-10-31T23:00:00.000Z')), { ok: false, error: 'BOOKDATE_NOT_CARRIER' });
+    const echo = resolveCreateDates(instant, null, new Date(instant));
+    assert.ok(echo.ok);
+    assert.deepEqual([iso(echo.value.bookDate), iso(echo.value.month)], [instant, '2026-10-01T00:00:00.000Z'], 'the UTC month of the stored value is kept, no guessing of a local day');
+});
+
+test('patch: another instant is rejected unless it equals the stored value (then it is a no-op)', () => {
+    assert.deepEqual(resolvePatchDates(prev(NOV), { bookDate: '2026-11-01T23:30:00.000Z' }), { ok: false, error: 'BOOKDATE_NOT_CARRIER' });
+    assert.deepEqual(resolvePatchDates(prev(null), { bookDate: '2026-11-01T23:30:00.000Z' }), { ok: false, error: 'BOOKDATE_NOT_CARRIER' });
+    assert.deepEqual(resolvePatchDates(prev('2026-11-01T23:30:00.000Z'), { bookDate: '2026-11-01T23:30:00.000Z' }), { ok: true, value: {} });
+    assert.deepEqual(resolvePatchDates(prev('2026-11-01T23:30:00.000Z'), { bookDate: '2026-11-01T23:31:00.000Z' }), { ok: false, error: 'BOOKDATE_NOT_CARRIER' });
 });
 
 test('patch: month alone cannot move a dated transaction; equal or absent values are no-ops', () => {

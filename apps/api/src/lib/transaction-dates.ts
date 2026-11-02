@@ -1,16 +1,17 @@
 import { DateTime } from 'luxon';
-import { monthKeyOfUtcDate, monthKeyToAnchor } from '@tobu/contracts/calendar';
+import { isBankDateCarrier, monthKeyOfUtcDate, monthKeyToAnchor } from '@tobu/contracts/calendar';
 
 /**
- * Month/bookDate rules for transaction writes (H02).
+ * Month/bookDate rules for transaction writes (H02, H08-FIX-CAL).
  *
  * - A bookDate decides the month. A month sent together with a bookDate must agree with it.
  * - A transaction without a bookDate needs an explicit month.
- * - bookDate values are accepted as before (any ISO instant, canonical UTC-midnight carriers are the target);
- *   the month is the UTC month of the stored value. Historical values are never re-derived or "fixed":
- *   an unchanged bookDate or a month equal to the existing one is a no-op.
+ * - bookDate is written as a BankDate carrier (YYYY-MM-DDT00:00:00.000Z). Transition rule: another instant is accepted
+ *   only as an exact echo of the value that is already stored (own row on PATCH, the parent for a split child);
+ *   otherwise BOOKDATE_NOT_CARRIER and nothing is written. The month is the UTC month of the stored value.
+ *   Historical values are never re-derived or "fixed": an unchanged bookDate or a month equal to the existing one is a no-op.
  */
-export type MonthRuleError = 'MONTH_BOOKDATE_MISMATCH' | 'MONTH_REQUIRED' | 'INVALID_BOOKDATE';
+export type MonthRuleError = 'MONTH_BOOKDATE_MISMATCH' | 'MONTH_REQUIRED' | 'INVALID_BOOKDATE' | 'BOOKDATE_NOT_CARRIER';
 export type CreateDates = { bookDate: Date | null; month: Date };
 export type PatchDates = { bookDate?: Date | null; month?: Date };
 export type Resolved<T> = { ok: true; value: T } | { ok: false; error: MonthRuleError };
@@ -33,12 +34,14 @@ function keyOfBookDate(bookDate: Date): string | null {
 
 export const monthKeyOfStoredMonth = (month: Date): string => monthKeyOfUtcDate(month);
 
-export function resolveCreateDates(bookDate: string | null | undefined, month: string | null | undefined): Resolved<CreateDates> {
+/** `echoOf`: the bookDate already stored by the parent of a split child; the only non-carrier a create may carry. */
+export function resolveCreateDates(bookDate: string | null | undefined, month: string | null | undefined, echoOf?: Date | null): Resolved<CreateDates> {
     if (bookDate) {
         const date = parseBookDate(bookDate);
         const key = date && keyOfBookDate(date);
         if (!date || !key) return fail('INVALID_BOOKDATE');
         if (month && month !== key) return fail('MONTH_BOOKDATE_MISMATCH');
+        if (!isBankDateCarrier(bookDate) && echoOf?.getTime() !== date.getTime()) return fail('BOOKDATE_NOT_CARRIER');
         return { ok: true, value: { bookDate: date, month: monthKeyToAnchor(key) } };
     }
     if (month) return { ok: true, value: { bookDate: null, month: monthKeyToAnchor(month) } };
@@ -52,6 +55,7 @@ export function resolvePatchDates(prev: { bookDate: Date | null; month: Date }, 
         if (!next || !key) return fail('INVALID_BOOKDATE');
         if (b.month !== undefined && b.month !== key) return fail('MONTH_BOOKDATE_MISMATCH');
         if (prev.bookDate && prev.bookDate.getTime() === next.getTime()) return { ok: true, value: {} };
+        if (!isBankDateCarrier(b.bookDate)) return fail('BOOKDATE_NOT_CARRIER');
         return { ok: true, value: { bookDate: next, month: monthKeyToAnchor(key) } };
     }
     if (b.bookDate === null) {

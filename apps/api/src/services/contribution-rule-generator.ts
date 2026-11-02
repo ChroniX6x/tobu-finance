@@ -1,6 +1,5 @@
-import { Types } from 'mongoose';
-import { isActiveInMonth, monthRangeFromISO, toMonthAnchorISO, toMonthDate } from '../lib/month.js';
-import { now } from '../lib/clock.js';
+import mongoose, { Types, type ClientSession } from 'mongoose';
+import { addMonthsToMonthKey, monthKeyOfUtcDate, monthKeyToAnchor } from '@tobu/contracts/calendar';
 
 import CategoryBudget from '../models/CategoryBudget.js';
 import Category from '../models/Category.js';
@@ -21,124 +20,120 @@ function splitKey(customSplit: CustomSplitEntry[]): string {
         .join('|');
 }
 
-interface GroupData {
+/** A budget on the month axis: inclusive MonthKeys, null = unbounded. */
+export interface BudgetSpan {
+    from: string | null;
+    to: string | null;
     amountMinor: number;
-    fromMonth: Date | null;
-    toMonth: Date | null;
-    hasOpenBudget: boolean;
-    customSplit: CustomSplitEntry[];
+}
+
+/** One contiguous period with a constant total, inclusive MonthKeys, null = unbounded. */
+export interface AmountPeriod {
+    from: string | null;
+    to: string | null;
+    amountMinor: number;
 }
 
 /**
- * Rebuilds all `type: 'base'` ContributionRules for an account from the current
- * CategoryBudgets. Called after every POST / PATCH / DELETE on category-budgets.
- *
- * Algorithm:
- *  1. Delete all existing base rules for the account.
- *  2. Load all budgets + their categories (for customSplit).
- *  3. Group categories by customSplit signature.
- *  4. For each group, write one new base rule whose amountMinor is the sum of
- *     currently-active budgets (i.e. budgets that are not yet expired).
+ * Month-accurate need of a set of budgets: for every month, exactly the budgets that are valid in THAT month are summed.
+ * Contiguous months with an identical total are merged into one period; months without any amount produce no period.
+ * Pure: no clock, so adding a budget for November can never change the result for March.
  */
-export async function regenerateBaseRules(accountId: string | Types.ObjectId): Promise<void> {
-    const accId = typeof accountId === 'string' ? new Types.ObjectId(accountId) : accountId;
-
-    // 1. Remove all existing base rules
-    await ContributionRule.deleteMany({ accountId: accId, type: 'base' });
-
-    // 2. Load budgets
-    const budgets = await CategoryBudget.find({ accountId: accId }).lean();
-    if (budgets.length === 0) return;
-
-    // 3. Load categories referenced by those budgets
-    const categoryIds = [...new Set(budgets.map((b) => String(b.categoryId)))];
-    const categories = await Category.find({
-        _id: { $in: categoryIds.map((id) => new Types.ObjectId(id)) }
-    }).lean();
-
-    const categoryMap = new Map(categories.map((c) => [String(c._id), c]));
-
-    // Current month anchor (first of current month, UTC)
-    const currentMonthStart = toMonthDate(now());
-
-    // 4. Group budgets by the customSplit signature of their category
-    const groups = new Map<string, GroupData>();
-
-    for (const budget of budgets) {
-        const cat = categoryMap.get(String(budget.categoryId));
-        const split = (cat?.customSplit ?? []) as unknown as CustomSplitEntry[];
-        const key = splitKey(split);
-
-        const budgetFrom = budget.fromMonth as unknown as Date | null;
-        const budgetTo = budget.toMonth as unknown as Date | null;
-
-        // A budget is "currently active" if it has not expired yet
-        const isCurrentlyActive = isActiveInMonth(budgetFrom, budgetTo, currentMonthStart, monthRangeFromISO(toMonthAnchorISO(currentMonthStart)).end);
-
-        if (!groups.has(key)) {
-            groups.set(key, {
-                amountMinor: 0,
-                fromMonth: budgetFrom,
-                toMonth: budgetTo,
-                hasOpenBudget: budgetTo == null,
-                customSplit: split
-            });
-        }
-
-        const g = groups.get(key)!;
-
-        // Accumulate amount only for currently active budgets
-        if (isCurrentlyActive) {
-            g.amountMinor += budget.amountMinor as number;
-        }
-
-        // Expand time range to cover all budgets in this group (for MonthView queries)
-        if (budgetFrom == null) {
-            g.fromMonth = null; // −∞ wins
-        } else if (g.fromMonth != null && budgetFrom < g.fromMonth) {
-            g.fromMonth = budgetFrom;
-        }
-
-        if (budgetTo == null) {
-            g.hasOpenBudget = true;
-            g.toMonth = null; // +∞ wins
-        } else if (!g.hasOpenBudget) {
-            if (g.toMonth == null || budgetTo > g.toMonth) {
-                g.toMonth = budgetTo;
+export function amountPeriods(budgets: BudgetSpan[]): AmountPeriod[] {
+    // A budget's total can only change in the month it starts and in the month after it ends.
+    const changes = new Set<string>();
+    for (const b of budgets) {
+        if (b.from) changes.add(b.from);
+        if (b.to) {
+            try {
+                changes.add(addMonthsToMonthKey(b.to, 1));
+            } catch {
+                /* the end lies beyond the supported years: the budget stays open towards the end */
             }
         }
     }
+    const starts: Array<string | null> = [null, ...[...changes].sort()];
+    const periods: AmountPeriod[] = [];
+    starts.forEach((start, i) => {
+        // Before the first change only budgets without a start are active; later every budget is judged at the period start.
+        const total = budgets.filter((b) => (start === null ? b.from === null : (b.from === null || b.from <= start) && (b.to === null || b.to >= start))).reduce((sum, b) => sum + b.amountMinor, 0);
+        if (total <= 0) return;
+        const next = starts[i + 1];
+        const to = next === undefined || next === null ? null : addMonthsToMonthKey(next, -1);
+        const last = periods[periods.length - 1];
+        if (last && last.amountMinor === total && last.to !== null && start !== null && addMonthsToMonthKey(last.to, 1) === start) last.to = to;
+        else periods.push({ from: start, to, amountMinor: total });
+    });
+    return periods;
+}
 
-    // 5. Persist one base rule per group (skip groups with no active budget amount)
+const spanOf = (budget: { fromMonth?: unknown; toMonth?: unknown; amountMinor?: unknown }): BudgetSpan => ({
+    from: budget.fromMonth ? monthKeyOfUtcDate(budget.fromMonth as Date) : null,
+    to: budget.toMonth ? monthKeyOfUtcDate(budget.toMonth as Date) : null,
+    amountMinor: Number(budget.amountMinor ?? 0)
+});
+
+/**
+ * Rebuilds all `type: 'base'` ContributionRules for an account from its CategoryBudgets.
+ * Called after every POST / PATCH / DELETE on category-budgets.
+ *
+ * Algorithm:
+ *  1. Load all budgets + their categories (for customSplit) and group them by customSplit signature.
+ *  2. Per group, one base rule per period of constant total (see {@link amountPeriods}): a month only ever
+ *     counts the budgets that are valid in that month; the generator does not look at the clock.
+ *  3. Replace the old base rules by the new ones in ONE transaction: a failure leaves the old rules untouched,
+ *     and rules are never deleted without their replacement.
+ *
+ * Existing stored base rules are only replaced when a budget of the account is written; there is no bulk rewrite.
+ */
+export async function regenerateBaseRules(accountId: string | Types.ObjectId, session?: ClientSession): Promise<void> {
+    const accId = typeof accountId === 'string' ? new Types.ObjectId(accountId) : accountId;
+    const rulesData = await buildBaseRules(accId, session);
+    const replace = async (s: ClientSession) => {
+        await ContributionRule.deleteMany({ accountId: accId, type: 'base' }, { session: s });
+        if (rulesData.length > 0) await ContributionRule.insertMany(rulesData, { session: s });
+    };
+    if (session) await replace(session);
+    else await mongoose.connection.transaction(replace);
+}
+
+async function buildBaseRules(accId: Types.ObjectId, session?: ClientSession): Promise<object[]> {
+    const budgets = await CategoryBudget.find({ accountId: accId }, null, { session: session ?? null }).lean();
+    if (budgets.length === 0) return [];
+
+    const categoryIds = [...new Set(budgets.map((b) => String(b.categoryId)))];
+    const categories = await Category.find({ _id: { $in: categoryIds.map((id) => new Types.ObjectId(id)) } }, null, { session: session ?? null }).lean();
+    const categoryMap = new Map(categories.map((c) => [String(c._id), c]));
+
+    const groups = new Map<string, { customSplit: CustomSplitEntry[]; spans: BudgetSpan[] }>();
+    for (const budget of budgets) {
+        const split = (categoryMap.get(String(budget.categoryId))?.customSplit ?? []) as unknown as CustomSplitEntry[];
+        const key = splitKey(split);
+        if (!groups.has(key)) groups.set(key, { customSplit: split, spans: [] });
+        groups.get(key)!.spans.push(spanOf(budget));
+    }
+
     const rulesData: object[] = [];
-
-    for (const g of groups.values()) {
-        if (g.amountMinor <= 0) continue;
-
-        const isProRata = g.customSplit.length === 0;
-
-        rulesData.push({
-            accountId: accId,
-            type: 'base',
-            recurring: true,
-            description: null,
-            amountMinor: g.amountMinor,
-            distribution: isProRata
-                ? { mode: 'proRataIncome', memberId: null, customSplit: null }
-                : {
-                      mode: 'customSplit',
-                      memberId: null,
-                      customSplit: g.customSplit.map((e) => ({
-                          memberId: e.memberId,
-                          split: e.split
-                      }))
-                  },
-            fromMonth: g.fromMonth,
-            toMonth: g.hasOpenBudget ? null : g.toMonth
-        });
+    for (const group of groups.values()) {
+        const isProRata = group.customSplit.length === 0;
+        for (const period of amountPeriods(group.spans)) {
+            rulesData.push({
+                accountId: accId,
+                type: 'base',
+                recurring: true,
+                description: null,
+                amountMinor: period.amountMinor,
+                distribution: isProRata
+                    ? { mode: 'proRataIncome', memberId: null, customSplit: null }
+                    : {
+                          mode: 'customSplit',
+                          memberId: null,
+                          customSplit: group.customSplit.map((e) => ({ memberId: e.memberId, split: e.split }))
+                      },
+                fromMonth: period.from ? monthKeyToAnchor(period.from) : null,
+                toMonth: period.to ? monthKeyToAnchor(period.to) : null
+            });
+        }
     }
-
-    if (rulesData.length > 0) {
-        await ContributionRule.insertMany(rulesData);
-    }
+    return rulesData;
 }

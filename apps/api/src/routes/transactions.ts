@@ -190,7 +190,9 @@ r.post('/', validateBody(CreateTx), async (req, res) => {
     const b = (req as any).data;
     const isChild = !!b.parentTransactionId;
     if (!(await requireAccountAccess(req, res, b.accountId))) return;
-    const dates = resolveCreateDates(b.bookDate, b.month);
+    // A split child may echo the parent's stored (possibly legacy, non-carrier) bookDate; the locked parent is re-checked in the transaction.
+    const echoParent = isChild && isObjectId(b.parentTransactionId) ? await Transaction.findOne({ _id: b.parentTransactionId, accountId: new Types.ObjectId(b.accountId) }, { bookDate: 1 }).lean() : null;
+    const dates = resolveCreateDates(b.bookDate, b.month, echoParent?.bookDate ?? null);
     if (!dates.ok) {
         const { status, body } = monthRuleStatus(dates.error);
         return res.status(status).json(body);

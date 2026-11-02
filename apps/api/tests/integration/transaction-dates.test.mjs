@@ -204,6 +204,51 @@ test('transaction dates: BankDate/month rules and atomic parent/child/event writ
         assert.deepEqual(await legacy(), original, 'month equal to the stored one is a no-op');
     });
 
+    await t.test('CAL-05/A03: a BankDate carrier is required; other instants are rejected with 0 writes unless they echo the stored value', async () => {
+        const instant = '2026-11-01T23:30:00.000Z';
+        const carrierRow = await create({ status: 'booked', bookDate: NOV, title: 'Carrier row' });
+        const legacyId = new ObjectId();
+        const legacyInstant = '2026-11-01T10:00:00.000Z';
+        await tx.insertOne({
+            _id: legacyId,
+            accountId: new ObjectId(accountId),
+            title: 'Legacy parent',
+            type: 'expense',
+            amountMinor: 900,
+            month: new Date(NOV),
+            bookDate: new Date(legacyInstant),
+            status: 'booked',
+            isFromSharedAccount: true,
+            paidByMemberId: null,
+            parentTransactionId: null
+        });
+        const before = await snapshot();
+        const rejected = async (response, label) => {
+            assert.equal(response.status, 422, label);
+            assert.equal(response.json.error, 'BOOKDATE_NOT_CARRIER', label);
+            assert.deepEqual(await snapshot(), before, `${label}: 0 writes, 0 events`);
+        };
+        await rejected(await create({ status: 'booked', bookDate: instant }), 'create with 23:30Z');
+        await rejected(await create({ status: 'booked', bookDate: '2026-11-02T10:00:00.000Z', month: '2026-11' }), 'create with a time of day and a matching month');
+        await rejected(await request('PATCH', `/api/transactions/${carrierRow.json._id}`, { bookDate: instant }), 'patch carrier row with 23:30Z');
+        await rejected(await request('PATCH', `/api/transactions/${legacyId}`, { bookDate: '2026-11-01T09:00:00.000Z' }), 'patch legacy row with another instant');
+        await rejected(await request('POST', '/api/transactions', { ...base1, title: 'Kid', amountMinor: 100, bookDate: instant, parentTransactionId: carrierRow.json._id }), 'child with a non-carrier of a carrier parent');
+        await rejected(await request('POST', '/api/transactions', { ...base1, title: 'Kid', amountMinor: 100, bookDate: instant, parentTransactionId: legacyId.toString() }), 'child with another instant than the legacy parent');
+        assert.equal((await request('GET', `/api/transactions?accountId=${accountId}&month=2026-11`)).status, 200);
+        assert.deepEqual(await snapshot(), before, 'reading never rewrites legacy values');
+        // Transition echo: exactly the stored value is accepted, nothing is changed or normalized.
+        assert.equal((await request('PATCH', `/api/transactions/${legacyId}`, { bookDate: legacyInstant })).status, 200);
+        assert.deepEqual(await snapshot(), before, 'echo of the stored legacy value is a no-op');
+        const kid = await request('POST', '/api/transactions', { ...base1, title: 'Kid', amountMinor: 100, bookDate: legacyInstant, parentTransactionId: legacyId.toString() });
+        assert.equal(kid.status, 201);
+        const storedKid = await row(kid.json._id);
+        assert.deepEqual([iso(storedKid.bookDate), iso(storedKid.month)], [legacyInstant, NOV], 'child inherits the stored legacy value unchanged');
+        assert.deepEqual(iso((await row(legacyId.toString())).bookDate), legacyInstant);
+        // The explicit way out for a legacy row: set a canonical carrier (moves parent and children together).
+        assert.equal((await request('PATCH', `/api/transactions/${legacyId}`, { bookDate: NOV })).status, 200);
+        assert.deepEqual([iso((await row(legacyId.toString())).bookDate), iso((await row(kid.json._id)).bookDate)], [NOV, NOV]);
+    });
+
     // mode {skip: n} lets n matching commands pass and fails every later one until the failpoint is switched off.
     const failpoint = (failCommands, skip = 0) => client.db('admin').command({ configureFailPoint: 'failCommand', mode: skip ? { skip } : { times: 1 }, data: { failCommands, errorCode: 8, appName: apiAppName } });
     const failpointOff = () => client.db('admin').command({ configureFailPoint: 'failCommand', mode: 'off' });
@@ -253,6 +298,59 @@ test('transaction dates: BankDate/month rules and atomic parent/child/event writ
         await failpointOff();
         assert.ok(failed.status >= 500);
         assert.deepEqual(await snapshot(), afterPass);
+    });
+
+    await t.test('A29 atomicity: a failing base-rule rebuild rolls back the budget, its event and the rule replacement together', async () => {
+        const rules = client.db(dbName).collection('contribution_rules');
+        const budgets = client.db(dbName).collection('category_budgets');
+        const category = async (name) => (await request('POST', '/api/categories', { accountId, name })).json._id;
+        const first = await category('atomic-a');
+        assert.equal((await request('POST', '/api/category-budgets', { accountId, categoryId: first, amountMinor: 7000, fromMonth: '2020-01' })).status, 201);
+        const baseRules = async () =>
+            (
+                await rules
+                    .find({ accountId: new ObjectId(accountId), type: 'base' })
+                    .sort({ _id: 1 })
+                    .toArray()
+            ).map((r) => JSON.stringify(r));
+        const counts = async () => [await budgets.countDocuments({ accountId: new ObjectId(accountId) }), await events.countDocuments({ code: /^categoryBudget\./ })];
+        const before = await baseRules();
+        const beforeCounts = await counts();
+        assert.equal(before.length, 1);
+        // The budget insert and its event pass; the insert of the rebuilt rule fails.
+        const second = await category('atomic-b');
+        await failpoint(['insert'], 2);
+        const failed = await request('POST', '/api/category-budgets', { accountId, categoryId: second, amountMinor: 1000, fromMonth: '2020-01' });
+        await failpointOff();
+        assert.ok(failed.status >= 500, `rebuild failure surfaces: ${failed.status}`);
+        assert.deepEqual(await baseRules(), before, 'the old base rule is still there, untouched');
+        assert.deepEqual(await counts(), beforeCounts, 'no budget and no event were left behind');
+        // Nothing is stuck: the next write succeeds and rebuilds from the then current budgets.
+        assert.equal((await request('POST', '/api/category-budgets', { accountId, categoryId: second, amountMinor: 500, fromMonth: '2020-01' })).status, 201);
+        assert.equal((await baseRules()).length, 1);
+    });
+
+    await t.test('A29 concurrency: parallel budget writes of one account end with exactly the base rules of the final budgets', async () => {
+        const rules = client.db(dbName).collection('contribution_rules');
+        const parallelAccount = (await request('POST', '/api/accounts', { name: 'Parallel', members: [{ memberId: member._id, role: 'owner' }] })).json._id;
+        const categories = await Promise.all(['p1', 'p2', 'p3', 'p4', 'p5'].map(async (name) => (await request('POST', '/api/categories', { accountId: parallelAccount, name })).json._id));
+        const results = await Promise.all(categories.map((categoryId, i) => request('POST', '/api/category-budgets', { accountId: parallelAccount, categoryId, amountMinor: 100 * (i + 1), fromMonth: '2020-01' })));
+        const ok = results.filter((r) => r.status === 201).length;
+        assert.ok(ok >= 1);
+        for (const r of results) assert.ok([201, 500].includes(r.status), `status ${r.status}`);
+        const stored = await client
+            .db(dbName)
+            .collection('category_budgets')
+            .find({ accountId: new ObjectId(parallelAccount) })
+            .toArray();
+        assert.equal(stored.length, ok, 'every acknowledged budget is stored, nothing else');
+        const base = await rules.find({ accountId: new ObjectId(parallelAccount), type: 'base' }).toArray();
+        assert.equal(base.length, 1, 'exactly one base rule, no duplicates');
+        assert.equal(
+            base[0].amountMinor,
+            stored.reduce((sum, b) => sum + b.amountMinor, 0),
+            'the rule equals the sum of the stored budgets'
+        );
     });
 
     await t.test('CAL-12 concurrent date changes never leave parent and children apart', async () => {
