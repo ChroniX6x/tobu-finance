@@ -34,6 +34,10 @@ Spätere Umsetzung: die Nutzeridentität serverseitig aus der authentifizierten 
 
 Status: erledigt laut Nutzerbestaetigung vom 22.10.2026. Die angeleiteten manuellen Tests im frischen Acceptance-Checkout waren erfolgreich; der komplette automatisierte Lauf auf Commit 3dc359a ebenfalls. Nachweis: [Phase-6-Abnahme](phase-6-handover.md).
 
+## DATE-001: Bei H08 freigegebene Ausnahmen (Nachtrag)
+
+Status: offen. Der Eigentümer hat am 02.11.2026 CAL-06/08/09/22/25/26 als teilweise belegt und A17 (`recurrences.ts` `activeFrom`) als bekannte Fehlfunktion für die H08-Abnahme freigegeben, mit Pflicht zum späteren Nachtrag. Liste, Belege und Fristen: [H08-Ausnahmen](../agents/h08-freigegebene-ausnahmen.md).
+
 ## UI-001: Vorgemerkte Buchung ohne Datum in der Detailmaske
 
 Status: in Phase 5 behoben. Die Detailmaske bietet bei leerem Datum eine explizite Monatsauswahl; ein Browser-Test prüft Pflichtfeld und Request. Die API berücksichtigt den Monat beim Leeren des Datums und hält Monatsänderungen bei Parent/Splits konsistent; Integrationstests prüfen dies. Kein unsichtbares Ausweichen auf den aktuellen Monat.
