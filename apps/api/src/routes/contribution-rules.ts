@@ -1,147 +1,166 @@
-import {QueryContributionRules} from '@tobu/contracts/read-queries';
-import { Router } from "express";
-import { Types } from "mongoose";
-import { DateTime } from "luxon";
+import { QueryContributionRules } from '@tobu/contracts/read-queries';
+import { Router } from 'express';
+import { Types } from 'mongoose';
+import { DateTime } from 'luxon';
 
-import ContributionRule from "../models/ContributionRule.js";
-import Event from "../models/Event.js";
-import { toMonthDate } from "../lib/month.js";
+import ContributionRule from '../models/ContributionRule.js';
+import Event from '../models/Event.js';
+import { toMonthDate } from '../lib/month.js';
 
 // Falls vorhanden, Validierung anhängen (ansonsten diese zwei Imports + Middlewares entfernen)
-import { validateBody, validateQuery } from "../middleware/validate.js";
-import {
-  CreateContributionRule,
-  UpdateContributionRule,
-} from "../validation/contribution-rules.js";
+import { validateBody, validateQuery } from '../middleware/validate.js';
+import { CreateContributionRule, UpdateContributionRule } from '../validation/contribution-rules.js';
+import { accountScope, foreignReference, isObjectId, requireAccountAccess } from '../auth/account-access.js';
 
 const r = Router();
 
+/** Member ids named by a (not yet validated) distribution payload. */
+function distributionMemberIds(distribution: unknown): Record<string, unknown> {
+    const d = (distribution ?? {}) as { memberId?: unknown; customSplit?: Array<{ memberId?: unknown }> };
+    const ids: Record<string, unknown> = { 'distribution.memberId': d.memberId };
+    if (Array.isArray(d.customSplit)) d.customSplit.forEach((s, i) => (ids[`distribution.customSplit.${i}.memberId`] = s?.memberId));
+    return ids;
+}
+
 /** GET /api/contribution-rules?accountId=...  (optional Filter) */
-r.get("/", validateQuery(QueryContributionRules), async (req, res) => {
-  const { accountId } = (req.query ?? {}) as { accountId?: string };
-  const q: Record<string, unknown> = {};
-  if (accountId && /^[a-f\d]{24}$/i.test(accountId)) {
-    q.accountId = new Types.ObjectId(accountId);
-  }
-  const items = await ContributionRule.find(q).lean();
-  res.json(items);
+r.get('/', validateQuery(QueryContributionRules), async (req, res) => {
+    const { accountId } = (req.query ?? {}) as { accountId?: string };
+    const scope = await accountScope(req, res, accountId);
+    if (!scope) return;
+    const q: Record<string, unknown> = { accountId: Array.isArray(scope) ? { $in: scope } : scope };
+    const items = await ContributionRule.find(q).lean();
+    res.json(items);
 });
 
 /** POST /api/contribution-rules */
-r.post("/", validateBody(CreateContributionRule), async (req, res) => {
-  const b = (req as unknown as {
-    data: {
-      accountId: string;
-      type: "additional" | "topup";
-      recurring: boolean;
-      description?: string | null;
-      amountMinor: number;
-      distribution: unknown;
-      fromMonth?: string | null;
-      toMonth?: string | null;
-      createdByMemberId?: string | null;
+r.post('/', validateBody(CreateContributionRule), async (req, res) => {
+    const b = (
+        req as unknown as {
+            data: {
+                accountId: string;
+                type: 'additional' | 'topup';
+                recurring: boolean;
+                description?: string | null;
+                amountMinor: number;
+                distribution: unknown;
+                fromMonth?: string | null;
+                toMonth?: string | null;
+                createdByMemberId?: string | null;
+            };
+        }
+    ).data;
+
+    if (!(await requireAccountAccess(req, res, b.accountId))) return;
+    const foreign = await foreignReference(b.accountId, { memberIds: { createdByMemberId: b.createdByMemberId, ...distributionMemberIds(b.distribution) } });
+    if (foreign) return res.status(422).json({ error: 'REFERENCE_NOT_IN_ACCOUNT', field: foreign });
+
+    const doc: Record<string, unknown> = {
+        accountId: new Types.ObjectId(b.accountId),
+        type: b.type,
+        recurring: b.recurring,
+        description: b.description ?? null,
+        amountMinor: b.amountMinor,
+        distribution: b.distribution,
+        fromMonth: b.fromMonth ? toMonthDate(b.fromMonth) : null,
+        toMonth: b.toMonth ? toMonthDate(b.toMonth) : null
     };
-  }).data;
 
-  const doc: Record<string, unknown> = {
-    accountId: new Types.ObjectId(b.accountId),
-    type: b.type,
-    recurring: b.recurring,
-    description: b.description ?? null,
-    amountMinor: b.amountMinor,
-    distribution: b.distribution,
-    fromMonth: b.fromMonth ? toMonthDate(b.fromMonth) : null,
-    toMonth: b.toMonth ? toMonthDate(b.toMonth) : null,
-  };
+    const created = await ContributionRule.create(doc);
 
-  const created = await ContributionRule.create(doc);
+    // EVENT: contributionRule.added
+    await Event.create({
+        accountId: new Types.ObjectId(b.accountId),
+        date: DateTime.utc().toJSDate(),
+        code: 'contributionRule.added',
+        params: { ruleId: String(created._id), ruleType: b.type, amountMinor: b.amountMinor },
+        createdByMemberId: b.createdByMemberId ? new Types.ObjectId(b.createdByMemberId) : null
+    });
 
-  // EVENT: contributionRule.added
-  await Event.create({
-    accountId: new Types.ObjectId(b.accountId),
-    date: DateTime.utc().toJSDate(),
-    code: "contributionRule.added",
-    params: { ruleId: String(created._id), ruleType: b.type, amountMinor: b.amountMinor },
-    createdByMemberId: b.createdByMemberId ? new Types.ObjectId(b.createdByMemberId) : null,
-  });
-
-  res.status(201).json(created);
+    res.status(201).json(created);
 });
 
 /** PATCH /api/contribution-rules/:id */
-r.patch("/:id", validateBody(UpdateContributionRule), async (req, res) => {
-  const { id } = req.params;
-  const u = (req as unknown as {
-    data: Partial<{
-      recurring: boolean;
-      description: string | null;
-      amountMinor: number;
-      distribution: unknown;
-      fromMonth: string | null;
-      toMonth: string | null;
-      createdByMemberId: string | null;
-    }>;
-  }).data;
+r.patch('/:id', validateBody(UpdateContributionRule), async (req, res) => {
+    const { id } = req.params;
+    const u = (
+        req as unknown as {
+            data: Partial<{
+                recurring: boolean;
+                description: string | null;
+                amountMinor: number;
+                distribution: unknown;
+                fromMonth: string | null;
+                toMonth: string | null;
+                createdByMemberId: string | null;
+            }>;
+        }
+    ).data;
 
-  const existing = await ContributionRule.findById(id);
-  if (!existing) return res.sendStatus(404);
+    const existing = isObjectId(id) ? await ContributionRule.findById(id) : null;
+    if (!existing) return res.sendStatus(404);
+    if (!(await requireAccountAccess(req, res, existing.accountId))) return;
+    const foreign = await foreignReference(existing.accountId, {
+        memberIds: { createdByMemberId: u.createdByMemberId, ...(u.distribution !== undefined ? distributionMemberIds(u.distribution) : {}) }
+    });
+    if (foreign) return res.status(422).json({ error: 'REFERENCE_NOT_IN_ACCOUNT', field: foreign });
 
-  // base rules are auto-generated – block manual modification
-  if ((existing as unknown as { type: string }).type === "base") {
-    return res.status(403).json({ code: "BASE_RULE_IMMUTABLE", message: "Base rules are auto-generated and cannot be modified." });
-  }
+    // base rules are auto-generated – block manual modification
+    if ((existing as unknown as { type: string }).type === 'base') {
+        return res.status(403).json({ code: 'BASE_RULE_IMMUTABLE', message: 'Base rules are auto-generated and cannot be modified.' });
+    }
 
-  const patch: Record<string, unknown> = {};
-  if (typeof u.recurring === "boolean") patch.recurring = u.recurring;
-  if (u.description !== undefined) patch.description = u.description;
-  if (typeof u.amountMinor === "number") patch.amountMinor = u.amountMinor;
-  if (u.distribution !== undefined) patch.distribution = u.distribution;
-  if (u.fromMonth !== undefined) patch.fromMonth = u.fromMonth ? toMonthDate(u.fromMonth) : null;
-  if (u.toMonth !== undefined) patch.toMonth = u.toMonth ? toMonthDate(u.toMonth) : null;
+    const patch: Record<string, unknown> = {};
+    if (typeof u.recurring === 'boolean') patch.recurring = u.recurring;
+    if (u.description !== undefined) patch.description = u.description;
+    if (typeof u.amountMinor === 'number') patch.amountMinor = u.amountMinor;
+    if (u.distribution !== undefined) patch.distribution = u.distribution;
+    if (u.fromMonth !== undefined) patch.fromMonth = u.fromMonth ? toMonthDate(u.fromMonth) : null;
+    if (u.toMonth !== undefined) patch.toMonth = u.toMonth ? toMonthDate(u.toMonth) : null;
 
-  const updated = await ContributionRule.findByIdAndUpdate(id, patch, { new: true });
-  if (!updated) return res.sendStatus(404);
+    const updated = await ContributionRule.findByIdAndUpdate(id, patch, { new: true });
+    if (!updated) return res.sendStatus(404);
 
-  // EVENT: contributionRule.updated
-  await Event.create({
-    accountId: updated.accountId as unknown as Types.ObjectId,
-    date: DateTime.utc().toJSDate(),
-    code: "contributionRule.updated",
-    params: {
-      ruleId: String(updated._id),
-      ruleType: (updated as { type: string }).type,
-      amountMinor: (updated as { amountMinor?: number }).amountMinor ?? 0,
-    },
-    createdByMemberId: u.createdByMemberId ? new Types.ObjectId(u.createdByMemberId) : null,
-  });
+    // EVENT: contributionRule.updated
+    await Event.create({
+        accountId: updated.accountId as unknown as Types.ObjectId,
+        date: DateTime.utc().toJSDate(),
+        code: 'contributionRule.updated',
+        params: {
+            ruleId: String(updated._id),
+            ruleType: (updated as { type: string }).type,
+            amountMinor: (updated as { amountMinor?: number }).amountMinor ?? 0
+        },
+        createdByMemberId: u.createdByMemberId ? new Types.ObjectId(u.createdByMemberId) : null
+    });
 
-  res.json(updated);
+    res.json(updated);
 });
 
 /** DELETE /api/contribution-rules/:id */
-r.delete("/:id", async (req, res) => {
-  const { id } = req.params;
+r.delete('/:id', async (req, res) => {
+    const { id } = req.params;
 
-  const existing = await ContributionRule.findById(id);
-  if (!existing) return res.sendStatus(404);
+    const existing = isObjectId(id) ? await ContributionRule.findById(id) : null;
+    if (!existing) return res.sendStatus(404);
+    if (!(await requireAccountAccess(req, res, existing.accountId))) return;
 
-  // base rules are auto-generated – block manual deletion
-  if ((existing as unknown as { type: string }).type === "base") {
-    return res.status(403).json({ code: "BASE_RULE_IMMUTABLE", message: "Base rules are auto-generated and cannot be deleted." });
-  }
+    // base rules are auto-generated – block manual deletion
+    if ((existing as unknown as { type: string }).type === 'base') {
+        return res.status(403).json({ code: 'BASE_RULE_IMMUTABLE', message: 'Base rules are auto-generated and cannot be deleted.' });
+    }
 
-  await ContributionRule.deleteOne({ _id: id });
+    await ContributionRule.deleteOne({ _id: id });
 
-  // EVENT: contributionRule.removed
-  await Event.create({
-    accountId: existing.accountId as unknown as Types.ObjectId,
-    date: DateTime.utc().toJSDate(),
-    code: "contributionRule.removed",
-    params: { ruleId: String(existing._id), ruleType: (existing as { type: string }).type },
-    createdByMemberId: null,
-  });
+    // EVENT: contributionRule.removed
+    await Event.create({
+        accountId: existing.accountId as unknown as Types.ObjectId,
+        date: DateTime.utc().toJSDate(),
+        code: 'contributionRule.removed',
+        params: { ruleId: String(existing._id), ruleType: (existing as { type: string }).type },
+        createdByMemberId: null
+    });
 
-  res.sendStatus(204);
+    res.sendStatus(204);
 });
 
 export default r;

@@ -5,6 +5,7 @@ import { QueryMonthView } from '@tobu/contracts/read-queries';
 import { addMonthsToMonthKey, monthKeyOfUtcDate, monthKeyToAnchor } from '@tobu/contracts/calendar';
 
 import Account from '../models/Account.js';
+import { requireAccountAccess } from '../auth/account-access.js';
 import Member from '../models/Member.js';
 import Transaction from '../models/Transaction.js';
 import Category from '../models/Category.js';
@@ -39,6 +40,7 @@ r.get('/:id/month-view', validateQuery(QueryMonthView), async (req, res) => {
     const { id } = req.params;
     if (!id || !/^[a-f\d]{24}$/i.test(id)) return res.status(400).json({ error: 'INVALID_ID' });
 
+    if (!(await requireAccountAccess(req, res, id))) return;
     const account = await Account.findById(id).lean();
     if (!account) return res.sendStatus(404);
 

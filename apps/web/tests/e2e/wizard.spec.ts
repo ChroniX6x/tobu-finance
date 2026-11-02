@@ -126,8 +126,8 @@ test.describe("Wizard – Create Account flow", () => {
     await navigateToStep4(page);
     await page.getByRole("button", { name: "Next" }).click();
 
-    // Two members should be created (Tony + Carolin)
-    await expect.poll(() => memberRequests.length).toBe(2);
+    // Two wizard members (Tony + Carolin) plus the signed-in creator's own member
+    await expect.poll(() => memberRequests.length).toBe(3);
   });
 
   test('clicking "Next" on step 4 triggers POST /api/accounts', async ({

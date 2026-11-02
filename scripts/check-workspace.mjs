@@ -86,6 +86,11 @@ const adapted = new Set([
     'src/routes/accounts.ts',
     'src/routes/accounts-summary.ts',
     'src/routes/account-overview.ts',
+    // H08-FIX-ACL: account membership enforced on the calendar routes
+    'src/routes/account-balances.ts',
+    'src/routes/carryovers.ts',
+    'src/routes/master-data.ts',
+    'src/routes/members.ts',
     'src/services/insights.ts',
     'src/services/contribution-rule-generator.ts',
     ...['account-balances', 'accounts-summary', 'accounts', 'carryovers', 'categories', 'category-budgets', 'common', 'contribution-rules', 'member-incomes', 'members', 'recurrences', 'transactions'].map((name) => `src/validation/${name}.ts`)

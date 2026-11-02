@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import { DateTime } from 'luxon';
 
 import Account from '../models/Account.js';
+import { requireAccountAccess } from '../auth/account-access.js';
 import Member from '../models/Member.js';
 import Transaction from '../models/Transaction.js';
 import AccountBalance from '../models/AccountBalance.js';
@@ -27,6 +28,7 @@ r.get('/:id/overview', async (req, res) => {
     const { id } = req.params;
     if (!/^[a-f\d]{24}$/i.test(id)) return res.status(400).json({ error: 'INVALID_ID' });
 
+    if (!(await requireAccountAccess(req, res, id))) return;
     const account = await Account.findById(id).lean();
     if (!account) return res.sendStatus(404);
 

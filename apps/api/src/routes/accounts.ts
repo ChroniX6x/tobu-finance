@@ -17,15 +17,16 @@ import ContributionRule from '../models/ContributionRule.js';
 import { DateTime } from 'luxon';
 import { monthRangeFromISO } from '../lib/month.js';
 import Event from '../models/Event.js';
+import { accountMemberIdSet, callerAccountIds, callerMemberIds, membersAssignable, requireAccountAccess } from '../auth/account-access.js';
 
 const r = Router();
 
 const monthToRange = (m: string) => monthRangeFromISO(m);
 
-/** GET /api/accounts?memberId=... (optional) */
+/** GET /api/accounts?memberId=... (optional) – only accounts the caller is a member of */
 r.get('/', validateQuery(QueryAccounts), async (req, res) => {
     const { memberId } = (req as any).q as { memberId?: string };
-    const q: any = {};
+    const q: any = { _id: { $in: await callerAccountIds(req) } };
     if (memberId) q['members.memberId'] = new Types.ObjectId(memberId);
     const items = await Account.find(q).lean();
     res.json(items);
@@ -35,6 +36,7 @@ r.get('/', validateQuery(QueryAccounts), async (req, res) => {
 r.get('/:id', async (req, res) => {
     const { id } = req.params;
     if (!/^[a-f\d]{24}$/i.test(id)) return res.status(400).json({ error: 'INVALID_ID' });
+    if (!(await requireAccountAccess(req, res, id))) return;
     const acc = await Account.findById(id).lean();
     if (!acc) return res.sendStatus(404);
     res.json(acc);
@@ -44,6 +46,7 @@ r.get('/:id', async (req, res) => {
 r.get('/:id/expanded', validateQuery(QueryAccountExpanded), async (req, res) => {
     const id = req.params['id'] ?? '';
     if (!/^[a-f\d]{24}$/i.test(id)) return res.status(400).json({ error: 'INVALID_ID' });
+    if (!(await requireAccountAccess(req, res, id))) return;
     const inc: string[] = ((req as any).q?.include ?? []) as string[];
     const from: string | undefined = (req as any).q?.from;
     const to: string | undefined = (req as any).q?.to;
@@ -145,12 +148,23 @@ r.get('/:id/expanded', validateQuery(QueryAccountExpanded), async (req, res) => 
 /** POST /api/accounts { name, currency?, members?: [{memberId, role?}] } */
 r.post('/', validateBody(CreateAccount), async (req, res) => {
     const b = (req as any).data;
-    const members = Array.isArray(b.members)
-        ? b.members.map((m: any) => ({
-              memberId: new Types.ObjectId(m.memberId),
-              role: m.role ?? 'member'
-          }))
-        : [];
+    const requested: Array<{ memberId: string; role?: string }> = Array.isArray(b.members) ? b.members : [];
+    if (
+        !(await membersAssignable(
+            req,
+            requested.map((m) => m.memberId)
+        ))
+    )
+        return res.status(422).json({ error: 'MEMBER_NOT_ASSIGNABLE' });
+
+    // The creator must be part of the account through a member linked to their login; that member becomes owner.
+    const own = new Set((await callerMemberIds(req)).map(String));
+    if (!requested.some((m) => own.has(String(m.memberId)))) return res.status(422).json({ error: 'CREATOR_MEMBER_REQUIRED' });
+
+    const members = requested.map((m) => ({
+        memberId: new Types.ObjectId(m.memberId),
+        role: own.has(String(m.memberId)) ? 'owner' : (m.role ?? 'member')
+    }));
     const created = await Account.create({
         name: b.name ?? null,
         currency: b.currency ?? 'EUR',
@@ -163,8 +177,15 @@ r.post('/', validateBody(CreateAccount), async (req, res) => {
 /** PATCH /api/accounts/:id */
 r.patch('/:id', validateBody(UpdateAccount), async (req, res) => {
     const { id } = req.params;
+    if (!(await requireAccountAccess(req, res, id))) return;
     const u: any = { ...(req as any).data };
     if (Array.isArray(u.members)) {
+        // Only members already in the account or assignable to the caller may be listed, and the caller must stay in.
+        const current = await accountMemberIdSet(id);
+        const added = u.members.map((m: { memberId: string }) => String(m.memberId)).filter((m: string) => !current.has(m));
+        if (!(await membersAssignable(req, added))) return res.status(422).json({ error: 'MEMBER_NOT_ASSIGNABLE' });
+        const own = new Set((await callerMemberIds(req)).map(String));
+        if (!u.members.some((m: { memberId: string }) => own.has(String(m.memberId)))) return res.status(409).json({ error: 'CALLER_WOULD_LOSE_ACCESS' });
         u.members = u.members.map((m: any) => ({
             memberId: new Types.ObjectId(m.memberId),
             role: m.role ?? 'member'
@@ -184,11 +205,13 @@ r.patch('/:id', validateBody(UpdateAccount), async (req, res) => {
 r.post('/:id/members', validateBody(AddMemberToAccount), async (req, res) => {
     const { id } = req.params;
     const { memberId, role } = (req as any).data as { memberId: string; role: string };
+    if (!(await requireAccountAccess(req, res, id))) return;
 
     const mId = new Types.ObjectId(memberId);
     const acc = await Account.findById(id);
     if (!acc) return res.sendStatus(404);
     const idx = acc.members.findIndex((x) => String(x.memberId) === String(mId));
+    if (idx < 0 && !(await membersAssignable(req, [memberId]))) return res.status(422).json({ error: 'MEMBER_NOT_ASSIGNABLE' });
     const member = acc.members[idx];
     if (idx >= 0 && member) member.role = (role ?? member.role ?? 'member') as 'owner' | 'member';
     else acc.members.push({ memberId: mId, role: (role ?? 'member') as 'owner' | 'member' });
@@ -208,6 +231,7 @@ r.post('/:id/members', validateBody(AddMemberToAccount), async (req, res) => {
 /** DELETE /api/accounts/:id/members/:memberId */
 r.delete('/:id/members/:memberId', async (req, res) => {
     const { id, memberId } = req.params;
+    if (!(await requireAccountAccess(req, res, id))) return;
     if (!/^[a-f\d]{24}$/i.test(memberId ?? '')) return res.status(400).json({ error: 'INVALID_MEMBER_ID' });
 
     const mId = new Types.ObjectId(memberId);
@@ -220,6 +244,12 @@ r.delete('/:id/members/:memberId', async (req, res) => {
     const accountMembers: any[] = (acc as any).members ?? [];
     const memberEntry = accountMembers.find((m) => String(m.memberId) === String(mId));
     if (!memberEntry) return res.status(404).json({ error: 'MEMBER_NOT_IN_ACCOUNT' });
+
+    // Guard: the caller must keep a member of their own in the account (otherwise nobody could reach it any more)
+    const callerMembers = new Set((await callerMemberIds(req)).map(String));
+    if (callerMembers.has(String(mId)) && !accountMembers.some((m) => String(m.memberId) !== String(mId) && callerMembers.has(String(m.memberId)))) {
+        return res.status(409).json({ error: 'CALLER_WOULD_LOSE_ACCESS' });
+    }
 
     // Guard: last owner
     const owners = accountMembers.filter((m) => m.role === 'owner');

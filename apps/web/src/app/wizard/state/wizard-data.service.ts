@@ -17,24 +17,64 @@ import { WizardModel } from "../domain/wizard.model";
 import { currentUtcMonthKey } from "@/shared/utils/calendar-picker";
 import { monthKeyToAnchorIso } from "@tobu/contracts/calendar";
 import { API_BASE_URL } from "@/core/api-base-url.token";
+import { AuthStore } from "@/core/auth/services/auth.store";
 
 @Injectable({ providedIn: "root" })
 export class WizardDataService {
   private http = inject(HttpClient);
   private baseUrl = inject(API_BASE_URL);
+  private authStore = inject(AuthStore);
+
+  /** The signed-in user; after a refresh without a restored profile the id and e-mail come from the access token. */
+  private signedInUser(): { id: string; email: string; name?: string } | null {
+    const user = this.authStore.user();
+    if (user) return user;
+    try {
+      const payload = this.authStore.getAccessToken()?.split(".")[1];
+      if (!payload) return null;
+      const claims = JSON.parse(
+        atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+      ) as { sub?: string; email?: string };
+      return claims.sub && claims.email
+        ? { id: claims.sub, email: claims.email }
+        : null;
+    } catch {
+      return null;
+    }
+  }
 
   async createNewAccount(wizardData: WizardModel): Promise<string> {
     const currentMonth = currentUtcMonthKey();
+    const user = this.signedInUser();
+    if (!user) throw new Error("Not signed in");
+
+    // The signed-in user is always part of the new account through their own member (becomes owner on the server).
+    // Other members are never linked to a login here.
+    const creator = {
+      tempId: "__creator__",
+      name: user.name?.trim() || user.email,
+      email: user.email,
+      userId: user.id,
+    };
+    const members = [
+      creator,
+      ...wizardData.members.map(({ tempId, name, email }) => ({
+        tempId,
+        name,
+        email,
+        userId: undefined as string | undefined,
+      })),
+    ];
 
     try {
       // 1) Mitglieder anlegen → POST /api/members
       const memberMap = new Map<string, string>();
-      for (const member of wizardData.members) {
+      for (const member of members) {
         const response = await firstValueFrom(
           this.http.post<ApiMember>(`${this.baseUrl}/api/members`, {
             name: member.name,
             email: member.email,
-            userId: member.userId, // Korrigiert: userId statt userID
+            userId: member.userId,
           } satisfies z.input<typeof CreateMember>),
         );
         memberMap.set(member.tempId, response._id);
@@ -43,9 +83,7 @@ export class WizardDataService {
       // 2) Account anlegen mit echten Member-IDs → POST /api/accounts
       const accountBody: z.input<typeof CreateAccount> = {
         name: wizardData.name,
-        // Creator ownership needs a reliable user-to-member mapping (AUTH-002).
-        // Preserve the API's default member role; list position must not grant ownership.
-        members: wizardData.members.map((member) => ({
+        members: members.map((member) => ({
           memberId: memberMap.get(member.tempId)!,
         })),
       };
