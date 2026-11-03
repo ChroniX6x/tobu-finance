@@ -55,3 +55,5 @@ Nur Tests, kein Produktcode. Gate `quality:full` auf `a7380e4` (clean, 17/17), Z
 | F-7, F-8 | **offen** | P02 / AUTH-001 |
 
 Neue Produktbefunde (nicht behoben, eigener Fix-Schritt): (a) `wizard.state.ts` navigiert auf `['accounts', <Promise>]` bevor das Konto existiert, die Kontoliste zeigt danach nichts; (b) Drawer-Maske (siehe F-3).
+
+F-1 wurde vom Eigentümer am 03.11.2026 zur Kenntnis genommen (keine Korrektur beauftragt). Zusammenfassung aller offenen Punkte: [H08-Abschlussbericht](runs/H08-ABSCHLUSS.md).
