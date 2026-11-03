@@ -417,4 +417,111 @@ test('month intervals, UTC semantics and frozen clock across server time zones (
         for (const route of routes) assert.match(route, /[?&]month=\d{4}-\d{2}(&|$)/, route);
         for (const insight of overview.insights.filter((i) => i.month)) assert.equal(insight.month, anchor('2026-11'), 'the insight month itself stays the ISO anchor');
     });
+
+    await t.test('F-2 / CAL-20: cents stay exact — shares add up to the amount, identical in every server zone, no drift in totals', async () => {
+        const centsMembers = [member._id, member2._id, (await utc.call('POST', '/api/members', { name: 'Third' })).json._id];
+        const mk = async (name) => (await utc.call('POST', '/api/accounts', { name, members: centsMembers.map((memberId, i) => ({ memberId, role: i === 0 ? 'owner' : 'member' })) })).json._id;
+        const weighted = await mk('Cents weighted');
+        for (const [memberId, amountMinor] of [
+            [centsMembers[0], 100000],
+            [centsMembers[1], 200000],
+            [centsMembers[2], 400000]
+        ]) {
+            assert.equal((await utc.call('POST', '/api/member-incomes', { accountId: weighted, memberId, amountMinor, fromMonth: '2026-01', toMonth: null })).status, 201);
+        }
+        const rule = await utc.call('POST', '/api/contribution-rules', { accountId: weighted, type: 'additional', recurring: true, amountMinor: 10001, distribution: { mode: 'proRataIncome' }, fromMonth: '2026-01', toMonth: null });
+        assert.equal(rule.status, 201);
+        const equal = await mk('Cents equal');
+        assert.equal((await utc.call('POST', '/api/contribution-rules', { accountId: equal, type: 'additional', recurring: true, amountMinor: 10001, distribution: { mode: 'proRataIncome' }, fromMonth: '2026-01', toMonth: null })).status, 201);
+
+        const shares = async (server, id) => {
+            const view = (await server.call('GET', `/api/accounts/${id}/month-view?month=2026-11`)).json;
+            return { total: view.kpis.totalDueMinor, byMember: Object.fromEntries(view.members.map((m) => [m.id, m.monthlyDueMinor])) };
+        };
+        const reference = await shares(utc, weighted);
+        // 10001 split 1:2:4 -> floors 1428/2857/5714, the two remaining cents go to the largest remainders
+        assert.deepEqual([reference.total, reference.byMember[centsMembers[0]], reference.byMember[centsMembers[1]], reference.byMember[centsMembers[2]]], [10001, 1429, 2857, 5715]);
+        assert.equal(
+            Object.values(reference.byMember).reduce((a, b) => a + b, 0),
+            10001,
+            'weighted shares add up to the amount'
+        );
+        const equalShares = await shares(utc, equal);
+        assert.equal(equalShares.total, 10001);
+        assert.deepEqual(
+            Object.values(equalShares.byMember).sort((a, b) => a - b),
+            [3333, 3334, 3334],
+            'equal shares of 10001 never invent or lose a cent'
+        );
+        for (const server of [tokyo, la]) {
+            assert.deepEqual(await shares(server, weighted), reference, `${server.label} weighted`);
+            assert.deepEqual(await shares(server, equal), equalShares, `${server.label} equal`);
+        }
+    });
+
+    await t.test('F-2 / CAL-21: AccountSnapshot values are stored and reported to the cent, identically in every server zone', async () => {
+        const snapshotAccount = (await utc.call('POST', '/api/accounts', { name: 'Snapshot cents', members: [{ memberId: member._id, role: 'owner' }] })).json._id;
+        const values = [
+            ['2026-09', 1_234_567],
+            ['2026-10', 250],
+            ['2026-11', 99_999_999]
+        ];
+        for (const [month, closingBalanceMinor] of values) {
+            const response = await utc.call('PUT', '/api/account-balances', { accountId: snapshotAccount, month, closingBalanceMinor });
+            assert.ok([200, 201].includes(response.status), `${month}: ${JSON.stringify(response.json)}`);
+            assert.deepEqual([response.json.month, response.json.closingBalanceMinor], [anchor(month), closingBalanceMinor]);
+        }
+        const stored = await db
+            .collection('account_balances')
+            .find({ accountId: new ObjectId(snapshotAccount) })
+            .sort({ month: 1 })
+            .toArray();
+        assert.deepEqual(
+            stored.map((s) => [iso(s.month), s.closingBalanceMinor]),
+            values.map(([month, cents]) => [anchor(month), cents]),
+            'BSON snapshots: UTC anchor and integer cents'
+        );
+        for (const server of [utc, tokyo, la]) {
+            const row = (await server.call('GET', '/api/accounts/summary?months=3')).json.find((r) => r.id === snapshotAccount);
+            assert.deepEqual([row.currentMonth, row.currentBalanceMinor], [anchor('2026-11'), 99_999_999], `${server.label} current snapshot`);
+            // the 3-month window ends at the server's UTC month: Los Angeles is frozen at Dec 1 00:00Z, so September drops out and December has no snapshot
+            assert.deepEqual(row.balanceHistoryMinor, server === la ? [250, 99_999_999] : [1_234_567, 250, 99_999_999], `${server.label} history`);
+            assert.ok(row.balanceHistoryMinor.every(Number.isInteger));
+            const overview = (await server.call('GET', `/api/accounts/${snapshotAccount}/overview`)).json;
+            assert.deepEqual([overview.account.currentMonth, overview.account.currentBalanceMinor], [anchor('2026-11'), 99_999_999], `${server.label} overview`);
+        }
+    });
+
+    await t.test('F-2 / CAL-25: moving a parent keeps parent and split amounts to the cent and moves the totals as a whole', async () => {
+        const splitAccount = (await utc.call('POST', '/api/accounts', { name: 'Split cents', members: [{ memberId: member._id, role: 'owner' }] })).json._id;
+        const create = async (data) => {
+            const response = await utc.call('POST', '/api/transactions', { accountId: splitAccount, type: 'expense', status: 'booked', isFromSharedAccount: true, bookDate: anchor('2026-10'), ...data });
+            assert.equal(response.status, 201, JSON.stringify(response.json));
+            return response.json;
+        };
+        const parent = await create({ title: 'parent', amountMinor: 10001 });
+        const children = [];
+        for (const amountMinor of [3333, 3333, 3335]) children.push(await create({ title: `child ${amountMinor}`, amountMinor, parentTransactionId: parent._id }));
+        const spent = async (month) => (await utc.call('GET', `/api/accounts/${splitAccount}/month-view?month=${month}`)).json.kpis.totalSpentMinor;
+        const before = { oct: await spent('2026-10'), nov: await spent('2026-11') };
+        assert.equal(before.nov, 0);
+        assert.ok(before.oct > 0);
+        const moved = await utc.call('PATCH', `/api/transactions/${parent._id}`, { bookDate: anchor('2026-11') });
+        assert.equal(moved.status, 200, JSON.stringify(moved.json));
+        const listed = (await utc.call('GET', `/api/transactions?accountId=${splitAccount}`)).json.items;
+        const storedParent = listed.find((t) => t._id === parent._id);
+        const storedChildren = [...listed, ...listed.flatMap((t) => t.children ?? [])].filter((t) => children.some((c) => c._id === t._id));
+        assert.equal(storedParent.amountMinor, 10001, 'parent amount unchanged');
+        assert.deepEqual(storedChildren.map((c) => c.amountMinor).sort(), [3333, 3333, 3335], 'child amounts unchanged');
+        assert.equal(
+            storedChildren.reduce((sum, c) => sum + c.amountMinor, 0),
+            storedParent.amountMinor,
+            'children still add up to the parent'
+        );
+        assert.ok(
+            storedChildren.every((c) => c.bookDate === anchor('2026-11') && c.month === anchor('2026-11')),
+            'children follow the parent'
+        );
+        assert.deepEqual({ oct: await spent('2026-10'), nov: await spent('2026-11') }, { oct: 0, nov: before.oct }, 'the same cents, moved as a whole');
+    });
 });
