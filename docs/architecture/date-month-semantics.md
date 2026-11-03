@@ -52,7 +52,7 @@ Die Änderungen H01–H06 sind Code und Tests ohne Schemaänderung, Migration od
 
 ## Fundstellen A01–A36 und W01–W26
 
-Status: **DONE** (umgesetzt und durch Test belegt), **TEILWEISE** (umgesetzt, aber ein genannter Nachweis fehlt, siehe Zeile), **NOT-APPLICABLE** (kein Änderungsbedarf oder inaktiv, mit Grund), **SEPARATE-TICKET** (bewusst nicht in H01–H06, mit Grund). Testkürzel: CT `packages/contracts/tests/calendar.test.mjs`, UM `apps/api/tests/unit/month-helpers.test.mjs`, UT `apps/api/tests/unit/transaction-dates.test.mjs`, GT `apps/api/tests/unit/contribution-rule-generator.test.mjs`, TD `apps/api/tests/integration/transaction-dates.test.mjs`, MI `apps/api/tests/integration/month-intervals.test.mjs`, CA `apps/api/tests/integration/calendar-audit.test.mjs`, XZ `apps/web/tests/e2e/calendar-cross-zone.spec.ts`, FL `calendar-flows.spec.ts`, RQ `calendar-qa.real.spec.ts`, RL `calendar.real.spec.ts`, PK `apps/web/src/app/shared/utils/calendar-picker.spec.ts`. Der Status entspricht dem Code-Stand `a2aaead` (H08-Wiederholung 2; Code unverändert gegenüber H08-FIX-ACL2 `1296f3b`; Gate `quality:full` und Zonenmatrix auf `a2aaead`, siehe [H08](../agents/runs/H08.md) und [H08-FIX-ACL2](../agents/runs/H08-FIX-ACL2.md)). Vom Eigentümer freigegebene Ausnahmen mit Nachtrag-Pflicht: [h08-freigegebene-ausnahmen.md](../agents/h08-freigegebene-ausnahmen.md); er beruht auf Code- und Testsichtung, nicht auf einer erneuten Einzelverifikation jeder Zeile. Die Zeilen A03/A29 wurden mit H08-FIX-CAL, die ACL-Aussagen mit H08-FIX-ACL/-ACL2 nachgezogen.
+Status: **DONE** (umgesetzt und durch Test belegt), **TEILWEISE** (umgesetzt, aber ein genannter Nachweis fehlt, siehe Zeile), **NOT-APPLICABLE** (kein Änderungsbedarf oder inaktiv, mit Grund), **SEPARATE-TICKET** (bewusst nicht in H01–H06, mit Grund). Testkürzel: CT `packages/contracts/tests/calendar.test.mjs`, UM `apps/api/tests/unit/month-helpers.test.mjs`, UT `apps/api/tests/unit/transaction-dates.test.mjs`, GT `apps/api/tests/unit/contribution-rule-generator.test.mjs`, TD `apps/api/tests/integration/transaction-dates.test.mjs`, MI `apps/api/tests/integration/month-intervals.test.mjs`, CA `apps/api/tests/integration/calendar-audit.test.mjs`, XZ `apps/web/tests/e2e/calendar-cross-zone.spec.ts`, FL `calendar-flows.spec.ts`, RQ `calendar-qa.real.spec.ts`, RL `calendar.real.spec.ts`, PK `apps/web/src/app/shared/utils/calendar-picker.spec.ts`; ab H08-NACHTRAG-TESTS zusätzlich PZ `calendar-picker-zones.spec.ts`, NAV `calendar-month-navigation.spec.ts`, FI `calendar-month-filter.spec.ts`, WZ `calendar-wizard.real.spec.ts`, DK `calendar-dock.real.spec.ts` (alle `apps/web/tests/e2e/`). Der Status entspricht dem Code-Stand `a2aaead` (H08-Wiederholung 2; Code unverändert gegenüber H08-FIX-ACL2 `1296f3b`; Gate `quality:full` und Zonenmatrix auf `a2aaead`, siehe [H08](../agents/runs/H08.md) und [H08-FIX-ACL2](../agents/runs/H08-FIX-ACL2.md)). Vom Eigentümer freigegebene Ausnahmen mit Nachtrag-Pflicht: [h08-freigegebene-ausnahmen.md](../agents/h08-freigegebene-ausnahmen.md); er beruht auf Code- und Testsichtung, nicht auf einer erneuten Einzelverifikation jeder Zeile. Die Zeilen A03/A29 wurden mit H08-FIX-CAL, die ACL-Aussagen mit H08-FIX-ACL/-ACL2 nachgezogen.
 
 ### API / Contracts
 
@@ -89,7 +89,7 @@ Status: **DONE** (umgesetzt und durch Test belegt), **TEILWEISE** (umgesetzt, ab
 | A29 | DONE | Seit H08-FIX-CAL monatsgenau: ein Monat zählt ausschließlich die in diesem Monat gültigen Kategorie-Budgets, zusammenhängende Monate mit gleicher Summe werden zu einer Basisregel zusammengefasst; keine Uhr im Generator; Budget, Event und der Austausch der Basisregeln committen in einer Transaktion (Konto-Schreibzugriff serialisiert parallele Budget-Schreibvorgänge). GT `apps/api/tests/unit/contribution-rule-generator.test.mjs`, MI (CAL-20, A29), TD (Atomarität, Parallelität). Vorhandene gespeicherte Basisregeln werden nicht pauschal neu erzeugt; ein Konto wird erst bei einer Budget-Änderung dieses Kontos neu berechnet (frühere Regeln konnten Vergangenheitsmonate mit dem Betrag des damaligen aktuellen Monats füllen; eine Bestandsdatenkorrektur ist nicht erfolgt und braucht eigene Freigabe) |
 | A30 | NOT-APPLICABLE | rechnet bereits ausschließlich UTC (`reliableBalance.ts`); durch MI (CAL-21) mittelbar abgedeckt, nicht geändert |
 | A31 | DONE | inklusive Spannen, offene Enden; UM (A31) |
-| A32 | TEILWEISE | Aktionslinks mit `YYYY-MM`; MI (CAL-26 nur die API-Links, Web-URL/Filter nicht separat) |
+| A32 | DONE | Aktionslinks mit `YYYY-MM`; MI (CAL-26 API-Links). Die Web-App rendert keine Insight-Links und liest keinen Monat aus der URL (Code-Beleg); der einzige Monats-Filter der UI (Toolbar) ist per `calendar-month-filter.spec.ts` in 4 Zonen belegt (H08-NACHTRAG-TESTS) |
 | A33 | NOT-APPLICABLE | Demo-Seed bleibt unverändert (Monat aus UTC-Datum, UTC-Daten); CA belegt keinen Befund auf Fresh+Seed; kein Neu-Seeden |
 | A34 | NOT-APPLICABLE | Baseline `2026-10-v1.json` unverändert (einziger Commit `c24a25b`); keine Migration |
 | A35 | NOT-APPLICABLE | Validierungsmiddleware nicht geändert. Schemafehler `400 VALIDATION_ERROR`, fachliche Datumskonflikte `422` mit festen Codes; getestet in MI (ungültige Filter 400) und TD. Eine Gesamtprüfung aller Fehlerantworten auf Datenfreiheit ist nicht Teil von H01–H06 |
@@ -99,15 +99,15 @@ Status: **DONE** (umgesetzt und durch Test belegt), **TEILWEISE** (umgesetzt, ab
 
 | ID | Status | Nachweis oder Grund |
 | --- | --- | --- |
-| W01 | TEILWEISE | Monatsansicht startet mit dem UTC-Monat; XZ, RQ (CAL-08/23). Die vier Zonen decken nur Oktober/November ab (CAL-08 teilweise) |
+| W01 | DONE | Monatsansicht startet mit dem UTC-Monat; XZ, RQ (CAL-08/23); Januar, Dezember, Jahreswechsel und Schaltjahr-Februar in vier Zonen: `calendar-month-navigation.spec.ts` (NAV) |
 | W02 | DONE | Anzeige über `formatBankDate`/`formatMonthValue`; PK, XZ (Monatsnavigation) |
 | W03 | DONE | MonthKey in State/Service/UI-Modell; XZ, RQ |
-| W04 | DONE | Drawer sendet Träger, kein `month`; XZ, RQ (CAL-24). Ein echter Mausklick auf „Speichern“ ist nicht belegt (PrimeNG-Maske fängt Automationsklicks, Test per `requestSubmit`) |
+| W04 | DONE | Drawer sendet Träger, kein `month`; XZ, RQ (CAL-24). Ein echter Mausklick auf „Speichern“ ist nicht belegt (F-3 offen: in `elementFromPoint` liegt `.p-drawer-mask` über dem Button, Test per `requestSubmit`; möglicher UI-Defekt, eigener Fix-Schritt) |
 | W05 | DONE | `todayBankDate` aus lokalen Kalenderteilen; PK (nur eine Browserzone) |
-| W06 | TEILWEISE | Dock-Split sendet das Parent-`bookDate` unverändert; FL. Dock-Create ohne eigenen Test (CAL-25 nur teilweise); pending Parent ohne `bookDate` bleibt Altverhalten (Server lehnt ab) |
-| W07 | TEILWEISE | Detail-Editor ohne Phantom-Diff und ohne PATCH beim Öffnen; XZ, RQ (CAL-25). Dock-Create/-Edit nicht getestet |
-| W08 | TEILWEISE | Picker zeigt das Fachdatum, keinen Timestamp; PK, XZ (Detail-Editor); Dock-Template ohne eigenen Test; Picker-Unit nur in der Zone des Runners, kein DST-Frühling (CAL-06 nur teilweise) |
-| W09 | TEILWEISE | Toolbar-Monatsfilter über den Adapter; PK. Kein eigener Browsertest über mehrere Zonen |
+| W06 | DONE | Dock-Split sendet das Parent-`bookDate` unverändert; FL; Dock-Create (direkt und Queue) und Split-Kind mit echten Klicks gegen die echte API in vier Zonen: `calendar-dock.real.spec.ts` (DK). Pending Parent ohne `bookDate` bleibt Altverhalten (Server lehnt ab) |
+| W07 | DONE | Detail-Editor ohne Phantom-Diff und ohne PATCH beim Öffnen; XZ, RQ (CAL-25); Dock-Create und Editor-Edit (Titel-PATCH exakt `{title}`, Datums-PATCH mit Träger, Kind folgt, Cents unverändert) real in vier Zonen: DK |
+| W08 | DONE | Picker zeigt das Fachdatum, keinen Timestamp; PK, XZ (Detail-Editor), DK (Dock); Picker-Adapter in acht echten Browserzonen inkl. DST-Beginn/-Ende, Jahres- und Schaltjahresgrenze: `calendar-picker-zones.spec.ts` (PZ) |
+| W09 | DONE | Toolbar-Monatsfilter über den Adapter; PK, PZ; `monthFrom`/`monthTo` als `YYYY-MM` in vier Zonen über Jahreswechsel und Schaltjahr: `calendar-month-filter.spec.ts` (FI) |
 | W10 | DONE | Liste zeigt BankDate ohne Verschiebung; XZ, RQ |
 | W11 | DONE | Filtermonat/DTO, Parent-Kind-Updates; XZ, RQ, Mock-E2E `transactions-page` |
 | W12 | DONE | Planung startet mit UTC-Monat, gleicher Wert wie Monatsansicht; FL (CAL-23) |
@@ -115,9 +115,9 @@ Status: **DONE** (umgesetzt und durch Test belegt), **TEILWEISE** (umgesetzt, ab
 | W14 | DONE | wie W13 |
 | W15 | DONE | wie W13 |
 | W16 | NOT-APPLICABLE | Request-/Modelltypen bereits konform, keine Änderung nötig (H04) |
-| W17 | TEILWEISE | Wizard-Monatswerte aus dem Adapter; FL (CAL-22, nur gemockt in 4 Zonen, nicht gegen echte API) |
+| W17 | DONE | Wizard-Monatswerte aus dem Adapter; FL (gemockt) und `calendar-wizard.real.spec.ts` (WZ): echter Stack, 4 Zonen, UTC-Monat, Cents, Readback (CAL-22) |
 | W18 | DONE | Monatslabel aus Monatsschlüssel, nicht aus lokalem `Date`; XZ |
-| W19 | TEILWEISE | Overview-Datenservice/-Modell mit `formatMonthValue`; Timeline-Datum bleibt Instant (lokale Anzeige zulässig), XZ, `calendar-instants.spec.ts` (CAL-09 nur für `timeline.date`) |
+| W19 | DONE | Overview-Datenservice/-Modell mit `formatMonthValue`; Timeline-Datum bleibt Instant (lokale Anzeige zulässig), XZ, `calendar-instants.spec.ts`; `createdAt`/`modifiedAt` werden in der UI nirgends angezeigt (Code-Beleg, CAL-09 begründet geschlossen); Snapshot-Monat im Browser: WZ (CAL-21). Wird ein Instant neu angezeigt, ist ein Zonentest Pflicht |
 | W20 | DONE | Vertragskommentar korrigiert (API liefert den Anker); Anzeige über `formatMonthValue` |
 | W21 | NOT-APPLICABLE | `AccountDashboardStatistikService` ist an keiner Stelle eingebunden (nur die Definition); als Legacy nicht migriert |
 | W22 | DONE | Drawer sendet keinen `month` mehr, zeigt Fehler über `saveError`; XZ. Kein eigener Test für den 400/409-Pfad |
@@ -130,7 +130,7 @@ Status: **DONE** (umgesetzt und durch Test belegt), **TEILWEISE** (umgesetzt, ab
 
 - Kalender-Routen prüfen seit H08-FIX-ACL die Account-Mitgliedschaft (404 für Nichtmitglied, unbekanntes Konto und Altkonto), seit H08-FIX-ACL2 auch `categories` und `recurrences` ([H08-FIX-ACL](../agents/runs/H08-FIX-ACL.md), [H08-FIX-ACL2](../agents/runs/H08-FIX-ACL2.md)). Owner-spezifische Rechte sind weiter offen (AUTH-001).
 - Echte Nutzerdaten sind nicht auditiert (H05). Kein Aufräum-/Zuordnungsweg für geblockte Altkonten.
-- Nicht abgedeckt (daher CAL-06/08/09/22/25/26 nur TEILWEISE; W01, W06, W07, W08, W09, W17, W19, A32): DST-Frühling und Picker in mehreren Zonen (CAL-06), Monatsnavigation außerhalb Oktober/November (CAL-08), nur `timeline.date` für CAL-09, Dock-Create/-Edit (CAL-25), Web-URL/Filter der Insight-Links (CAL-26) und echter Klick im Drawer, Planungs-UI gegen die echte API, CAL-21 mit Snapshot im Browser, CAL-22 gegen echte API.
+- Nach H08-NACHTRAG-TESTS (Tests `a7380e4`, [Bericht](../agents/runs/H08-NACHTRAG-TESTS.md)) sind CAL-06/08/09/22/25/26 und CAL-20/21 belegt bzw. begründet geschlossen. Weiter offen: echter Mausklick im Zahlungs-Drawer (F-3; `.p-drawer-mask` liegt laut `elementFromPoint` über dem Button, möglicher UI-Defekt), Monatswahl im PrimeNG-Picker nur per `dispatchEvent('click')` (Handler-, nicht Nutzerbeleg), Planungs-UI gegen die echte API, A17.
 - Bestandsdaten können `bookDate`-Werte mit Uhrzeit (kein BankDate-Träger) enthalten (der aktuelle Seed erzeugt UTC-Mitternacht); sie bleiben lesbar und als Echo änderbar, ein neuer Wert muss ein Träger sein (A03). Eine Bereinigung solcher Altwerte ist eine eigene, freigabepflichtige Datenmaßnahme.
 - Bestehende Basisregeln wurden nicht neu erzeugt (A29); Konten mit zuvor erzeugten Basisregeln zeigen Vergangenheitsmonate erst nach der nächsten Budget-Änderung dieses Kontos monatsgenau.
 - Planungsseite, Drawer und Monatsansicht können bei Browserzone vor UTC über Monatsgrenzen auseinanderlaufen (siehe oben).

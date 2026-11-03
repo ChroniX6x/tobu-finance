@@ -32,3 +32,26 @@ Der Eigentümer hat nur EX-01 bis EX-07 freigegeben. Die folgenden Punkte hat de
 | F-8 | `membersAssignable` lässt unverknüpfte Member zu, die in keinem Konto stehen; `account-overview.ts:130` löst Kategorienamen ohne `accountId`-Filter auf; jedes Kontomitglied kann Co-Member ändern (AUTH-001 bewusst offen) | P02 / AUTH-001 |
 
 Regeln für den Nachtrag: Jede Ausnahme wird erst geschlossen, wenn Test oder Fix belegt ist (Status in `docs/architecture/date-month-semantics.md` und diesem Dokument aktualisieren). Ein späterer Schritt (E09, P02, P04) darf nicht als PASS gelten, solange eine ihm zugeordnete Ausnahme offen ist.
+
+## Stand nach H08-NACHTRAG-TESTS (03.11.2026, Testcommit `a7380e4`)
+
+Nur Tests, kein Produktcode. Gate `quality:full` auf `a7380e4` (clean, 17/17), Zonenmatrix `e2e:real` 5/5 (je 21 passed). Vollständige Matrix, Befehle und Exitcodes: [H08-NACHTRAG-TESTS.md](runs/H08-NACHTRAG-TESTS.md). Der Reviewer (Konzept-Reviewer, read-only) fand keine kritischen Fehler; seine mittleren Befunde sind im Bericht offen geführt.
+
+| ID | Status | Beleg / Grund |
+| --- | --- | --- |
+| EX-01 | **geschlossen** | `calendar-picker-zones.spec.ts`: echter Adapter in Chromium, 8 Zonen (Berlin, New York, Los Angeles, Tokyo, UTC, Havana mit Mitternachts-DST, Kiritimati, Pago Pago), DST-Beginn/-Ende, Monats-/Jahres-/Schaltjahresgrenze |
+| EX-02 | **geschlossen** (Einschränkung) | `calendar-month-navigation.spec.ts`: Januar, Dezember/Jahreswechsel, Schalt- und Nicht-Schaltjahr-Februar in 4 Zonen; Monatsauswahl und Jahrespfeile per `dispatchEvent('click')` (PrimeNG-Overlay wird unter Automation nie `stable`), die Pfeil-Buttons per echtem Klick |
+| EX-03 | **begründet geschlossen** | `createdAt`/`modifiedAt` werden in `apps/web/src` nirgends angezeigt (Grep: nur Typfeld `account-overview.ui-model.ts`); einzige angezeigte Instants: `timeline.date` (`calendar-instants.spec.ts`, 4 Zonen) und der statische `/calculation`-Demo-Pfad (W25). Kein Test, der das Nichtanzeigen erzwingt; neue Anzeige = neuer Test nötig |
+| EX-04 | **geschlossen** | `calendar-wizard.real.spec.ts`: echter Stack, 4 Zonen, Balance/Einkommen/Budgets im UTC-Monat der Uhr, Readback über API, Cent-Summen |
+| EX-05 | **geschlossen für Dock und Editor** | `calendar-dock.real.spec.ts`: echte Klicks, Create/Queue/Split-Kind/Detail-Edit, 4 Zonen, Träger im Request, Servermonat, kein PATCH beim Öffnen, Kaskade aufs Kind. Das Dock hat keinen Entwurfs-Edit (`UpdateDraft` wird in der UI nicht ausgelöst); Edit = Detail-Editor |
+| EX-06 | **geschlossen** (Filter -> API) | `calendar-month-filter.spec.ts`: Toolbar-Zeitraum sendet `monthFrom`/`monthTo` als `YYYY-MM`, 4 Zonen. Die Web-App liest keinen Monat aus der eigenen URL/Query und rendert keine Insight-Links (Code-Beleg); nichts weiter zu testen |
+| EX-07 | **offen** | A17, P02, ausdrücklich ausgenommen |
+| F-1 | **offen** | Datenfall, Eigentümer-Entscheidung |
+| F-2 | **geschlossen** | `month-intervals.test.mjs`: drei Tests (Anteile 10001 -> 1429/2857/5715 und 3333/3334/3334, Snapshot-Cents in BSON/Summary/Overview, Parent/Split-Cents unverändert beim Verschieben), in drei Serverzonen |
+| F-3 | **offen** | Echtklick im Zahlungs-Drawer nicht belegt: `elementFromPoint` liefert `.p-drawer-mask` über dem Speichern-Button (Drawer liegt im Stacking-Context `layout-content-wrapper`, z=1), reproduzierbar auch ohne Fake-Uhr. Möglicher echter UI-Defekt, als eigener Fix-Schritt zu klären; kein Test wurde angepasst |
+| F-4 | **geschlossen** | `calendar-wizard.real.spec.ts` (Snapshot-Test): Snapshot-Monat in Overview und Summary, 4 Zonen, nicht auf lokale Zone verschoben |
+| F-5 | **offen** | Negativlauf gegen Vor-Fix-Stand nicht versucht (Aufwand), Race-Fenster ungetestet; vor P02 |
+| F-6 | **offen** | P04 |
+| F-7, F-8 | **offen** | P02 / AUTH-001 |
+
+Neue Produktbefunde (nicht behoben, eigener Fix-Schritt): (a) `wizard.state.ts` navigiert auf `['accounts', <Promise>]` bevor das Konto existiert, die Kontoliste zeigt danach nichts; (b) Drawer-Maske (siehe F-3).
