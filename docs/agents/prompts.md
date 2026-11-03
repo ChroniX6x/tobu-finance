@@ -2,27 +2,11 @@
 
 Platzhalter ersetzen. Diese Vorlagen erteilen selbst keine Freigabe. Quellen und Regeln siehe `token-plan.md`.
 
-## Aktueller Einstieg: H04 nach H03-PR
+## Aktueller Einstieg: Eventplattform E00
 
-P00 ist laut Nutzer abgeschlossen, H03 liegt im PR. Diesen Prompt verwenden, wenn H04 jetzt ausdrücklich beauftragt werden soll; die Dokumentanpassung selbst startet H04 nicht.
+Date/Month ist laut Nutzer am 03.11.2026 abgeschlossen. P00 bleibt abgeschlossen. Der [Event-Leitfaden](leitfaden-events.md) enthält zehn eigenständige, kopierbare Prompts für E00 bis E09 einschließlich Schrittgrenzen und Pflichtnachweisen. Nur den jeweils freizugebenden Codeblock kopieren; keine erneuten H04-Aufträge verwenden.
 
-```text
-GO ausschließlich für H04 gemäß aktuellem Date/Month-Implementierungsplan.
-P00 ist abgeschlossen, H03 liegt bereits im PR. Wende
-docs/agents/token-plan.md auf H04 an.
-Nutze den vorhandenen Onboarding-Kontext und bisherige Berichte.
-Prüfe Branch/SHA/Dirty und relevante Quellenänderungen. Kein Neustart
-von P00 oder H00–H03, keine erneuten Gesamtdumps unveränderter Quellen.
-Prüfe H03-PR-/Testbelege und ob der benötigte H03-Code im Ausgangsstand
-enthalten ist. PR bedeutet weder Merge noch CI-PASS. Bei fehlender
-Abhängigkeit konkret melden; keinen Merge oder Branchwechsel daraus ableiten.
-Lies H04 und seine Pflichtverweise vollständig und setze nur H04 um.
-Halte aktuelle Quellenstände und den vorhandenen Onboarding-Nachweis fest;
-fehlende Nachweise nicht erfinden. Sichere zum Abschluss einen kompakten
-Bericht in docs/agents/runs/H04.md mit A/Q, Testbelegen, Review,
-SHA/Dirty und noch offenen Punkten. Vorhandene ausführliche Belege verlinken.
-Danach STOP; H05 nicht beginnen.
-```
+H08 ist laut Abschlussbericht mit Ausnahmen abgenommen. Die fälligen Folgepflichten bleiben erhalten. Diese Dokumentation führt E00 nicht aus; das einzelne GO gibst du im Umsetzungschat.
 
 ## Folgeauftrag, Codex oder lokaler Copilot
 
@@ -40,7 +24,7 @@ Bericht mit Dateien, A/Q, Befehlen, Belegen, SHA/Dirty und Blockern.
 Danach STOP bis zum nächsten ausdrücklichen GO.
 ```
 
-Beispiel Ergebnis für H04: „Gemeinsame Datumspicker-/MonthPicker-Adapter und die im H04-Auftrag verlangten UI-Write-/Read-Flows samt Regressionstests; keine H05-Bestandsmigration.“ Dies ersetzt nicht das Lesen von H04 und seiner Verweiskette.
+Beispiel Ergebnis für E04: „Gemeinsamer atomarer Domain-/Activity-Writer mit den vorgeschriebenen Failpoint-/Retry-Nachweisen; kein vorgezogener E05-Modul-Rollout.“ Dies ersetzt nicht das Lesen von E04 und seiner Verweiskette.
 
 ## Unabhängiges Review
 

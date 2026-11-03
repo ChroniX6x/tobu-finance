@@ -1,12 +1,12 @@
 # Tokenbewusste Feature-Umsetzung für ToBu
 
-Stand: 30.10.2026. Arbeitsplan für den Nutzer; keine Feature-Implementierung und kein Schritt-GO. Die externen Dokumente wurden für diese Planung gezielt ausgewertet, nicht vollständig fachlich auditiert. Umsetzungsstatus muss am jeweiligen Code-SHA geprüft werden.
+Stand: 03.11.2026. Arbeitsplan für den Nutzer; keine Feature-Implementierung und kein Schritt-GO. Die externen Dokumente wurden für diese Planung gezielt ausgewertet, nicht vollständig fachlich auditiert. Umsetzungsstatus muss am jeweiligen Code-SHA geprüft werden.
 
-## Aktueller Einstieg: H04
+## Aktueller Einstieg: Eventplattform E00
 
-Laut Nutzer am 30.10.2026 ist **P00 abgeschlossen; H03 liegt bereits im PR; aktueller Einstieg ist H04**. P00 und H00–H03 nicht für diesen Sparplan neu starten. H03 im PR bedeutet keinen belegten Merge oder CI-PASS. Vor H04 dessen benötigten H03-Code und Nachweise am tatsächlichen Ausgangsstand prüfen; fehlt die Abhängigkeit, konkret melden statt blind auf `develop` weiterzuarbeiten. H04 braucht sein eigenes GO. Diese Statusmeldung belegt keine einzelnen A-/Q-PASS und keinen H08-/E09-PASS. Vorhandene Berichte und PR-Belege verlinken, fehlende Belege offen lassen.
+Laut Nutzer am 03.11.2026 ist **Date/Month abgeschlossen; als Nächstes folgt E00 der Eventplattform**. P00 bleibt abgeschlossen. Keine H-Schritte für die Einführung dieses Sparplans neu starten. [H08-Abschluss](runs/H08-ABSCHLUSS.md) dokumentiert Q-PASS und A-PASS mit ausdrücklich freigegebenen Ausnahmen, keine uneingeschränkte Freigabe aller Folgegates. [H09](runs/H09.md) und [Schnittstellen-Handover](../architecture/recurrence-handover.md) liefern Navigation. Vor E00 tatsächlichen Code-/Quellenstand und Belege abgleichen; die lokale Dokumentation belegt keinen neuen CI-Lauf. H08-Ausnahmen mit ihren Fälligkeiten übernehmen, insbesondere offene Vor-E09-Punkte. E00–E09 jeweils nur nach eigenem GO ausführen.
 
-Praktischer Einstieg: [Leitfaden ab H04](leitfaden-ab-h03.md). Der Dateiname bleibt für bestehende Links erhalten; der Inhalt beginnt bei H04. Der Nutzer muss weder Hashes noch Testkommandos selbst zusammensuchen; das übernimmt der ausführende Agent im jeweiligen Schritt.
+Praktischer Einstieg: [Event-Leitfaden mit zehn fertigen Prompts](leitfaden-events.md). Der Nutzer muss weder Hashes noch Testkommandos selbst zusammensuchen; das übernimmt der ausführende Agent im jeweiligen Schritt. Die Prompts im Leitfaden nur einzeln kopieren, nicht den gesamten Leitfaden an jeden Auftrag anhängen.
 
 ## Ziel und Grundsatz
 
@@ -35,7 +35,7 @@ Cloud-Copilot hat keinen Zugriff auf den lokalen Nachbarordner. Vor einem Cloud-
 | Abschnitt | Auftrag und Grenze |
 | --- | --- |
 | Einstieg erledigt | P00 laut Nutzer abgeschlossen. Bestehenden Bericht nutzen; kein neues P00-GO für die Einführung dieses Sparplans. Ein damals blockierter abhängiger Q-Gate wird dadurch nicht nachträglich PASS. |
-| Datum ab H04 | H03 liegt laut Nutzer im PR. Aktuell H04 UI-Adapter; danach je eigenes GO für H05 Datenbefund, H06 reale QA, H07 Handover, H08 unabhängiges Negativreview. H00–H03 sind vorgelagert; Belege und integrierten Code prüfen, nicht pauschal wiederholen. H09 nur nachgelagerter Handover. |
+| Datum abgeschlossen | H08-Abschluss und H09-Handover nutzen. PASS mit Ausnahmen und deren Fälligkeiten korrekt übernehmen; keine pauschale Wiederholung oder stilles Schließen offener Punkte. |
 | Activity | Je eigenes GO für E00 bis E09. Inventur → Contracts → Actor/ACL → Persistenz → atomarer Writer → Bestandsmodule → Read/UI → Recurrence-Primitiven → unabhängiges Review → Abnahme. E00/E01-Vorarbeit ist laut Vertrag möglich, aber nur eigens beauftragt; E03–E09 brauchen den abgenommenen H08-Stand. |
 | Buchungsvorlagen | Nach realen Plattform-Gates die P-/D-/V-Schritte gemäß Detailplan einzeln freigeben. P04 ist eigener Konto-IANA-Zonen-Slice nach H08/E09, vor D07 Current-Ensure; Hauptauftrag §57.2, keine erfundene 25.P04. P01/P02-Sicherheit nicht überspringen. |
 
@@ -62,7 +62,7 @@ Nicht jede Dateiänderung mit einem ganzen Build prüfen. Sinnvolle zusammenhän
 
 ## Verbrauch messen und nachjustieren
 
-Ab jetzt für die nächsten drei vergleichbaren Schritte eine Ausgangsmessung festhalten; abgeschlossene Schritte nicht zur Messung erneut ausführen. Für H03 keine Verbrauchswerte rückwirkend erfinden; für einen bereits laufenden H04 nur verfügbare Teilwerte erfassen. Pro Lauf: Tool/Modell, Schritt, SHA/Dirty, verfügbare Input-/Output-/Cached-/Reasoning-Tokens, Dauer, Korrekturschleifen, Ergebnis und Messquelle. Nicht verfügbare Werte als `unbekannt` markieren. Zeichenanzahl ist nur Kontextgrößenindikator, keine Tokenmessung. Copilot-Abrechnungseinheiten nicht mit Tokens gleichsetzen; ohne vergleichbare Tokenanzeige getrennt auswerten.
+Ab E00 für die nächsten drei vergleichbaren Schritte eine Ausgangsmessung festhalten; abgeschlossene H-Schritte nicht zur Messung erneut ausführen und keine Werte rückwirkend erfinden. Pro Lauf: Tool/Modell, Schritt, SHA/Dirty, verfügbare Input-/Output-/Cached-/Reasoning-Tokens, Dauer, Korrekturschleifen, Ergebnis und Messquelle. Nicht verfügbare Werte als `unbekannt` markieren. Zeichenanzahl ist nur Kontextgrößenindikator, keine Tokenmessung. Copilot-Abrechnungseinheiten nicht mit Tokens gleichsetzen; ohne vergleichbare Tokenanzeige getrennt auswerten.
 
 Kennzahl: Summe tatsächlich gemessener Tokens einschließlich Korrekturen und Review je abgenommenem Schritt. Zusätzlich Fehlerrate und Nacharbeit beobachten. Nur ähnlich große Aufgaben vergleichen, keine H00-Inventur gegen komplexe Writer-Integration. Preisberechnung nur mit aktuell verifizierten Preisen; dieser Plan legt keine Modellpreise fest.
 
@@ -73,7 +73,7 @@ Empfohlene Arbeitsbudgets, keine harten Abbruchlimits: GO-Prompt etwa 100–250 
 - `AGENTS.md`: bestehende Codex-Projektregeln plus kurzer Verweis auf den sparsamen Arbeitsablauf. Keine neue automatisch geladene Langfassung.
 - `.github/copilot-instructions.md`: bestehende Konventionen plus derselbe Einstieg. Kein zweiter Fachvertrag.
 - `prompts.md`: kopierbare Aufträge und Berichtsvorlage; nur bei Bedarf laden.
-- `leitfaden-ab-h03.md`: einfache Nutzeranleitung für die laufende Umsetzung; nicht bei jedem GO vollständig erneut laden.
+- `leitfaden-events.md`: Nutzeranleitung und einzelne E00–E09-Prompts; nicht bei jedem GO vollständig erneut laden. `leitfaden-ab-h03.md` verweist für bestehende Links darauf.
 - `source-index.md`: automatisch erzeugte lokale Hash-/Überschriften-Navigation, keine fachliche Abnahme.
 
 Die ältere `.github/prompts/start-baustein.prompt.md` bleibt unverändert. Für diese drei Features die hier bereitgestellten GO-Prompts verwenden: Das ältere Template verlangt zusätzliche Scope-Bestätigung und enthält direkte App-Kommandos; diese nicht blind aus dem Workspace-Root übernehmen.
