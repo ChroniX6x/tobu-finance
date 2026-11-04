@@ -133,11 +133,12 @@ for (const timezoneId of ZONES) {
 
         const before = requests.length;
         await pickRangeMonth(page, range.from[0], range.from[1]);
-        await expect.poll(() => requests.length).toBeGreaterThan(before);
+        // wait for the request that carries the lower bound; a late request of the initial load must not satisfy the wait
+        await expect
+          .poll(() => requests.at(-1)!.searchParams.get("monthFrom"))
+          .toBe(range.monthFrom);
+        expect(requests.length).toBeGreaterThan(before);
         // first click of a range: only the lower bound is known
-        expect(requests.at(-1)!.searchParams.get("monthFrom")).toBe(
-          range.monthFrom,
-        );
         expect(requests.at(-1)!.searchParams.get("monthTo")).toBeNull();
 
         await pickRangeMonth(page, range.to[0], range.to[1]);

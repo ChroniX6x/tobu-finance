@@ -51,6 +51,10 @@ Begriffe, Pflichten für spätere Recurrence- und Bank-Adapter, Rollout/Backout 
 
 `currentMonthKey(zone, now)` berechnet den aktuellen Monat aus einer IANA-Zone und einem vertrauenswürdigen Zeitpunkt (DST-sicher, keine festen Offsets, `+01:00` wird abgelehnt). Das Account-Zonen-Feature selbst ist damit noch nicht eingeführt (D-02/P04). Ungültige oder nicht kanonische Altwerte werden nie stillschweigend korrigiert: `monthKeyFromAnchor` und `bankDateFromCarrier` lehnen sie ab.
 
+## Activity-/Event-Vertrag (`activity.ts`)
+
+Der Event-Plattformvertrag (Katalog, Envelope, Decoder, Renderer, Read-DTOs) steht in [activity.ts](../../packages/contracts/src/activity.ts), die Entscheidungen im [ADR](event-platform-adr.md). Es gibt bewusst kein Schema zum Anlegen von Events durch Clients. Die Route `GET /api/accounts/:accountId/activity` ist noch nicht implementiert und deshalb nicht in `endpoints.ts`; OpenAPI enthält vorerst nur die Schemas unter `components.schemas`.
+
 ## OpenAPI und Fehlererkennung
 
 `npm run contracts:generate` erzeugt OpenAPI 3.1 und das Inventar aus `endpoints.ts` mit dem eingebauten Zod-4-JSON-Schema-Export. Es ist kein zusätzliches Generierungspaket nötig. `npm run check:contracts` erkennt veraltete generierte Dateien, nicht dokumentierte oder entfernte API-Routen und Serverabhängigkeiten im Vertragspaket.

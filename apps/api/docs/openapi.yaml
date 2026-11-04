@@ -7,6 +7,1786 @@ info:
     database-dependent rules also apply. Global admin does not imply account
     access; full authorization enforcement remains a separate tracked task.
 components:
+  schemas:
+    ActivityItem:
+      anyOf:
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: transaction.created
+            params:
+              type: object
+              properties:
+                transactionId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                type:
+                  $ref: "#/components/schemas/ActivityItem___schema11"
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+                title:
+                  $ref: "#/components/schemas/ActivityItem___schema13"
+                categoryId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+              required:
+                - transactionId
+                - type
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: transaction.splitChildCreated
+            params:
+              type: object
+              properties:
+                transactionId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                parentTransactionId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                type:
+                  $ref: "#/components/schemas/ActivityItem___schema11"
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+                title:
+                  $ref: "#/components/schemas/ActivityItem___schema13"
+                categoryId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+              required:
+                - transactionId
+                - parentTransactionId
+                - type
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: transaction.booked
+            params:
+              type: object
+              properties:
+                transactionId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                type:
+                  $ref: "#/components/schemas/ActivityItem___schema11"
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+                title:
+                  $ref: "#/components/schemas/ActivityItem___schema13"
+              required:
+                - transactionId
+                - type
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: transaction.statusChanged
+            params:
+              type: object
+              properties:
+                transactionId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                from:
+                  $ref: "#/components/schemas/ActivityItem___schema14"
+                to:
+                  $ref: "#/components/schemas/ActivityItem___schema14"
+                title:
+                  $ref: "#/components/schemas/ActivityItem___schema13"
+              required:
+                - transactionId
+                - from
+                - to
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: transaction.updated
+            params:
+              type: object
+              properties:
+                transactionId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                changedFields:
+                  minItems: 1
+                  maxItems: 10
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - title
+                      - notes
+                      - amountMinor
+                      - type
+                      - categoryId
+                      - paidByMemberId
+                      - isFromSharedAccount
+                      - recurrenceId
+                      - bookDate
+                      - month
+                amountMinor:
+                  type: object
+                  properties:
+                    from:
+                      $ref: "#/components/schemas/ActivityItem___schema12"
+                    to:
+                      $ref: "#/components/schemas/ActivityItem___schema12"
+                  required:
+                    - from
+                    - to
+                  additionalProperties: false
+                categoryId:
+                  type: object
+                  properties:
+                    from:
+                      $ref: "#/components/schemas/ActivityItem___schema15"
+                    to:
+                      $ref: "#/components/schemas/ActivityItem___schema15"
+                  required:
+                    - from
+                    - to
+                  additionalProperties: false
+                title:
+                  $ref: "#/components/schemas/ActivityItem___schema13"
+              required:
+                - transactionId
+                - changedFields
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: transaction.deleted
+            params:
+              type: object
+              properties:
+                transactionId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                type:
+                  $ref: "#/components/schemas/ActivityItem___schema11"
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+                title:
+                  $ref: "#/components/schemas/ActivityItem___schema13"
+                childCount:
+                  type: integer
+                  minimum: 0
+                  maximum: 9007199254740991
+              required:
+                - transactionId
+                - type
+                - amountMinor
+                - childCount
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: transaction.splitChildDeleted
+            params:
+              type: object
+              properties:
+                transactionId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                parentTransactionId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+              required:
+                - transactionId
+                - parentTransactionId
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: category.created
+            params:
+              type: object
+              properties:
+                categoryId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                name:
+                  $ref: "#/components/schemas/ActivityItem___schema16"
+              required:
+                - categoryId
+                - name
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: category.updated
+            params:
+              type: object
+              properties:
+                categoryId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                changedFields:
+                  minItems: 1
+                  maxItems: 2
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - name
+                      - customSplit
+                name:
+                  $ref: "#/components/schemas/ActivityItem___schema16"
+              required:
+                - categoryId
+                - changedFields
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: category.deleted
+            params:
+              type: object
+              properties:
+                categoryId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                name:
+                  $ref: "#/components/schemas/ActivityItem___schema16"
+              required:
+                - categoryId
+                - name
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: account.created
+            params:
+              type: object
+              properties:
+                currency:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+              required:
+                - currency
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: account.settings.updated
+            params:
+              type: object
+              properties:
+                changedFields:
+                  minItems: 1
+                  maxItems: 3
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - name
+                      - currency
+                      - settings
+              required:
+                - changedFields
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: account.member.added
+            params:
+              type: object
+              properties:
+                memberId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                role:
+                  $ref: "#/components/schemas/ActivityItem___schema17"
+              required:
+                - memberId
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: account.member.removed
+            params:
+              type: object
+              properties:
+                memberId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+              required:
+                - memberId
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: account.member.roleChanged
+            params:
+              type: object
+              properties:
+                memberId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                from:
+                  $ref: "#/components/schemas/ActivityItem___schema17"
+                to:
+                  $ref: "#/components/schemas/ActivityItem___schema17"
+              required:
+                - memberId
+                - from
+                - to
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: memberIncome.added
+            params:
+              type: object
+              properties:
+                memberId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+              required:
+                - memberId
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: memberIncome.updated
+            params:
+              type: object
+              properties:
+                memberId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+              required:
+                - memberId
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: memberIncome.removed
+            params:
+              type: object
+              properties:
+                memberId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+              required:
+                - memberId
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: contributionRule.added
+            params:
+              type: object
+              properties:
+                ruleId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                ruleType:
+                  type: string
+                  enum:
+                    - additional
+                    - topup
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+              required:
+                - ruleId
+                - ruleType
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: contributionRule.updated
+            params:
+              type: object
+              properties:
+                ruleId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                ruleType:
+                  type: string
+                  enum:
+                    - additional
+                    - topup
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+              required:
+                - ruleId
+                - ruleType
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: contributionRule.removed
+            params:
+              type: object
+              properties:
+                ruleId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                ruleType:
+                  type: string
+                  enum:
+                    - additional
+                    - topup
+              required:
+                - ruleId
+                - ruleType
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: categoryBudget.added
+            params:
+              type: object
+              properties:
+                categoryId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+              required:
+                - categoryId
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: categoryBudget.updated
+            params:
+              type: object
+              properties:
+                categoryId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema12"
+              required:
+                - categoryId
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: categoryBudget.removed
+            params:
+              type: object
+              properties:
+                categoryId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+              required:
+                - categoryId
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: carryOver.set
+            params:
+              type: object
+              properties:
+                memberId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                month:
+                  anyOf:
+                    - $ref: "#/components/schemas/ActivityItem___schema18"
+                    - type: "null"
+                amountMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema19"
+              required:
+                - memberId
+                - month
+                - amountMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: carryOver.removed
+            params:
+              type: object
+              properties:
+                memberId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                month:
+                  anyOf:
+                    - $ref: "#/components/schemas/ActivityItem___schema18"
+                    - type: "null"
+              required:
+                - memberId
+                - month
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: accountBalance.set
+            params:
+              type: object
+              properties:
+                month:
+                  anyOf:
+                    - $ref: "#/components/schemas/ActivityItem___schema18"
+                    - type: "null"
+                closingBalanceMinor:
+                  $ref: "#/components/schemas/ActivityItem___schema19"
+              required:
+                - month
+                - closingBalanceMinor
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: accountBalance.removed
+            params:
+              type: object
+              properties:
+                month:
+                  anyOf:
+                    - $ref: "#/components/schemas/ActivityItem___schema18"
+                    - type: "null"
+              required:
+                - month
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: legacyRecurrence.created
+            params:
+              type: object
+              properties:
+                title:
+                  $ref: "#/components/schemas/ActivityItem___schema13"
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: legacyRecurrence.updated
+            params:
+              type: object
+              properties:
+                title:
+                  $ref: "#/components/schemas/ActivityItem___schema13"
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: legacyRecurrence.deleted
+            params:
+              type: object
+              properties:
+                title:
+                  $ref: "#/components/schemas/ActivityItem___schema13"
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
+              const: legacy.unknown
+            params:
+              type: object
+              properties:
+                typeHint:
+                  type: string
+                  pattern: ^[A-Za-z][A-Za-z0-9_-]{0,39}$
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+      description: Activity platform contract (E01). No route implements it yet.
+    ActivityItem___schema0:
+      type: string
+      pattern: ^[a-f\d]{24}$
+    ActivityItem___schema1:
+      type: string
+      format: date-time
+      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+    ActivityItem___schema2:
+      type: integer
+      minimum: 0
+      maximum: 9007199254740991
+    ActivityItem___schema3:
+      anyOf:
+        - type: object
+          properties:
+            kind:
+              type: string
+              const: user
+            memberId:
+              $ref: "#/components/schemas/ActivityItem___schema4"
+            displayName:
+              $ref: "#/components/schemas/ActivityItem___schema5"
+          required:
+            - kind
+            - memberId
+            - displayName
+          additionalProperties: false
+        - type: object
+          properties:
+            kind:
+              type: string
+              const: system
+          required:
+            - kind
+          additionalProperties: false
+        - type: object
+          properties:
+            kind:
+              type: string
+              const: unknown
+          required:
+            - kind
+          additionalProperties: false
+    ActivityItem___schema4:
+      anyOf:
+        - $ref: "#/components/schemas/ActivityItem___schema0"
+        - type: "null"
+    ActivityItem___schema5:
+      anyOf:
+        - type: string
+          maxLength: 120
+        - type: "null"
+    ActivityItem___schema6:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - user_action
+            - account_open
+            - automation
+            - system_reconciliation
+            - unknown
+        initiatedBy:
+          type: object
+          properties:
+            memberId:
+              $ref: "#/components/schemas/ActivityItem___schema4"
+            displayName:
+              $ref: "#/components/schemas/ActivityItem___schema5"
+          required:
+            - memberId
+            - displayName
+          additionalProperties: false
+      required:
+        - kind
+      additionalProperties: false
+    ActivityItem___schema7:
+      anyOf:
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - account
+                - member
+                - transaction
+                - category
+                - memberIncome
+                - contributionRule
+                - categoryBudget
+                - carryOver
+                - accountBalance
+                - legacyRecurrence
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            deleted:
+              type: boolean
+          required:
+            - kind
+            - id
+            - deleted
+          additionalProperties: false
+        - type: "null"
+    ActivityItem___schema8:
+      $ref: "#/components/schemas/ActivityItem___schema9"
+    ActivityItem___schema9:
+      type: string
+      pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+    ActivityItem___schema10:
+      $ref: "#/components/schemas/ActivityItem___schema9"
+    ActivityItem___schema11:
+      type: string
+      enum:
+        - income
+        - expense
+    ActivityItem___schema12:
+      type: integer
+      minimum: 0
+      maximum: 9007199254740991
+    ActivityItem___schema13:
+      type: string
+      minLength: 1
+      maxLength: 120
+    ActivityItem___schema14:
+      type: string
+      enum:
+        - booked
+        - pending
+    ActivityItem___schema15:
+      anyOf:
+        - $ref: "#/components/schemas/ActivityItem___schema0"
+        - type: "null"
+    ActivityItem___schema16:
+      anyOf:
+        - type: string
+          minLength: 1
+          maxLength: 80
+        - type: "null"
+    ActivityItem___schema17:
+      type: string
+      enum:
+        - owner
+        - member
+    ActivityItem___schema18:
+      type: string
+      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
+    ActivityItem___schema19:
+      type: integer
+      minimum: -9007199254740991
+      maximum: 9007199254740991
+    ActivityPage:
+      type: object
+      properties:
+        items:
+          maxItems: 100
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+        nextCursor:
+          anyOf:
+            - type: string
+              minLength: 1
+              maxLength: 512
+            - type: "null"
+      required:
+        - items
+        - nextCursor
+      additionalProperties: false
+      description: Activity platform contract (E01). No route implements it yet.
+    ActivityQuery:
+      type: object
+      properties:
+        limit:
+          default: 20
+          type: integer
+          minimum: 1
+          maximum: 100
+        cursor:
+          type: string
+          minLength: 1
+          maxLength: 512
+        code:
+          type: string
+          enum:
+            - transaction.created
+            - transaction.splitChildCreated
+            - transaction.booked
+            - transaction.statusChanged
+            - transaction.updated
+            - transaction.deleted
+            - transaction.splitChildDeleted
+            - category.created
+            - category.updated
+            - category.deleted
+            - account.created
+            - account.settings.updated
+            - account.member.added
+            - account.member.removed
+            - account.member.roleChanged
+            - memberIncome.added
+            - memberIncome.updated
+            - memberIncome.removed
+            - contributionRule.added
+            - contributionRule.updated
+            - contributionRule.removed
+            - categoryBudget.added
+            - categoryBudget.updated
+            - categoryBudget.removed
+            - carryOver.set
+            - carryOver.removed
+            - accountBalance.set
+            - accountBalance.removed
+            - legacyRecurrence.created
+            - legacyRecurrence.updated
+            - legacyRecurrence.deleted
+        subjectKind:
+          type: string
+          enum:
+            - account
+            - member
+            - transaction
+            - category
+            - memberIncome
+            - contributionRule
+            - categoryBudget
+            - carryOver
+            - accountBalance
+            - legacyRecurrence
+        subjectId:
+          type: string
+          pattern: ^[a-f\d]{24}$
+        actorKind:
+          type: string
+          enum:
+            - user
+            - system
+            - unknown
+        from:
+          $ref: "#/components/schemas/ActivityQuery___schema0"
+        to:
+          $ref: "#/components/schemas/ActivityQuery___schema0"
+      required:
+        - limit
+      additionalProperties: false
+      description: Activity platform contract (E01). No route implements it yet.
+    ActivityQuery___schema0:
+      type: string
+      format: date-time
+      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
   responses:
     ApiError:
       description: Existing validation, authentication or domain error;
