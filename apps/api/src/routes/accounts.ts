@@ -18,6 +18,7 @@ import { DateTime } from 'luxon';
 import { monthRangeFromISO } from '../lib/month.js';
 import Event from '../models/Event.js';
 import { accountMemberIdSet, callerAccountIds, callerMemberIds, membersAssignable, requireAccountAccess } from '../auth/account-access.js';
+import { requireOwnerContext } from '../auth/account-context.js';
 
 const r = Router();
 
@@ -174,10 +175,32 @@ r.post('/', validateBody(CreateAccount), async (req, res) => {
     res.status(201).json(created);
 });
 
+/** Reasons why a member cannot leave an account any more (references in the account's own data). */
+async function memberReferenceBlockers(accId: Types.ObjectId, mId: Types.ObjectId): Promise<string[]> {
+    const [txRef, catRef, ruleRef, miRef, coRef] = await Promise.all([
+        Transaction.exists({ accountId: accId, paidByMemberId: mId }),
+        Category.exists({ accountId: accId, 'customSplit.memberId': mId }),
+        ContributionRule.exists({
+            accountId: accId,
+            $or: [{ 'distribution.memberId': mId }, { 'distribution.customSplit.memberId': mId }]
+        }),
+        MemberIncome.exists({ accountId: accId, memberId: mId }),
+        CarryOver.exists({ accountId: accId, memberId: mId })
+    ]);
+    const blockers: string[] = [];
+    if (txRef) blockers.push('Wird als Zahler in Buchungen verwendet');
+    if (catRef) blockers.push('Wird in einer Kategorieverteilung verwendet');
+    if (ruleRef) blockers.push('Wird in Beitragsregeln verwendet');
+    if (miRef) blockers.push('Hat Einkommensdaten');
+    if (coRef) blockers.push('Hat Übertragseinträge');
+    return blockers;
+}
+
 /** PATCH /api/accounts/:id */
 r.patch('/:id', validateBody(UpdateAccount), async (req, res) => {
     const { id } = req.params;
-    if (!(await requireAccountAccess(req, res, id))) return;
+    // Account settings, membership and roles are owner-only (owner decision 04.11.2026); finance data stays equal for owner and member.
+    if (!(await requireOwnerContext(req, res, id))) return;
     const u: any = { ...(req as any).data };
     if (Array.isArray(u.members)) {
         // Only members already in the account or assignable to the caller may be listed, and the caller must stay in.
@@ -195,6 +218,12 @@ r.patch('/:id', validateBody(UpdateAccount), async (req, res) => {
         if (ownerCount === 0) {
             return res.status(409).json({ error: 'NO_OWNER', message: 'Das members-Array muss mindestens einen Owner enthalten.' });
         }
+        // Removing a member through PATCH is subject to the same reference guard as DELETE.
+        const kept = new Set(u.members.map((m: { memberId: Types.ObjectId }) => String(m.memberId)));
+        for (const gone of [...current].filter((memberId) => !kept.has(memberId))) {
+            const blockers = await memberReferenceBlockers(new Types.ObjectId(id), new Types.ObjectId(gone));
+            if (blockers.length > 0) return res.status(409).json({ error: 'MEMBER_REFERENCED', usageHints: blockers });
+        }
     }
     const updated = await Account.findByIdAndUpdate(id, u, { new: true });
     if (!updated) return res.sendStatus(404);
@@ -205,7 +234,7 @@ r.patch('/:id', validateBody(UpdateAccount), async (req, res) => {
 r.post('/:id/members', validateBody(AddMemberToAccount), async (req, res) => {
     const { id } = req.params;
     const { memberId, role } = (req as any).data as { memberId: string; role: string };
-    if (!(await requireAccountAccess(req, res, id))) return;
+    if (!(await requireOwnerContext(req, res, id))) return;
 
     const mId = new Types.ObjectId(memberId);
     const acc = await Account.findById(id);
@@ -213,6 +242,10 @@ r.post('/:id/members', validateBody(AddMemberToAccount), async (req, res) => {
     const idx = acc.members.findIndex((x) => String(x.memberId) === String(mId));
     if (idx < 0 && !(await membersAssignable(req, [memberId]))) return res.status(422).json({ error: 'MEMBER_NOT_ASSIGNABLE' });
     const member = acc.members[idx];
+    // Guard: the last owner cannot be demoted through this endpoint either (DELETE and PATCH already guard it).
+    if (member && member.role === 'owner' && role === 'member' && acc.members.filter((m) => m.role === 'owner').length === 1) {
+        return res.status(409).json({ error: 'LAST_OWNER', message: 'Der letzte Owner kann nicht herabgestuft werden.' });
+    }
     if (idx >= 0 && member) member.role = (role ?? member.role ?? 'member') as 'owner' | 'member';
     else acc.members.push({ memberId: mId, role: (role ?? 'member') as 'owner' | 'member' });
     await acc.save();
@@ -231,7 +264,7 @@ r.post('/:id/members', validateBody(AddMemberToAccount), async (req, res) => {
 /** DELETE /api/accounts/:id/members/:memberId */
 r.delete('/:id/members/:memberId', async (req, res) => {
     const { id, memberId } = req.params;
-    if (!(await requireAccountAccess(req, res, id))) return;
+    if (!(await requireOwnerContext(req, res, id))) return;
     if (!/^[a-f\d]{24}$/i.test(memberId ?? '')) return res.status(400).json({ error: 'INVALID_MEMBER_ID' });
 
     const mId = new Types.ObjectId(memberId);
@@ -263,24 +296,7 @@ r.delete('/:id/members/:memberId', async (req, res) => {
     }
 
     // Guard: member still referenced
-    const [txRef, catRef, ruleRef, miRef, coRef] = await Promise.all([
-        Transaction.exists({ accountId: accId, paidByMemberId: mId }),
-        Category.exists({ accountId: accId, 'customSplit.memberId': mId }),
-        ContributionRule.exists({
-            accountId: accId,
-            $or: [{ 'distribution.memberId': mId }, { 'distribution.customSplit.memberId': mId }]
-        }),
-        MemberIncome.exists({ accountId: accId, memberId: mId }),
-        CarryOver.exists({ accountId: accId, memberId: mId })
-    ]);
-
-    const blockers: string[] = [];
-    if (txRef) blockers.push('Wird als Zahler in Buchungen verwendet');
-    if (catRef) blockers.push('Wird in einer Kategorieverteilung verwendet');
-    if (ruleRef) blockers.push('Wird in Beitragsregeln verwendet');
-    if (miRef) blockers.push('Hat Einkommensdaten');
-    if (coRef) blockers.push('Hat Übertragseinträge');
-
+    const blockers = await memberReferenceBlockers(accId, mId);
     if (blockers.length > 0) {
         return res.status(409).json({ error: 'MEMBER_REFERENCED', usageHints: blockers });
     }

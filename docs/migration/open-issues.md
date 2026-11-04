@@ -19,7 +19,7 @@ Offen und noch nicht implementiert: [bewertete Findings S1–S7](../database/mig
 
 Status: **teilweise umgesetzt** (H08-FIX-ACL 01.11.2026, H08-FIX-ACL2 02.11.2026). Die gemeinsame Vertragsschicht ersetzt keine Autorisierung; Zugriffstests bleiben Pflicht. Durchgesetzt ist die Kontomitgliedschaft (Nutzer über `Member.userId` in `Account.members`, 404 für Nichtmitglied/unbekanntes Konto/Altkonto, kein Rollenunterschied, globaler Admin ohne Zugriff) auf `transactions`, `month-view`, `overview`, `planning`, `master-data`, `account-balances`, `carryovers`, `category-budgets`, `member-incomes`, `contribution-rules`, `accounts` (GET/PATCH/Mitglieder), `members`, `accounts/summary` sowie seit H08-FIX-ACL2 `categories` und `recurrences` (Listen ohne `accountId` nur über die eigenen Konten, `accountId` im PATCH unveränderlich → 422 `ACCOUNT_IMMUTABLE`, `customSplit`-/Kategorie-/Member-Referenzen gegen das Konto, 422 `REFERENCE_NOT_IN_ACCOUNT`). Belegt durch `apps/api/tests/integration/account-access.test.mjs` (Details: [H08-FIX-ACL](../agents/runs/H08-FIX-ACL.md), [H08-FIX-ACL2](../agents/runs/H08-FIX-ACL2.md)).
 
-Weiterhin **offen**: Owner-gebundene Rechte (Mitglieder/Berechtigungen verwalten, roles-and-access Tests 3–5), Sperren bestehender Sitzungen, Einladung, Index auf `Member.userId`, Altkonto-Aufräumweg. Die Rollen-Detailfragen sind unverändert offen. Die Legacy-Route `recurrences` ist zugriffsgeschützt, fachlich aber unverändert (A17).
+Weiterhin **offen**: individuelle Member-Berechtigungen (spätere Ausbaustufe), Einladung, Index auf `Member.userId`, Altkonto-Aufräumweg, Race zwischen Rechteprüfung und Write. **Seit E02 (04.11.2026, Rollenmodell-Entscheidung des Eigentümers):** Kontoeinstellungen, Mitglieder- und Rollenverwaltung (`PATCH /api/accounts/:id`, `POST/DELETE /api/accounts/:id/members`) sind owner-only (Nichtmitglied/Admin ohne Mitgliedschaft 404, Mitglied 403 `OWNER_REQUIRED`); Finanzdaten und Kategorien (inkl. Löschen unbenutzter) sind für Owner und Member gleich. Die Rolle wird bei jeder Anfrage aus `Account.members` gelesen (`apps/api/src/auth/account-context.ts`). Gesperrte oder gelöschte Nutzer verlieren bestehende Tokens sofort (`requireAuth` prüft `isActive`). Belege: [E02](../agents/runs/E02.md). Die Legacy-Route `recurrences` ist zugriffsgeschützt, fachlich aber unverändert (A17).
 
 ## AUTH-002: Kontoersteller wird Owner; Zuordnung separat nach Zusammenlegung
 
@@ -29,6 +29,32 @@ Nutzerentscheidung vom 22.10.2026: Der angemeldete Nutzer soll beim Anlegen eine
 Phase 4 vergibt deshalb keine Owner-Rolle anhand der Listenposition. Die Wizard-Mitgliedsreferenzen verwenden zunächst den bisherigen API-Default `member`; automatische Ersteller-Ownership ist damit ausdrücklich noch nicht umgesetzt. Solche neuen Wizard-Konten können bis zur späteren Korrektur ohne Owner bzw. ohne Verknüpfung zum angemeldeten Nutzer entstehen. Dies ist keine fertige fachliche Kontoerstellung.
 
 Spätere Umsetzung: die Nutzeridentität serverseitig aus der authentifizierten Sitzung bestimmen, eine eindeutige Member-Zuordnung herstellen oder die benötigte Auswahl in der UI anbieten, dann den Ersteller als Owner eintragen. Nicht anhand von Reihenfolge, Namen oder ungeprüfter E-Mail gleichsetzen. Tests: Ersteller nicht an erster Listenposition, noch kein verknüpftes Mitglied, wiederholte Erstellung, fremde User-ID im Request, globale Adminrolle ohne zusätzliche Kontorechte. Bereits erzeugte Konten ohne Owner gesondert behandeln.
+
+**Stand E02 (04.11.2026):** `POST /api/accounts` verweigert Konten ohne eigenes, mit dem Login verknüpftes Member (422 `CREATOR_MEMBER_REQUIRED`) und rät keinen Owner. Weiterhin offen (P02/Wizard, §61.3): Account-Anlage und Owner-Verknüpfung sind nicht atomar und nicht retry-sicher, weil die Member vorher über `POST /api/members` entstehen (Wizard-Retry erzeugt Duplikate, der Server legt den Self-Owner-Member nicht selbst an); dieselbe Strecke betrifft den Wizard-Navigationsfehler aus H08. Details: [E02](../agents/runs/E02.md).
+
+## AUTH-003: Event-Actor und fehlende Events der Konto-Verwaltung
+
+Status: **offen** (E04/E05). Der serverseitige Actor-Kontext existiert seit E02 (`apps/api/src/auth/account-context.ts`), ist aber in keinem Event-Writer verdrahtet. Alle 15 `Event.create`-Aufrufe speichern Zahler oder Betroffenen in `createdByMemberId`, nie den ausführenden Nutzer. Keine Events entstehen für `PATCH /api/accounts/:id` (Einstellungen, Mitglieder-Array, Rollen), Konto-Neuanlage, Kategorien, Überträge, Salden und die Legacy-Recurrence; `account.member.added` wird auch bei einer reinen Rollenänderung geschrieben; `PATCH members` erzeugt weder Add- noch Remove-Event. Ein Nachweis „Actor ist der echte Nutzer“ ist erst mit E04/E05 möglich; bis dahin darf keine Abnahme (E09) auf die heutigen Events gestützt werden.
+
+## AUTH-004: Race zwischen Rechteprüfung und Write
+
+Status: **offen** (vor P02, F-5). Rolle und Mitgliedschaft werden vor dem Write gelesen, nicht in derselben Transaktion; parallele Mitgliederänderungen (`save`, `findByIdAndUpdate`) können sich überschreiben oder eine eben entzogene Rolle noch nutzen. Weder getestet noch behoben (Test nur sequenziell).
+
+## AUTH-005: Member-ID-Orakel und fehlendes `createdBy`
+
+Status: **offen** (P02/E03, F-8). `membersAssignable` unterscheidet über 422, ob eine Member-ID existiert und fremd verknüpft ist; ein unverknüpftes, in keinem Konto stehendes Member kann von jedem authentifizierten Nutzer beansprucht werden, der die ID kennt. Die Behebung braucht ein `createdBy` am Member (Schemaänderung mit Migration). Zusätzlich kann jedes Kontomitglied Name und E-Mail sichtbarer Member ändern (`PATCH /api/members/:id`); die Entscheidung dazu (Owner-only oder Ereignis `member.updated`) fällt in E05.
+
+## UI-001: Konto-Verwaltung für Nicht-Owner
+
+Status: **offen**. Die Stammdaten-Seite zeigt Nicht-Ownern weiter Konto-, Mitglieder- und Rollenaktionen; der Server antwortet seit E02 mit 403 `OWNER_REQUIRED` und die UI zeigt nur den Fehlertoast. Aktionen für Nicht-Owner ausblenden oder deaktivieren und die Rolle des Nutzers aus dem Konto lesen (kein Eingriff in E02).
+
+## API-001: Beitragsregeln mit falsch geformter `distribution` antworten 500
+
+Status: **offen** (vor P02, F-7). Das Schema erlaubt `distribution: unknown`; ein passendes Schema aber unpassende Form (z. B. `{mode:'perMember', amounts:[…]}`) führt zu HTTP 500 `INTERNAL` statt 422. Betrifft `POST`/`PATCH /api/contribution-rules`. Kein Sicherheitsproblem, aber Robustheitslücke.
+
+## AUTH-006: Owner-Aktionen der Buchungsvorlagen
+
+Status: **offen** (P02/V-Schritte). Der Eigentümer hat am 04.11.2026 festgelegt, dass die exklusiven Buchungsvorlagen-Aktionen nur Owner ausführen. Die Routen existieren noch nicht; sie müssen `requireOwnerContext` verwenden und einen Negativtest für Member bekommen. Individuelle Mitgliedsberechtigungen bleiben einer späteren Ausbaustufe vorbehalten.
 
 ## DEV-001: Manuelle Abnahme
 

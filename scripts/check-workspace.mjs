@@ -86,6 +86,9 @@ const adapted = new Set([
     'src/routes/accounts.ts',
     'src/routes/accounts-summary.ts',
     'src/routes/account-overview.ts',
+    // E02: requireAuth rejects blocked/deleted users per request; refresh of a blocked user revokes its sessions
+    'src/auth/middleware.ts',
+    'src/auth/routes.ts',
     // H08-FIX-ACL2: account membership on categories and recurrences
     'src/routes/categories.ts',
     'src/routes/recurrences.ts',

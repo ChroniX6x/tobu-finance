@@ -127,7 +127,7 @@ r.get('/:id/overview', async (req, res) => {
         { $limit: topK }
     ]);
     const catIds = (topAgg as Array<{ _id: unknown }>).map((x) => x._id);
-    const cats = await Category.find({ _id: { $in: catIds } }, { name: 1 }).lean();
+    const cats = await Category.find({ _id: { $in: catIds }, accountId }, { name: 1 }).lean();
     const catNameById: Record<string, string | null> = {};
     for (const c of cats) catNameById[String(c._id)] = (c as { name?: string | null }).name ?? null;
     const topCategories = (topAgg as Array<{ _id: unknown; sum?: number }>).map((x) => ({

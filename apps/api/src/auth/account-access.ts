@@ -3,10 +3,12 @@ import { Types } from 'mongoose';
 import Account from '../models/Account.js';
 import Category from '../models/Category.js';
 import Member from '../models/Member.js';
+import { resolveAccountContext } from './account-context.js';
 
 /**
  * Account access = the authenticated user (JWT sub) is linked through Member.userId to a member listed in
- * Account.members. There is no role difference (owner/member) and the global admin role grants nothing.
+ * Account.members (resolved by account-context.ts, the single path). Owner-only actions use requireOwnerContext.
+ * Otherwise there is no role difference and the global admin role grants nothing.
  * Everything else (not a member, unknown account, legacy account without a linked user) is answered identically with
  * 404, so "does not exist" and "belongs to someone else" cannot be told apart. A malformed account id keeps the 400
  * INVALID_ID of routes that always validated it; that reveals nothing about existence.
@@ -38,11 +40,7 @@ export async function callerAccountIds(req: Request): Promise<Types.ObjectId[]> 
 }
 
 export async function hasAccountAccess(req: Request, accountId: unknown): Promise<boolean> {
-    const id = accountId instanceof Types.ObjectId ? accountId.toHexString() : accountId;
-    if (!isObjectId(id)) return false;
-    const memberIds = await callerMemberIds(req);
-    if (memberIds.length === 0) return false;
-    return Boolean(await Account.exists({ _id: new Types.ObjectId(id), 'members.memberId': { $in: memberIds } }));
+    return (await resolveAccountContext(req, accountId)) !== null;
 }
 
 /** Answers 404 and returns false unless the caller is a member of the account. */
