@@ -1,18 +1,20 @@
 # Offene Findings: Migrationsbetrieb
 
-Bewerteter Code-Stand: `30a9c7f` plus vorherige Review-Korrekturen. Quelle: Nutzerreview, anschließend gegen den Code geprüft. **Nur dokumentiert, nicht implementiert.** Frühere Abnahmen und die Review-Korrekturen schließen diese Punkte nicht. Für nachfolgende Agents gelten die Prioritäten und Abnahmekriterien hier zusätzlich zum [Handover](migration-handover.md).
+Bewerteter ursprünglicher Code-Stand: `30a9c7f` plus damalige Review-Korrekturen. Quelle: Nutzerreview, anschließend gegen den Code geprüft. Die folgenden Befundbeschreibungen bleiben als Abnahmekriterien erhalten. **E03-Wiederaufnahme:** S1/S2 implementiert und gezielt isoliert geprüft; aktueller vollständiger Gate-/Reviewstatus im [E03-Bericht](../agents/runs/E03.md). S3–S7 bleiben offen. Frühere Abnahmen schließen diese Punkte nicht automatisch.
 
-| ID | Schwere | Bewertung / Priorität |
-| --- | --- | --- |
-| S1 | mittel | Zustimmung. Vor erster echter Migration bzw. Produktiveinsatz beheben. |
-| S2 | mittel | Zustimmung. Vor erster echter Migration bzw. Produktiveinsatz beheben. |
-| S3 | niedrig bis mittel | Zustimmung. Verständliche Meldung bei konkurrierendem Lock-Erwerb ergänzen. |
-| S4 | niedrig | Zustimmung. Öffentliche Betriebsdetails reduzieren. |
-| S5 | niedrig | Zustimmung. Begrenzte Tool-Laufzeit mit sicherem Prozess-/Container-Stopp entwerfen. |
-| S6 | niedrig; Restore-Vorbedingung mittel | Teilweise Zustimmung. Komfort-Lockerung optional; erneute TTL-Prüfung vor Restore vor produktiven strukturellen Migrationen ergänzen. |
-| S7 | niedrig | Zustimmung. Containerrechte reduzieren; Digest-Pinning separat bewerten. |
+| ID  | Schwere                              | Bewertung / Priorität                                                                                                                       |
+| --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1  | mittel                               | E03: Identität v2 implementiert; Rotation, Wartungskontowechsel, Rechte, Klone und Legacy-Ablehnung real geprüft. Gesamtstatus siehe E03.   |
+| S2  | mittel                               | E03: feste Kategorien und Phase/Run, sichere Umzug-Wrapper, Getter-/Secret-Tests implementiert und gezielt geprüft. Gesamtstatus siehe E03. |
+| S3  | niedrig bis mittel                   | Zustimmung. Verständliche Meldung bei konkurrierendem Lock-Erwerb ergänzen.                                                                 |
+| S4  | niedrig                              | Zustimmung. Öffentliche Betriebsdetails reduzieren.                                                                                         |
+| S5  | niedrig                              | Zustimmung. Begrenzte Tool-Laufzeit mit sicherem Prozess-/Container-Stopp entwerfen.                                                        |
+| S6  | niedrig; Restore-Vorbedingung mittel | Teilweise Zustimmung. Komfort-Lockerung optional; erneute TTL-Prüfung vor Restore vor produktiven strukturellen Migrationen ergänzen.       |
+| S7  | niedrig                              | Zustimmung. Containerrechte reduzieren; Digest-Pinning separat bewerten.                                                                    |
 
 ## S1 – Ziel- und Bestätigungshash enthalten die rohe URI
+
+E03-Umsetzung: `migration-target.ts`, versionierte Locks/Journale und getrennte sichere Planbestätigung. Alte URI-gebundene Journale werden ausdrücklich ohne Mutation abgelehnt; der versionsgebundene Recoveryweg steht in [migration-authoring.md](migration-authoring.md#zielidentität-und-sichere-diagnostik-e03). Keine automatische Konvertierung alter Hashes oder Archive. Die nachfolgende Beschreibung dokumentiert den ursprünglichen Befund und die Prüfkriterien.
 
 **Fundstelle:** `migration-runner.ts`, `confirmation()` und `targetHash()`; Verwendung in Journal, Backup-Besitzdatei und Manifest.
 
@@ -25,6 +27,8 @@ Der vorgeschlagene Regex ist eine Skizze, keine vollständige Lösung: Hostreihe
 **Abnahme:** Passwortrotation/anderes Wartungskonto auf demselben bestätigten Ziel erlaubt Recovery; falsche DB, fremdes Deployment und ungeprüfter Klon bleiben gesperrt. Credentials tauchen weder direkt noch in einem daraus ableitbaren Prüfwert in neuen Plänen/Journaldaten auf. Übergang vorhandener URI-gebundener Journale und Backup-Manifeste ausdrücklich entwerfen und testen; alte Hashes nicht still umetikettieren oder Sperren löschen.
 
 ## S2 – Migrationscode-Fehler bleiben für Operatoren opak
+
+E03-Umsetzung: `migration-errors.ts` und Phasen-/Run-Kontext in beiden Runnern; geschützte Umzug-Fehler mit erhaltenen bekannten Retrylabels. CLI und Setup verwenden dieselbe sichere Ausgabe. Nachfolgend ursprünglicher Befund und Prüfkriterien.
 
 **Fundstelle:** `migration-errors.ts`, `MigrationRunner.run()` und `migration-cli.ts`.
 
@@ -94,6 +98,6 @@ Derzeit kein eigener neuer Umsetzungsauftrag für diese Punkte; bestehende Schut
 
 ## Einordnung vor Merge und erstem Einsatz
 
-Diese Findings sind als Nacharbeiten dokumentiert, nicht als bereits behoben. Die Aussage „keine Blocker“ aus dem Review ist keine eigenständige Merge- oder Produktionsfreigabe. Vor Merge den tatsächlichen PR-CI-Erfolg für `30a9c7f` beziehungsweise den neuesten Nachfolge-Commit prüfen; hier liegt dafür noch keine Bestätigung vor.
+S1/S2 sind seit der E03-Wiederaufnahme implementiert; konkrete Abnahme und verbleibende Betriebsgrenzen stehen im E03-Bericht. S3–S7 bleiben Nacharbeiten. Die Aussage „keine Blocker“ aus einem Review ist keine eigenständige Merge- oder Produktionsfreigabe. Vor Merge den tatsächlichen PR-CI-Erfolg für den neuesten Commit prüfen; hier liegt keine neue CI-Bestätigung vor.
 
-Vor der ersten echten Migration bzw. Produktiveinsatz S1 und S2 beheben. S6b zusätzlich vor produktiven strukturellen Restore-Abläufen beheben. S3/S4 möglichst zusammen mit diesen Änderungen erledigen; S5/S7 folgen nach Betriebspriorität. Jede Umsetzung braucht passende Regressionstests und ein neues vollständiges Gate, keine stille Übernahme alter Testergebnisse.
+Für den Einsatz gelten die dokumentierten S1/S2-Nachweise und der Legacy-Recoveryweg. S6b bleibt vor produktiven strukturellen Restore-Abläufen zu beheben. S3/S4 sowie S5/S7 folgen nach Betriebspriorität. Jede weitere Umsetzung braucht passende Regressionstests und ein neues vollständiges Gate, keine stille Übernahme alter Testergebnisse.

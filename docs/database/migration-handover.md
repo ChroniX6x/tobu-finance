@@ -10,20 +10,20 @@ Stand: 25.10.2026. Die Implementierung umfasst lokale Replica Sets, transaktiona
 4. Neue Datei erzeugen, alle Up-/Down-/Prüffunktionen implementieren, formatieren, Manifest aktualisieren und eigene isolierte Integrationstests ergänzen. Datei und Katalog gemeinsam committen. Historische Dateien einschließlich bereits zurückgenommener Migrationen unverändert lassen.
 5. Build, passende Tests und das vollständige Gate ausführen. Im Handover Commit, Ausgangs-/Zielstand, Testnachweise und Einschränkungen nennen. Kein erfolgreicher Mock-Test ersetzt eine echte Datenbank- oder Restore-Prüfung.
 
-Der aktive Katalog `apps/api/src/database/migration-catalog.ts` enthält derzeit keine fachlichen Migrationen. Die Sicherheitsprüfungen verwenden eigene Testdefinitionen. Die erste echte Modelländerung benötigt deshalb eine neue Migration samt Tests; der historische Snapshot `2026-10-v1.json` bleibt unverändert. Der bisherige Modellvergleich in `apps/api/tests/unit/baseline.test.mjs` muss dann durch einen Test des erwarteten migrierten Schemas ergänzt/ersetzt werden, nicht durch Neugenerierung der Baseline.
+Der aktive Katalog enthält seit E03 `20261105221750028-event-envelope` (additiver Event-Validator und stabiler Query-Index, keine Datenumschreibung). Die Sicherheitsprüfungen behalten eigene isolierte Definitionen; E03 prüft zusätzlich die tatsächliche Katalogmigration einschließlich Tools-Backup/Restore und Prozessabbruch. Der historische Snapshot `2026-10-v1.json` bleibt unverändert; Tests unterscheiden die eingefrorene Baseline vom erwarteten migrierten Stand. Aktuelle A/Q-Belege: [E03](../agents/runs/E03.md).
 
 ## Bestand und Betrieb
 
-| Aufgabe | Einstieg / Verhalten |
-| --- | --- |
-| Neuinstallation in Entwicklung | `npm run setup`: neue Baseline, erforderliche Migrationen, einmalige Demo; wiederholtes Setup erhält Daten |
-| Täglicher Start | `npm run dev`: prüft kompatiblen Stand; kein automatischer Migrations- oder Restore-Lauf |
-| Standalone-Volume übernehmen | Ausschließlich `db:replica:init` mit geprüfter Sicherung; Ablauf in [Abschnitt 1](migration-progress.md) |
-| Bestehende Datenbank ändern | Writer stoppen/drainieren, `db:migrate:plan`, Ziel prüfen, bestätigtes Up oder Down |
-| Transaktionaler Fehler | Sperre behalten; alten Runner stoppen; neuer Plan und explizite Recovery gleichen Commit-Status ab |
-| Struktureller Fehler | Runner und Tools stoppen; neuer Plan; ausdrücklich Resume oder Restore wählen; kein Down auf einen Teilstand |
-| Erfolgreiche Migration zurücknehmen | Neuer Down-Plan gegen den aktuellen Datenbestand; kein historisches Backup über spätere Nutzerdaten spielen |
-| Daten nach Neustart | Persistentes Docker-Volume bleibt erhalten; `dev:down` löscht keine Daten |
+| Aufgabe                             | Einstieg / Verhalten                                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Neuinstallation in Entwicklung      | `npm run setup`: neue Baseline, erforderliche Migrationen, einmalige Demo; wiederholtes Setup erhält Daten   |
+| Täglicher Start                     | `npm run dev`: prüft kompatiblen Stand; kein automatischer Migrations- oder Restore-Lauf                     |
+| Standalone-Volume übernehmen        | Ausschließlich `db:replica:init` mit geprüfter Sicherung; Ablauf in [Abschnitt 1](migration-progress.md)     |
+| Bestehende Datenbank ändern         | Writer stoppen/drainieren, `db:migrate:plan`, Ziel prüfen, bestätigtes Up oder Down                          |
+| Transaktionaler Fehler              | Sperre behalten; alten Runner stoppen; neuer Plan und explizite Recovery gleichen Commit-Status ab           |
+| Struktureller Fehler                | Runner und Tools stoppen; neuer Plan; ausdrücklich Resume oder Restore wählen; kein Down auf einen Teilstand |
+| Erfolgreiche Migration zurücknehmen | Neuer Down-Plan gegen den aktuellen Datenbestand; kein historisches Backup über spätere Nutzerdaten spielen  |
+| Daten nach Neustart                 | Persistentes Docker-Volume bleibt erhalten; `dev:down` löscht keine Daten                                    |
 
 MongoDB bleibt auf **9.0.4** gepinnt. Die native MongoDB-8.2-Instanz war ausschließlich eine zusätzliche isolierte Prüfung auf dem Agent-Rechner. Sie ist weder Entwicklungs-Fallback noch eine Änderung des unterstützten Docker-Testziels. Parallelität, Videos und bestehende Browser-Zeitbudgets bleiben unverändert.
 
@@ -45,14 +45,14 @@ Das logische Backup unterstützt reguläre Collections auf Replica Sets unter de
 
 ## Nachweise und Abschluss auf GitHub
 
-| Prüfung | Nachweis / Grenze |
-| --- | --- |
-| Lokale API-, Tooling- und isolierte Integrationstests | In den Abschnitten 1–3 dokumentiert; native Zusatzprüfungen ausdrücklich gekennzeichnet |
-| Docker 9.0.4, echte Archive, Prozessabbruch/Recovery | Nutzer bestätigt `test:replica` und `test:integration` nach Abschnitt 3 |
-| Vollständiges Gate einschließlich Browser/Lifecycle/Artefakt | Nutzer bestätigt `quality:full` nach Abschnitt 3 |
-| Produktionsinstallation ohne TS-Runner | Bestehender Artefakttest installiert Produktionsabhängigkeiten frisch und prüft kompilierte CLI, Plan und bestätigtes leeres Up sowie App/Proxy/Auth/Shutdown |
-| Fachliche Migration im Release | Aktuell leerer Katalog; jede zukünftige Migration benötigt zusätzliche konkrete Abnahme |
-| GitHub-CI für den Abschluss-Commit | Noch separat zu bestätigen; vorhandene Remote-Tracking-Refs sind kein CI-Nachweis |
+| Prüfung                                                      | Nachweis / Grenze                                                                                                                                             |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lokale API-, Tooling- und isolierte Integrationstests        | In den Abschnitten 1–3 dokumentiert; native Zusatzprüfungen ausdrücklich gekennzeichnet                                                                       |
+| Docker 9.0.4, echte Archive, Prozessabbruch/Recovery         | Nutzer bestätigt `test:replica` und `test:integration` nach Abschnitt 3                                                                                       |
+| Vollständiges Gate einschließlich Browser/Lifecycle/Artefakt | Nutzer bestätigt `quality:full` nach Abschnitt 3                                                                                                              |
+| Produktionsinstallation ohne TS-Runner                       | Bestehender Artefakttest installiert Produktionsabhängigkeiten frisch und prüft kompilierte CLI, Plan und bestätigtes leeres Up sowie App/Proxy/Auth/Shutdown |
+| Fachliche Migration im Release                               | E03: Event-Validator/Query-Index im aktiven Katalog; isolierte konkrete Abnahme im E03-Bericht, keine Bestands-/Produktionsanwendung                          |
+| GitHub-CI für den Abschluss-Commit                           | Noch separat zu bestätigen; vorhandene Remote-Tracking-Refs sind kein CI-Nachweis                                                                             |
 
 Der vorhandene Workflow `.github/workflows/quality.yml` hat zwei Prüfungen: **Full quality (Linux, Docker)** führt `quality:full` einschließlich `test:replica` aus; **Windows checks** führt `quality` aus. Windows-CI ersetzt daher nicht die Docker-Prüfung. Der Linux-Job veröffentlicht `quality-results` mit `quality.json` und bei Erfolg `tobu-release`. Backup-Archive werden nicht hochgeladen.
 
@@ -71,6 +71,6 @@ Beide Checks für **den aktuellen PR-Commit** abwarten. Bei Fehler Logs prüfen;
 
 ## Bestehende offene Arbeiten
 
-Für die weitere Migrationsentwicklung verbindlich berücksichtigen: [Findings S1–S7](migration-findings.md). Sie sind bewertet und priorisiert, aber noch nicht implementiert. S1/S2 vor der ersten echten Migration bzw. Produktiveinsatz und S6b vor produktiven strukturellen Restores beheben. Der vorgeschlagene Code aus dem Review ist kein ungeprüft zu übernehmender Implementierungsauftrag.
+Für die weitere Migrationsentwicklung verbindlich berücksichtigen: [Findings S1–S7](migration-findings.md). S1/S2 sind bei der E03-Wiederaufnahme implementiert und gezielt geprüft; vollständige Abnahme und Grenzen im E03-Bericht. S3–S7 bleiben offen, insbesondere S6b vor produktiven strukturellen Restores. Legacy-Journale ohne Identitätsversion 2 werden ohne Mutation abgelehnt; den versionsgebundenen Recoveryweg aus der Agent-Anleitung verwenden. Der ursprüngliche Reviewvorschlag ist kein ungeprüft zu übernehmender Implementierungsauftrag.
 
 Rollen-/Owner-Durchsetzung, dokumentierte Dependency-Sicherheitsbefunde und produktives Hosting bleiben separate Aufgaben. Ein früherer vollständiger Browser-Verbindungsfehler auf localhost wurde nicht ursächlich aufgeklärt; ein späterer Diagnoselauf bestand alle 54 Tests. Das ist kein Grund, Retry-, Mock- oder Timeout-Schutzmechanismen abzuschwächen. Einzelheiten und frühere Befunde bleiben in [offene Arbeiten](../migration/open-issues.md) und [Umsetzungsstand](migration-progress.md) nachvollziehbar.

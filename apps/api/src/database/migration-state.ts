@@ -5,7 +5,7 @@ import type { MigrationEntry } from './migration-types.js';
 export const BASELINE = '2026-10-v1';
 export type SchemaState = { _id: string; version: string; status: 'initializing' | 'ready'; applied: string[]; databaseId?: string };
 export type History = { _id: string; checksum: string; applied: boolean; runId: string };
-export type Control = { _id: string; runId: string; migration: string; direction: 'up' | 'down'; status: 'running' | 'committed'; startedAt: Date; kind?: 'structural'; owner?: string };
+export type Control = { _id: string; runId: string; migration: string; direction: 'up' | 'down'; status: 'running' | 'committed'; startedAt: Date; kind?: 'structural'; owner?: string; identityVersion?: 2; targetHash?: string };
 
 export function validateCatalog(entries: MigrationEntry[]) {
     const ids = new Set<string>();

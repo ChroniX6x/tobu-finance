@@ -5,7 +5,10 @@ import mongoose from 'mongoose';
 import { initializeBaseline, verifyBaseline, schemaStatus, migrateDatabase } from '../../dist/src/database/baseline.js';
 import { seedDevelopment, demoId } from '../../dist/src/database/seed.js';
 import { databaseModels } from '../../dist/src/database/models.js';
+import snapshot from '../../dist/src/database/baseline/2026-10-v1.json' with { type: 'json' };
 import { distribute, incomeWeights } from '../../dist/src/utils/contrib.js';
+import { MigrationRunner } from '../../dist/src/database/migration-runner.js';
+import { ToolsBackup } from '../../dist/src/database/migration-backup.js';
 
 test('baseline, indexes, resumability, seeds and manual edits', { timeout: 120000 }, async (t) => {
     assert.ok(process.env.TEST_MONGODB_URI, 'Explicit isolated TEST_MONGODB_URI required');
@@ -28,15 +31,41 @@ test('baseline, indexes, resumability, seeds and manual edits', { timeout: 12000
         assert.equal(await db.collection('unrelated').countDocuments(), 1);
         await db.collection('unrelated').drop();
     });
-    await t.test('interrupted baseline resumes and validates all model indexes', async () => {
+    await t.test('interrupted baseline resumes with frozen validators and indexes, never pending model DDL', async () => {
         await db.collection('_tobu_schema').insertOne({ _id: 'baseline', version: '2026-10-v1', status: 'initializing', applied: [] });
         assert.equal(await initializeBaseline(), true);
         assert.equal(await initializeBaseline(), false);
+        await assert.rejects(verifyBaseline, /incompatible/);
+        assert.equal((await schemaStatus()).status, 'migration-required');
+        const schemas = await db.listCollections().toArray();
+        for (const schema of snapshot) {
+            assert.deepEqual(schemas.find((collection) => collection.name === schema.name).options.validator, schema.validator);
+            const actual = await db.collection(schema.name).listIndexes().toArray();
+            assert.equal(actual.length, schema.indexes.length + 1);
+            for (const expected of schema.indexes)
+                assert.ok(
+                    actual.some((item) => JSON.stringify(item.key) === JSON.stringify(expected.key)),
+                    `${schema.name}: frozen index missing`
+                );
+        }
+        assert.equal(
+            (await db.collection('events').listIndexes().toArray()).some((item) => item.name === 'accountId_1_date_-1__id_-1'),
+            false,
+            'model expansion must not silently alter the baseline'
+        );
+        await assert.rejects(() => db.collection('transactions').insertOne({ title: 'invalid' }), /validation/i);
+    });
+    await t.test('confirmed catalog upgrade makes the fresh database ready; repeat does not migrate again', async () => {
+        assert.ok(process.env.TOBU_MIGRATION_BACKUP_DIR);
+        const client = mongoose.connection.getClient();
+        const runner = new MigrationRunner(client, db, uri.toString(), 'test', undefined, { backup: new ToolsBackup(client, db, uri.toString(), process.env.TOBU_MIGRATION_BACKUP_DIR, 'docker-local') });
+        const plan = await runner.plan();
+        assert.equal(plan.migrations.length, 1);
+        await runner.run('up', plan.confirmation, true);
         await verifyBaseline();
         assert.equal((await schemaStatus()).ready, true);
-        const schemas = await db.listCollections().toArray();
-        for (const model of databaseModels) assert.deepEqual(schemas.find((c) => c.name === model.collection.name).options.validator, { $jsonSchema: model.schema.toJSONSchema({ useBsonType: true }) });
-        await assert.rejects(() => db.collection('transactions').insertOne({ title: 'invalid' }), /validation/i);
+        assert.equal(await initializeBaseline(), false);
+        assert.deepEqual((await runner.plan()).migrations, []);
     });
     await t.test('seed produces valid models, role fixtures, references and independent totals', async () => {
         await seedDevelopment('2026-04');

@@ -20,7 +20,7 @@ test('real MongoDB Tools archive, restore drill, corruption protection and kille
     const client = new MongoClient(isolated.uri);
     let child;
     try {
-        await capture(process.execPath, [resolve(root, 'apps/api/dist/src/database/cli.js'), 'init'], { env: { ...process.env, NODE_ENV: 'test', MONGODB_URI: isolated.uri } });
+        await capture(process.execPath, [resolve(root, 'apps/api/tests/fixtures/initialize-baseline.mjs')], { env: { ...process.env, NODE_ENV: 'test', MONGODB_URI: isolated.uri } });
         await client.connect();
         const db = client.db();
         await db.collection('original_data').insertMany([

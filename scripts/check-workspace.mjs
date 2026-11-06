@@ -68,6 +68,8 @@ const adapted = new Set([
     '.env.example',
     'src/auth/config.ts',
     'src/auth/routes.ts',
+    // E03: additive event envelope, validated with the shared Activity contract; baseline remains immutable.
+    'src/models/Event.ts',
     'src/db.ts',
     'src/server.ts',
     // Active build now checks immutable migration checksums before compiling.

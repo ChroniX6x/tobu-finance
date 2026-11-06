@@ -70,7 +70,7 @@ test('existing standalone volume requires verified backup, retains manual data, 
         );
         await capture('docker', [...compose, 'up', '-d', '--wait']);
         const standalone = `mongodb://127.0.0.1:${dbPort}/${dbName}`;
-        await capture(process.execPath, [resolve(apiRoot, 'dist/src/database/cli.js'), 'init'], { env: { ...env, MONGODB_URI: standalone } });
+        await capture(process.execPath, [resolve(apiRoot, 'tests/fixtures/initialize-baseline.mjs')], { env: { ...env, MONGODB_URI: standalone } });
         client = new MongoClient(standalone);
         await client.connect();
         const manual = { _id: 'manual', amountMinor: 12345, at: new Date('2026-10-23T12:00:00Z') };

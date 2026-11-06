@@ -17,6 +17,10 @@ Strukturänderungen und Restore sind **nicht atomar**. Bei Fehler bleibt die Anw
 
 ## Migration erstellen
 
+Seit E03 enthält der aktive Katalog `20261105221750028-event-envelope`: erweitert ausschließlich den Event-Validator und ergänzt `accountId_1_date_-1__id_-1`, ohne Dokumente umzuschreiben. Legacy-Events ohne schemaVersion bleiben zulässig; neue Version-1-Events benötigen den passenden Actor-/Trigger-/Code-/Subject-Vertrag. Bestehende abweichende Validatoren oder zusätzliche/geänderte Indexe werden abgelehnt. Vor Up wird der Datenbestand lesend gegen den Zielvalidator geprüft. Ein neues unterstütztes Eventformat bzw. neue Codes benötigen später eine eigene additive Migration; diese Datei nach Anwendung nicht editieren.
+
+Für Identitätsversion 2 und den ausdrücklich versionsgebundenen Umgang mit alten Journaleinträgen gilt die [Agent-Anleitung](migration-authoring.md#zielidentität-und-sichere-diagnostik-e03). Zusätzlich zu den unten genannten Rechten muss die Deployment-ID gelesen werden können. Passwort-/Wartungskontowechsel ist bei gleichem bestätigtem Ziel möglich; ein anderer Zugangspfad verlangt einen neuen geprüften Übergang. Produktionsanwendung, TTL und deploymentbezogene Backup-Freigaben bleiben separat.
+
 ```powershell
 npm run db:migration:create -- beschreibender-name --type=structural
 ```
@@ -60,15 +64,15 @@ Nach Fehler oder Prozessabbruch:
 2. `npm run db:migrate:plan` ausführen. Ziel, Run-ID, Journalphase und Schrittstatus kontrollieren. Der Plan funktioniert auch während eines unterbrochenen Restore, wenn Schema-/Historiencollections fehlen.
 3. Genau einen Weg wählen:
 
-   ```powershell
-   npm run db:migrate:recover -- --confirm=<frischer-hash> --runner-stopped=<run-id> --writers-stopped=tobu_finance_dev --recovery=resume
-   ```
+    ```powershell
+    npm run db:migrate:recover -- --confirm=<frischer-hash> --runner-stopped=<run-id> --writers-stopped=tobu_finance_dev --recovery=resume
+    ```
 
-   oder:
+    oder:
 
-   ```powershell
-   npm run db:migrate:recover -- --confirm=<frischer-hash> --runner-stopped=<run-id> --writers-stopped=tobu_finance_dev --recovery=restore
-   ```
+    ```powershell
+    npm run db:migrate:recover -- --confirm=<frischer-hash> --runner-stopped=<run-id> --writers-stopped=tobu_finance_dev --recovery=restore
+    ```
 
 4. Recovery prüft noch laufende, mit Run-ID markierte Serveroperationen und übernimmt die Sperre nur bei unverändertem Besitzer. `resume` prüft jeden Schritt erneut. `restore` prüft Identität, Archiv-Hash und einen erneuten vollständigen Restore-Probelauf **vor** dem Löschen von Quelldaten. Danach stellt es den ursprünglichen Anwendungsbestand inklusive Historie wieder her. Zusätzliche, nicht zum Backup oder zur Migration gehörende Namespaces blockieren den Restore. Operative Sperren/Journale bleiben erhalten.
 5. Bei erneutem Restore-Abbruch bleibt `restoring` bestehen. Neu planen und `restore` erneut ausführen; `resume` ist dann gesperrt. Erst Inhalts-/Schema- und fachliche Vorzustandsprüfung erlauben die Freigabe.

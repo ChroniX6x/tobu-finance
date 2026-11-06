@@ -2,7 +2,7 @@
 
 ## MIGRATION-S1–S7: Nacharbeiten am Migrationsbetrieb
 
-Offen und noch nicht implementiert: [bewertete Findings S1–S7](../database/migration-findings.md). S1 (Credential-freie Zielidentität/Recovery) und S2 (sichere Diagnostik) vor der ersten echten Migration bzw. Produktiveinsatz beheben; erneute TTL-Vorprüfung S6b vor produktiven strukturellen Restores. Dort stehen Prioritäten, abweichende Bewertungen, Abnahmekriterien und akzeptierte Restrisiken. Die Dokumentation ersetzt keinen erfolgreichen PR-CI-Lauf oder eine Merge-Freigabe.
+[Bewertete Findings S1–S7](../database/migration-findings.md): S1 (credentialfreie Zielidentität/Recovery) und S2 (sichere Diagnostik) wurden bei der E03-Wiederaufnahme implementiert und gezielt isoliert geprüft; vollständiger aktueller A/Q-/Reviewstatus im [E03-Bericht](../agents/runs/E03.md). S3–S7 bleiben offen, insbesondere S6b vor produktiven strukturellen Restores. Alte URI-gebundene Journale benötigen den dokumentierten versionsgebundenen Recoveryweg. Keine Produktions-/Bestandsmigration durch E03. Die Dokumentation ersetzt keinen erfolgreichen PR-CI-Lauf oder eine Merge-Freigabe.
 
 ## TEST-001: Vite-Proxy ECONNREFUSED in Mock-E2E
 
