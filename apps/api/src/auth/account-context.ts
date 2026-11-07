@@ -34,6 +34,9 @@ export interface AuthorizedContext {
 }
 
 const OBJECT_ID = /^[a-f\d]{24}$/i;
+const trustedContexts = new WeakSet<object>();
+/** Runtime capability, not a structurally compatible request body. */
+export const isTrustedAccountContext = (value: object): value is AuthorizedContext => trustedContexts.has(value);
 const isObjectId = (value: unknown): value is string => typeof value === 'string' && OBJECT_ID.test(value);
 
 function actorOf(req: Request): UserActor | null {
@@ -54,7 +57,9 @@ export async function resolveAccountContext(req: Request, accountId: unknown): P
     if (entries.length === 0) return null;
     const chosen = entries.find((entry) => entry.role === 'owner') ?? entries[0]!;
     const role: AccountRole = chosen.role === 'owner' ? 'owner' : 'member';
-    return Object.freeze({ actor, account: Object.freeze({ accountId: id.toLowerCase(), memberId: String(chosen.memberId), role }) });
+    const context = Object.freeze({ actor, account: Object.freeze({ accountId: id.toLowerCase(), memberId: String(chosen.memberId), role }) });
+    trustedContexts.add(context);
+    return context;
 }
 
 /** 404 for everything that is not the caller's account (same answer for "unknown" and "foreign"). */
