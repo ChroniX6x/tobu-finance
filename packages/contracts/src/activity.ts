@@ -14,10 +14,10 @@ import { MonthKeySchema } from './calendar.js';
 export const ACTIVITY_SCHEMA_VERSION = 1;
 /** Pseudo code of events that cannot be shown as a known code (legacy or unsupported). Never persisted. */
 export const LEGACY_UNKNOWN_CODE = 'legacy.unknown';
-/** Code families owned by E07 (recurrence primitives). Not accepted by the writer before E07 adds their schemas. */
+/** E07 namespaces; only the explicitly catalogued codes are accepted, never arbitrary suffixes. */
 export const ACTIVITY_RESERVED_CODE_PREFIXES = ['recurrence.', 'occurrence.'] as const;
 
-export const ActivitySubjectKinds = ['account', 'member', 'transaction', 'category', 'memberIncome', 'contributionRule', 'categoryBudget', 'carryOver', 'accountBalance', 'legacyRecurrence'] as const;
+export const ActivitySubjectKinds = ['account', 'member', 'transaction', 'category', 'memberIncome', 'contributionRule', 'categoryBudget', 'carryOver', 'accountBalance', 'legacyRecurrence', 'recurrence', 'occurrence'] as const;
 export const ActivitySubjectKindSchema = z.enum(ActivitySubjectKinds);
 export type ActivitySubjectKind = z.infer<typeof ActivitySubjectKindSchema>;
 
@@ -60,7 +60,7 @@ type CatalogEntry = {
 
 /**
  * The single event catalog. Existing codes keep their persisted param names (legacy events stay readable with the same
- * schema); new codes follow §22.3. Recurrence/occurrence codes are NOT defined here (E07, DEC-0052).
+ * schema); new codes follow §22.3. E07 defines event primitives, not a recurrence domain or HTTP API.
  */
 export const activityCatalog = {
     'transaction.created': { subject: 'transaction', subjectId: 'transactionId', params: z.strictObject({ transactionId: ObjId, type: TxType, amountMinor: Cents, title: Title.optional(), categoryId: ObjId.optional() }) },
@@ -109,10 +109,50 @@ export const activityCatalog = {
     // TEMPORARY (owner decision 2026-11-04): only while the old /api/recurrences route exists. Remove with the route or map to recurrence.* (see ADR).
     'legacyRecurrence.created': { subject: 'legacyRecurrence', params: z.strictObject({ title: Title.optional() }) },
     'legacyRecurrence.updated': { subject: 'legacyRecurrence', params: z.strictObject({ title: Title.optional() }) },
-    'legacyRecurrence.deleted': { subject: 'legacyRecurrence', params: z.strictObject({ title: Title.optional() }) }
+    'legacyRecurrence.deleted': { subject: 'legacyRecurrence', params: z.strictObject({ title: Title.optional() }) },
+    'recurrence.created': { subject: 'recurrence', subjectId: 'recurrenceId', params: z.strictObject({ recurrenceId: ObjId, revisionId: ObjId, title: Title.optional() }) },
+    'recurrence.config.updated': {
+        subject: 'recurrence',
+        subjectId: 'recurrenceId',
+        params: z.strictObject({
+            recurrenceId: ObjId,
+            revisionId: ObjId,
+            previousRevisionId: ObjId.optional(),
+            changedFields: fields(['title', 'type', 'expectedAmountMinor', 'categoryId', 'source', 'paidByMemberId', 'startMonth', 'intervalMonths', 'dayOfMonth', 'notes'])
+        })
+    },
+    'recurrence.activated': { subject: 'recurrence', subjectId: 'recurrenceId', params: z.strictObject({ recurrenceId: ObjId }) },
+    'recurrence.deactivated': { subject: 'recurrence', subjectId: 'recurrenceId', params: z.strictObject({ recurrenceId: ObjId }) },
+    'recurrence.revision.discarded': { subject: 'recurrence', subjectId: 'recurrenceId', params: z.strictObject({ recurrenceId: ObjId, revisionId: ObjId, restoredRevisionId: ObjId.optional() }) },
+    'recurrence.deleted': { subject: 'recurrence', subjectId: 'recurrenceId', params: z.strictObject({ recurrenceId: ObjId }) },
+    'occurrence.generated': { subject: 'occurrence', params: z.strictObject({ recurrenceId: ObjId, revisionId: ObjId, occurrenceKey: MonthKeySchema, transactionId: ObjId }) },
+    'occurrence.skipped': { subject: 'occurrence', params: z.strictObject({ recurrenceId: ObjId, occurrenceKey: MonthKeySchema }) },
+    'occurrence.unskipped': { subject: 'occurrence', params: z.strictObject({ recurrenceId: ObjId, occurrenceKey: MonthKeySchema, choice: z.enum(['generate', 'release']).optional() }) },
+    'occurrence.linked': { subject: 'occurrence', params: z.strictObject({ recurrenceId: ObjId, occurrenceKey: MonthKeySchema, transactionId: ObjId }) },
+    'occurrence.reassigned': {
+        subject: 'occurrence',
+        params: z.strictObject({ recurrenceId: ObjId, occurrenceKey: MonthKeySchema, transactionId: ObjId, previousRecurrenceId: ObjId, previousOccurrenceId: ObjId, previousOccurrenceKey: MonthKeySchema })
+    },
+    'occurrence.unlinked': { subject: 'occurrence', params: z.strictObject({ recurrenceId: ObjId, occurrenceKey: MonthKeySchema, transactionId: ObjId, choice: z.enum(['generate', 'release']).optional() }) }
 } as const satisfies Record<string, CatalogEntry>;
 
 export type ActivityCode = keyof typeof activityCatalog;
+export const RECURRENCE_ACTIVITY_CODES = [
+    'recurrence.created',
+    'recurrence.config.updated',
+    'recurrence.activated',
+    'recurrence.deactivated',
+    'recurrence.revision.discarded',
+    'recurrence.deleted',
+    'occurrence.generated',
+    'occurrence.skipped',
+    'occurrence.unskipped',
+    'occurrence.linked',
+    'occurrence.reassigned',
+    'occurrence.unlinked'
+] as const satisfies readonly ActivityCode[];
+export type RecurrenceActivityCode = (typeof RECURRENCE_ACTIVITY_CODES)[number];
+export const isRecurrenceActivityCode = (code: string): code is RecurrenceActivityCode => (RECURRENCE_ACTIVITY_CODES as readonly string[]).includes(code);
 export type ActivityParams<C extends ActivityCode> = z.infer<(typeof activityCatalog)[C]['params']>;
 export const ACTIVITY_CODES = Object.keys(activityCatalog) as ActivityCode[];
 export const ActivityCodeSchema = z.enum(ACTIVITY_CODES as [ActivityCode, ...ActivityCode[]]);
@@ -136,7 +176,7 @@ export const LEGACY_ACTIVITY_CODES = [
     'categoryBudget.removed'
 ] as const satisfies readonly ActivityCode[];
 
-export const isReservedActivityCode = (code: string): boolean => ACTIVITY_RESERVED_CODE_PREFIXES.some((prefix) => code.startsWith(prefix));
+export const isReservedActivityCode = (code: string): boolean => ACTIVITY_RESERVED_CODE_PREFIXES.some((prefix) => code.startsWith(prefix)) && !Object.prototype.hasOwnProperty.call(activityCatalog, code);
 export const isActivityCode = (code: unknown): code is ActivityCode => typeof code === 'string' && Object.prototype.hasOwnProperty.call(activityCatalog, code);
 
 /** Cases that must NEVER produce an event (A-E01 no-event list). Each is a test obligation of E04/E05. */
@@ -190,6 +230,7 @@ export const ActivityWriteEventSchema = (z.discriminatedUnion('code', writeVaria
     const actorIsUser = event.actor.kind === 'user';
     const triggerIsUser = event.trigger.kind === 'user_action';
     if (actorIsUser !== triggerIsUser) ctx.addIssue({ code: 'custom', path: ['trigger'], message: 'actor user requires trigger user_action; actor system requires an internal trigger' });
+    if (isRecurrenceActivityCode(event.code) && event.code !== 'occurrence.generated' && !actorIsUser) ctx.addIssue({ code: 'custom', path: ['actor'], message: 'This recurrence action requires a verified user actor' });
     if (actorIsUser && 'initiatedByUserId' in event.trigger) ctx.addIssue({ code: 'custom', path: ['trigger', 'initiatedByUserId'], message: 'initiatedByUserId is only allowed for system actors' });
     if (event.subject.kind !== entry.subject) ctx.addIssue({ code: 'custom', path: ['subject', 'kind'], message: `subject.kind must be ${entry.subject} for ${event.code}` });
     if (entry.subjectId) {
@@ -242,6 +283,8 @@ export const ActivityItemSchema = z.discriminatedUnion('code', [...itemVariants,
     if ((item.params === null) !== (item.detailsUnavailable === true)) ctx.addIssue({ code: 'custom', message: 'Unavailable details require null params, and vice versa' });
     if (item.detailsUnavailable && item.subject !== null) ctx.addIssue({ code: 'custom', message: 'Unavailable details cannot expose subject ids' });
     if (item.schemaVersion !== 1 && (item.group || item.batchId || item.correlationId)) ctx.addIssue({ code: 'custom', message: 'Only validated current events may carry grouping keys' });
+    if (isRecurrenceActivityCode(item.code) && (item.schemaVersion !== 1 || item.actor.kind === 'unknown' || (item.actor.kind === 'system' && item.code !== 'occurrence.generated')))
+        ctx.addIssue({ code: 'custom', message: 'E07 read actors must satisfy the current emit matrix' });
 }) as unknown as z.ZodType<ActivityItem>;
 export type ActivityActorView = z.infer<typeof ActivityActorViewSchema>;
 
@@ -428,7 +471,19 @@ export const activityLabels: { [C in ActivityCode]: (params: ActivityParams<C>) 
     'accountBalance.removed': (p) => `Kontostand entfernt${monthLabel(p.month)}`,
     'legacyRecurrence.created': (p) => `Wiederkehrende Buchung angelegt${withTitle(p.title)}`,
     'legacyRecurrence.updated': (p) => `Wiederkehrende Buchung geändert${withTitle(p.title)}`,
-    'legacyRecurrence.deleted': (p) => `Wiederkehrende Buchung gelöscht${withTitle(p.title)}`
+    'legacyRecurrence.deleted': (p) => `Wiederkehrende Buchung gelöscht${withTitle(p.title)}`,
+    'recurrence.created': (p) => `Buchungsvorlage angelegt${withTitle(p.title)}`,
+    'recurrence.config.updated': (p) => `Vorlagenkonfiguration geändert (${p.changedFields.length} Felder)`,
+    'recurrence.activated': () => 'Buchungsvorlage aktiviert',
+    'recurrence.deactivated': () => 'Buchungsvorlage deaktiviert',
+    'recurrence.revision.discarded': () => 'Vorlagenrevision verworfen',
+    'recurrence.deleted': () => 'Buchungsvorlage gelöscht',
+    'occurrence.generated': (p) => `Vorlagenvorkommen erzeugt (${p.occurrenceKey})`,
+    'occurrence.skipped': (p) => `Vorlagenvorkommen übersprungen (${p.occurrenceKey})`,
+    'occurrence.unskipped': (p) => `Überspringen aufgehoben (${p.occurrenceKey})${p.choice === 'release' ? ' – ohne Buchung freigegeben' : ''}`,
+    'occurrence.linked': (p) => `Buchung zugeordnet (${p.occurrenceKey})`,
+    'occurrence.reassigned': (p) => `Buchung neu zugeordnet (${p.occurrenceKey})`,
+    'occurrence.unlinked': (p) => `Buchungszuordnung gelöst (${p.occurrenceKey})${p.choice === 'release' ? ' – ohne Buchung freigegeben' : ''}`
 };
 
 /** Human-readable filter labels, checked exhaustively against the current catalog. */
@@ -464,7 +519,19 @@ export const activityCodeNames: Record<ActivityCode, string> = {
     'accountBalance.removed': 'Kontostand entfernt',
     'legacyRecurrence.created': 'Wiederkehrende Buchung angelegt',
     'legacyRecurrence.updated': 'Wiederkehrende Buchung geändert',
-    'legacyRecurrence.deleted': 'Wiederkehrende Buchung gelöscht'
+    'legacyRecurrence.deleted': 'Wiederkehrende Buchung gelöscht',
+    'recurrence.created': 'Buchungsvorlage angelegt',
+    'recurrence.config.updated': 'Vorlagenkonfiguration geändert',
+    'recurrence.activated': 'Buchungsvorlage aktiviert',
+    'recurrence.deactivated': 'Buchungsvorlage deaktiviert',
+    'recurrence.revision.discarded': 'Vorlagenrevision verworfen',
+    'recurrence.deleted': 'Buchungsvorlage gelöscht',
+    'occurrence.generated': 'Vorlagenvorkommen erzeugt',
+    'occurrence.skipped': 'Vorlagenvorkommen übersprungen',
+    'occurrence.unskipped': 'Überspringen aufgehoben',
+    'occurrence.linked': 'Buchung zugeordnet',
+    'occurrence.reassigned': 'Buchung neu zugeordnet',
+    'occurrence.unlinked': 'Buchungszuordnung gelöst'
 };
 
 export function renderActivityText(item: { code: string; params: unknown; detailsUnavailable?: true | undefined }): string {

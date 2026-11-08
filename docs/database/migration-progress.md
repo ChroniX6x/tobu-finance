@@ -1,5 +1,9 @@
 # Sichere Migrationen: Umsetzungsstand
 
+## E07: Event-Primitiven ohne Recurrence-Domain
+
+`20261108172127336-recurrence-activity-primitives` erweitert ausschließlich den Eventvalidator von 32 auf 44 Codes, ohne Backfill oder Indexänderung. Down blockiert bei erhaltenen neuen Events; historische Migrationen und Baseline bleiben unverändert. Isolierte Plattform-/Tools-Restore-/Resume-/Kill-Proben und Grenzen sind in [E07](../agents/runs/E07.md) dokumentiert. Keine Entwicklungs-/Bestands-/Produktionsanwendung, keine Recurrence-Domain oder Konto-Zonenroute.
+
 ## E05: zusätzliche Validatoren, keine Bestandsanwendung
 
 `20261107163516618-member-activity` erweitert den eingefrorenen E03-Eventvalidator um `member.updated` und Member um optionale private `createdByUserId`, ohne Backfill/Indexänderung. Down verweigert erhaltene `member.updated`-Events. `20261107182346881-domain-writer-revisions` ergänzt optionale ganzzahlige `mutationVersion` bei acht bislang nicht Mongoose-versionierten Domainmodellen; kein Backfill/Indexumbau. Beide Quellen und Checksummen stehen im generierten Katalog; historische E03-Migration und Baseline unverändert.

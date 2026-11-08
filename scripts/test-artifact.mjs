@@ -55,7 +55,7 @@ try {
     assert.equal(plan.target.environment, 'production');
     assert.equal(plan.target.database, new URL(db.uri).pathname.slice(1));
     assert.deepEqual(plan.migrations, []);
-    const expectedMigrations = ['20261105221750028-event-envelope', '20261107163516618-member-activity', '20261107182346881-domain-writer-revisions'];
+    const expectedMigrations = ['20261105221750028-event-envelope', '20261107163516618-member-activity', '20261107182346881-domain-writer-revisions', '20261108172127336-recurrence-activity-primitives'];
     assert.deepEqual(plan.applied, expectedMigrations, 'compiled artifact must execute every actual catalog migration on its isolated fresh database');
     for (const id of expectedMigrations) await access(resolve(scratch, `apps/api/dist/src/database/migrations/${id}.js`));
     await run(process.execPath, ['apps/api/dist/src/database/migration-cli.js', 'up', `--confirm=${plan.confirmation}`, `--writers-stopped=${plan.target.database}`], { cwd: scratch, env });

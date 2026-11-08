@@ -74,6 +74,12 @@ test('baseline, indexes, resumability, seeds and manual edits', { timeout: 12000
             ['20261107182346881-domain-writer-revisions']
         );
         await runner.run('up', revisionPlan.confirmation, true);
+        const recurrenceActivityPlan = await runner.plan();
+        assert.deepEqual(
+            recurrenceActivityPlan.migrations.map((entry) => entry.id),
+            ['20261108172127336-recurrence-activity-primitives']
+        );
+        await runner.run('up', recurrenceActivityPlan.confirmation, true);
         await verifyBaseline();
         assert.equal((await schemaStatus()).ready, true);
         assert.equal(await initializeBaseline(), false);

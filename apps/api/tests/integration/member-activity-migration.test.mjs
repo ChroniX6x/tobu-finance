@@ -14,7 +14,7 @@ import { migrations } from '../../dist/src/database/migration-catalog.js';
 import { MigrationRunner } from '../../dist/src/database/migration-runner.js';
 import { ToolsBackup, inventory } from '../../dist/src/database/migration-backup.js';
 import { MemoryBackup } from '../fixtures/structural-fixture.mjs';
-import { ActivityWriteEventSchema, ACTIVITY_CODES } from '@tobu/contracts/activity';
+import { ActivityWriteEventSchema, ACTIVITY_CODES, isRecurrenceActivityCode } from '@tobu/contracts/activity';
 import { activitySamples } from '../fixtures/activity-samples.mjs';
 
 test('E05 immutable member activity/provenance migration: real schemas, data, recovery and archive', { timeout: 300000 }, async (t) => {
@@ -86,7 +86,7 @@ test('E05 immutable member activity/provenance migration: real schemas, data, re
         await execute(r);
         assert.deepEqual(await save(), original, 'no backfill, actor reconstruction or financial change');
         const samples = { ...activitySamples(ids), 'member.updated': ['member', ids.member, { memberId: ids.member, changedFields: ['name', 'email'] }] };
-        assert.deepEqual(Object.keys(samples).sort(), [...ACTIVITY_CODES].sort());
+        assert.deepEqual(Object.keys(samples).sort(), ACTIVITY_CODES.filter((code) => !isRecurrenceActivityCode(code)).sort(), 'E05 remains frozen at 32; E07 has its own additive migration');
         for (const [code, [kind, id, params]] of Object.entries(samples)) {
             const row = { accountId: new ObjectId(ids.account), date: new Date('2026-11-07T12:00:00.000Z'), code, params, schemaVersion: 1, subject: { kind, id }, actor: { kind: 'user', userId: ids.user }, trigger: { kind: 'user_action' } };
             ActivityWriteEventSchema.parse({ ...row, accountId: ids.account });

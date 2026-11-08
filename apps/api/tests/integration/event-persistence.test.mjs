@@ -7,7 +7,7 @@ import { fork } from 'node:child_process';
 import { once } from 'node:events';
 import mongoose from 'mongoose';
 import { MongoClient, ObjectId, BSON, Decimal128, Long } from 'mongodb';
-import { ACTIVITY_CODES, ActivityWriteEventSchema, decodeStoredEvent } from '@tobu/contracts/activity';
+import { ACTIVITY_CODES, ActivityWriteEventSchema, decodeStoredEvent, isRecurrenceActivityCode } from '@tobu/contracts/activity';
 import Event from '../../dist/src/models/Event.js';
 import { initializeBaseline } from '../../dist/src/database/baseline.js';
 import { MigrationRunner } from '../../dist/src/database/migration-runner.js';
@@ -173,7 +173,7 @@ test('E03 catalogued event migration on isolated fresh/legacy databases', { time
             transaction: transactionId,
             ...Object.fromEntries(['other', 'category', 'member', 'rule', 'income', 'budget', 'carry', 'balance', 'recurrence'].map((name) => [name, new ObjectId().toHexString()]))
         });
-        assert.deepEqual(Object.keys(samples).sort(), ACTIVITY_CODES.filter((code) => code !== 'member.updated').sort(), 'a new contract code requires explicit examples and a compatible immutable schema migration');
+        assert.deepEqual(Object.keys(samples).sort(), ACTIVITY_CODES.filter((code) => code !== 'member.updated' && !isRecurrenceActivityCode(code)).sort(), 'E03 stays frozen at 31 codes; later codes require separate immutable migrations');
         for (const [code, [kind, id, params]] of Object.entries(samples)) {
             const event = { ...valid(), code, subject: { kind, id }, params };
             assert.equal(ActivityWriteEventSchema.safeParse({ ...event, accountId: String(accountId) }).success, true, `${code}: independent sample must satisfy E01`);
@@ -188,7 +188,7 @@ test('E03 catalogued event migration on isolated fresh/legacy databases', { time
             assert.equal(decoded.item.occurredAt, event.date.toISOString());
             await assert.rejects(db.collection('events').insertOne({ ...valid(), code, subject: { kind, id }, params: { ...params, privateSnapshot: 'forbidden' } }), (error) => error.code === 121, `${code}: extra params must be rejected by Mongo`);
         }
-        assert.equal(await db.collection('events').countDocuments(), ACTIVITY_CODES.filter((code) => code !== 'member.updated').length);
+        assert.equal(await db.collection('events').countDocuments(), ACTIVITY_CODES.filter((code) => code !== 'member.updated' && !isRecurrenceActivityCode(code)).length);
     });
 
     await t.test('legacy BSON unchanged through real Tools backup, up/down and verified restore', async () => {

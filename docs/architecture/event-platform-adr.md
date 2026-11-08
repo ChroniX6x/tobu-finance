@@ -1,5 +1,7 @@
 # ADR: Event-/Activity-Plattform (E01)
 
+**Umsetzungsnachtrag E07:**44 explizite Eventcodes,12 neue Primitiven mit recurrence/occurrence Subjects und minimalen Revision-/Slotreferenzen. [Aktueller Vertrag](recurrence-activity-primitives.md). Der folgende E01-Text ist historischer Entscheidungsstand; E07 ist keine neue Recurrence-Domain, Ensure- oder Konto-Zonenimplementierung.
+
 **Umsetzungsnachtrag E06,08.11.2026:** Der folgende Text hält den E01-Entscheidungsstand fest. E05 hat den Katalog auf32Codes erweitert; E06 implementiert nun den autorisierten GET, die identisch geschützte20er-Vorschau und die Desktop-/Mobile-Ansicht. Aktueller [Read-/Cursor-/Privacyvertrag](activity-read.md) und [A/Q-Bericht E06](../agents/runs/E06.md). Keine Recurrence-Engine oder pauschale Schließung der unten genannten Folgegates.
 
 Stand: 04.11.2026, Schritt E01 (Eventplan Kapitel 6 E01, §§22–24, Buchungsvorlagenplan §61). Dieses Dokument legt den **Vertrag** fest. Es führt keinen Writer, keine Route, keine Persistenzänderung und keine Migration ein; die Umsetzung folgt in E02–E07. Quelle der ausführbaren Schemas: [activity.ts](../../packages/contracts/src/activity.ts), Tests: [activity.test.mjs](../../packages/contracts/tests/activity.test.mjs). Iststand vor E01: [E00.md](../agents/runs/E00.md).

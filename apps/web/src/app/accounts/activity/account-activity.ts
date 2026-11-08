@@ -79,6 +79,8 @@ export class AccountActivity {
     carryOver: "Übertrag",
     accountBalance: "Kontostand",
     legacyRecurrence: "Wiederkehrende Buchung",
+    recurrence: "Buchungsvorlage",
+    occurrence: "Vorlagenvorkommen",
   };
   protected readonly actorText = renderActivityActor;
   protected readonly eventText = renderActivityText;

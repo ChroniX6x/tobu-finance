@@ -1,8 +1,10 @@
 # Gemeinsame HTTP-Verträge
 
+**E07:**44 Eventcodes einschließlich12 Recurrence-/Occurrence-Primitiven; keine neuen öffentlichen Schreib-DTOs oder Domainrouten. [Emitmatrix, enger Writer-/Scopeadapter und zweigeteilte Testgrenze](recurrence-activity-primitives.md).
+
 **E06 Read-Vertrag:** Account-Activity mit JWT/Member-ACL, Kontextcursor, Filtern und sicherer Legacy-/Subject-Projektion; identisch geschützte20er-Overview-Vorschau. [Vertrag und Fehler/Betriebsgrenzen](activity-read.md).
 
-**E05-Vertragsänderung:** Root-POSTs der bestehenden Fachressourcen verhandeln write-free 428 mit `X-Tobu-Creation`; echte PATCH/PUT/DELETE und Account-Member-POST analog mit `X-Tobu-Mutation`. Shared-Schemas: `@tobu/contracts/creation-proof`; Ablauf, sichere Wiederholung, 409 stale/410 deleted/503 unknown und Client-Recovery: [Activity-Rollout](activity-rollout.md). Belege vor dem Commitrequest behalten, keine automatische Neuanlage nach unklarer Antwort. Browserinterceptor und reale HTTP-Fixtures sind gemeinsam angepasst. Kontowährung hat explizit 1–64 Zeichen, entsprechend dem vorhandenen Eventvertrag; kein stiller Runtimefehler durch überlange gültige Transportwerte. Aktueller Eventkatalog: 32 Codes einschließlich `member.updated`, keine Recurrence-MVP-Codes.
+**E05-Vertragsänderung:** Root-POSTs der bestehenden Fachressourcen verhandeln write-free 428 mit `X-Tobu-Creation`; echte PATCH/PUT/DELETE und Account-Member-POST analog mit `X-Tobu-Mutation`. Shared-Schemas: `@tobu/contracts/creation-proof`; Ablauf, sichere Wiederholung, 409 stale/410 deleted/503 unknown und Client-Recovery: [Activity-Rollout](activity-rollout.md). Belege vor dem Commitrequest behalten, keine automatische Neuanlage nach unklarer Antwort. Browserinterceptor und reale HTTP-Fixtures sind gemeinsam angepasst. Kontowährung hat explizit 1–64 Zeichen, entsprechend dem vorhandenen Eventvertrag; kein stiller Runtimefehler durch überlange gültige Transportwerte. Historischer E05-Stand: 32 Codes einschließlich `member.updated`, keine Recurrence-MVP-Codes.
 
 `packages/contracts` ist die gepflegte Quelle für Requests und serialisierte Responses. Das private npm-Paket `@tobu/contracts` enthält ausschließlich TypeScript/Zod, keine Angular-, Express-, Mongoose- oder Datenbankmodule. Zod bleibt auf der bereits verwendeten Version 4.1.12. Die bisherigen API-Validierungsdateien und Frontend-Transportdateien sind überwiegend Kompatibilitäts-Reexports; UI- und Datenbankmodelle bleiben in ihren Anwendungen.
 
@@ -29,7 +31,7 @@ import type { CreateTransactionDto, ValidatedCreateTransaction } from '@tobu/con
 | Stammdaten/Planung                      | MasterDataApiService, PlanningApiService                           | master-data.ts, planning.ts, read-queries.ts                     |
 | Auth                                    | AuthService, Login/Registrierung, Sessiontests                     | auth.ts                                                          |
 
-Das vollständige [Endpunktinventar](api-endpoints.md) enthält Methode, Pfad, Authentifizierung, Request-/Query-Schema und Erfolgsstatus aller 50 implementierten HTTP-Endpunkte unter `/api`. Health/Readiness und Swagger sind Infrastrukturendpunkte außerhalb dieses Inventars. Weitere externe API-Verbraucher sind nach Nutzerangabe nicht vorhanden.
+Das vollständige [Endpunktinventar](api-endpoints.md) enthält Methode, Pfad, Authentifizierung, Request-/Query-Schema und Erfolgsstatus aller51 implementierten HTTP-Endpunkte unter `/api`. E07 ergänzt keine Route. Health/Readiness und Swagger sind Infrastrukturendpunkte außerhalb dieses Inventars. Weitere externe API-Verbraucher sind nach Nutzerangabe nicht vorhanden.
 
 Die API gibt teilweise zusätzliche Metadaten wie `createdAt`, `updatedAt` oder `__v` aus. Die Vertragsprüfung akzeptiert sie, verändert oder entfernt sie aber nicht. UI-Modelle werden explizit aus den Transportdaten abgeleitet, etwa `_id` zu `id` und nullable Namen zu Platzhaltern. Zusammengesetzte Formtypen, etwa Mitgliedsdaten plus Kontorolle, bleiben im Web und werden auf getrennte HTTP-Requests abgebildet.
 
@@ -57,7 +59,7 @@ Begriffe, Pflichten für spätere Recurrence- und Bank-Adapter, Rollout/Backout 
 
 ## Activity-/Event-Vertrag (`activity.ts`)
 
-Der Event-Plattformvertrag (Katalog, Envelope, Decoder, Renderer, Read-DTOs) steht in [activity.ts](../../packages/contracts/src/activity.ts), die Entscheidungen im [ADR](event-platform-adr.md). Es gibt bewusst kein Schema zum Anlegen von Events durch Clients. Die Route `GET /api/accounts/:accountId/activity` ist noch nicht implementiert und deshalb nicht in `endpoints.ts`; OpenAPI enthält vorerst nur die Schemas unter `components.schemas`.
+Der Event-Plattformvertrag (Katalog, Envelope, Decoder, Renderer, Read-DTOs) steht in [activity.ts](../../packages/contracts/src/activity.ts), die Entscheidungen im [ADR](event-platform-adr.md). Es gibt bewusst kein Schema zum Anlegen von Events durch Clients. Seit E06 ist `GET /api/accounts/:accountId/activity` in `endpoints.ts` enthalten; E07 erweitert die publizierten Code-/Payload-/Readschemas additiv. Ohne neue Domain-Liveauflösung bleiben Recurrence-Details minimiert und linkfrei.
 
 ## OpenAPI und Fehlererkennung
 

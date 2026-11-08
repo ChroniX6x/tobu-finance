@@ -2,7 +2,13 @@
 
 Stand: 03.11.2026. Arbeitsplan für den Nutzer; keine Feature-Implementierung und kein Schritt-GO. Die externen Dokumente wurden für diese Planung gezielt ausgewertet, nicht vollständig fachlich auditiert. Umsetzungsstatus muss am jeweiligen Code-SHA geprüft werden.
 
-## Aktueller Einstieg: Eventplattform E00
+## Aktueller Übergabestand: E07 abgeschlossen (08.11.2026)
+
+**E07 A/Q PASS**, einschließlich unabhängigem Abschlussreview. Verbindlicher Einstieg für folgende Agents: [E07-Bericht mit Plattform-/Domain-Testmatrix und offenen Grenzen](runs/E07.md), [vollständige Änderungsdateiliste](runs/E07-changed-files.md) und [zentrale offene Punkte](../migration/open-issues.md). Die älteren Einstiegsangaben unten sind historisch. Tatsächlichen Branch/HEAD/Dirty-Status und Quellenänderungen erneut prüfen.
+
+Als Nächstes ist E08 vorgesehen, ausschließlich nach eigenem GO; danach E09 mit seinen vollständigen Voraussetzungen. EIT25–30 sind nur auf E07-Plattformebene PASS; echte Recurrence-Domain-/HTTP-/Ensure-/FullDelete-Nachweise bleiben bis V08–V28 separat NOT-RUN/BLOCKED. EIT35/TZ gehören zu P04 vor D07. H08-/ACL-/AUTH-/API-, Dependency-, CI- und Betriebsrestpunkte mit ihren dokumentierten Fälligkeiten übernehmen, nicht durch E07 als erledigt behandeln. Keine automatische Folgeimplementierung, Bestandsmigration oder Deploymentfreigabe.
+
+## Historischer Einstieg: Eventplattform E00 (03.11.2026)
 
 Laut Nutzer am 03.11.2026 ist **Date/Month abgeschlossen; als Nächstes folgt E00 der Eventplattform**. P00 bleibt abgeschlossen. Keine H-Schritte für die Einführung dieses Sparplans neu starten. [H08-Abschluss](runs/H08-ABSCHLUSS.md) dokumentiert Q-PASS und A-PASS mit ausdrücklich freigegebenen Ausnahmen, keine uneingeschränkte Freigabe aller Folgegates. [H09](runs/H09.md) und [Schnittstellen-Handover](../architecture/recurrence-handover.md) liefern Navigation. Vor E00 tatsächlichen Code-/Quellenstand und Belege abgleichen; die lokale Dokumentation belegt keinen neuen CI-Lauf. H08-Ausnahmen mit ihren Fälligkeiten übernehmen, insbesondere offene Vor-E09-Punkte. E00–E09 jeweils nur nach eigenem GO ausführen.
 

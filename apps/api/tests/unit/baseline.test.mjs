@@ -4,7 +4,7 @@ import snapshot from '../../dist/src/database/baseline/2026-10-v1.json' with { t
 import { databaseModels } from '../../dist/src/database/models.js';
 import { migrations } from '../../dist/src/database/migration-catalog.js';
 
-test('frozen baseline plus explicit additive E03/E05 changes represents current models and migrated validators', () => {
+test('frozen baseline plus explicit additive E03/E05/E07 changes represents current models and migrated validators', () => {
     // When models evolve, replace this comparison with the expected migrated schema test.
     // Never regenerate the historical snapshot to make a future model change pass.
     const current = databaseModels.map((model) => ({ name: model.collection.name, validator: { $jsonSchema: model.schema.toJSONSchema({ useBsonType: true }) }, indexes: model.schema.indexes().map(([key, options]) => ({ key, ...options })) }));
@@ -31,6 +31,12 @@ test('frozen baseline plus explicit additive E03/E05 changes represents current 
     const migratedMember = structuredClone(snapshot.find((item) => item.name === 'members'));
     migratedMember.validator.$jsonSchema.properties.createdByUserId = { bsonType: 'objectId' };
     assert.deepEqual(memberMigration.schemaChanges.members, migratedMember);
+    const recurrenceMigration = migrations.find((entry) => entry.id === '20261108172127336-recurrence-activity-primitives').migration;
+    assert.deepEqual(recurrenceMigration.namespaces, ['events']);
+    assert.deepEqual(Object.keys(recurrenceMigration.schemaChanges), ['events']);
+    assert.deepEqual(recurrenceMigration.schemaChanges.events.indexes, memberMigration.schemaChanges.events.indexes);
+    assert.equal(recurrenceMigration.schemaChanges.events.validator.$and[1].$or[1].$and[0].$jsonSchema.oneOf.length, 44);
+    assert.equal(memberMigration.schemaChanges.events.validator.$and[1].$or[1].$and[0].$jsonSchema.oneOf.length, 32, 'historical E05 validator stays frozen');
     const event = current.find((item) => item.name === 'events');
     const legacy = snapshot.find((item) => item.name === 'events');
     assert.deepEqual(event.validator.$jsonSchema.required, legacy.validator.$jsonSchema.required);

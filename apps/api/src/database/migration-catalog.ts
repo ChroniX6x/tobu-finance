@@ -3,8 +3,10 @@ import type { MigrationEntry } from './migration-types.js';
 import { migration as m0 } from './migrations/20261105221750028-event-envelope.js';
 import { migration as m1 } from './migrations/20261107163516618-member-activity.js';
 import { migration as m2 } from './migrations/20261107182346881-domain-writer-revisions.js';
+import { migration as m3 } from './migrations/20261108172127336-recurrence-activity-primitives.js';
 export const migrations: MigrationEntry[] = [
     { id: '20261105221750028-event-envelope', checksum: '1da2d9100f529c619a6d1e4a6b34e4cee9ca372b2019ec2e5fdf2b41f42e7809', migration: m0 },
     { id: '20261107163516618-member-activity', checksum: '3264c2c22d99edcc1d3f70b0ad8278c2b77f6a1e0371ae13531dd72a5afdda70', migration: m1 },
-    { id: '20261107182346881-domain-writer-revisions', checksum: '0362fa53100014066788d45a6cebe7f6170fb7e45bb9947fc2637a0b14c28748', migration: m2 }
+    { id: '20261107182346881-domain-writer-revisions', checksum: '0362fa53100014066788d45a6cebe7f6170fb7e45bb9947fc2637a0b14c28748', migration: m2 },
+    { id: '20261108172127336-recurrence-activity-primitives', checksum: '846102962ae9fe33b1cd0e40369e6fab33d8caba84a1623ba0b53b893aec87ad', migration: m3 }
 ];

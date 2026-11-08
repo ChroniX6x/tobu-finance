@@ -21,6 +21,7 @@ import { resolveAccountContext } from '../auth/account-context.js';
 import Account from '../models/Account.js';
 import Member from '../models/Member.js';
 import Event from '../models/Event.js';
+import { isRecurrenceActivityCode } from '@tobu/contracts/activity';
 import { ACTIVITY_READ_INDEX, activityStorageRanges } from './activity-storage.js';
 
 export class ActivityReadError extends Error {
@@ -64,7 +65,7 @@ function readCursor(token: string, accountId: string, filter: string) {
         return fail(422, 'INVALID_ACTIVITY_CURSOR');
     }
 }
-const collections: Record<ActivitySubjectKind, string> = {
+const collections: Record<Exclude<ActivitySubjectKind, 'recurrence' | 'occurrence'>, string> = {
     account: 'accounts',
     member: 'members',
     transaction: 'transactions',
@@ -86,10 +87,12 @@ const subjectNames: Record<ActivitySubjectKind, string> = {
     categoryBudget: 'Budget',
     carryOver: 'Übertrag',
     accountBalance: 'Kontostand',
-    legacyRecurrence: 'Wiederkehrende Buchung'
+    legacyRecurrence: 'Wiederkehrende Buchung',
+    recurrence: 'Buchungsvorlage',
+    occurrence: 'Vorlagenvorkommen'
 };
 const referenceKind: Record<string, ActivitySubjectKind> = { transactionId: 'transaction', parentTransactionId: 'transaction', categoryId: 'category', memberId: 'member', ruleId: 'contributionRule' };
-const provenanceCodes: Record<ActivitySubjectKind, string[]> = {
+const provenanceCodes: Record<Exclude<ActivitySubjectKind, 'recurrence' | 'occurrence'>, string[]> = {
     account: ['account.created'],
     member: ['account.member.added'],
     transaction: ['transaction.created', 'transaction.splitChildCreated'],
@@ -179,7 +182,7 @@ export async function readAccountActivity(req: Request, accountIdInput: unknown,
                     after = { v: 1, accountId, date: item.occurredAt, id: item.id, filter };
                     if (item.actor.kind === 'user') item.actor = { kind: 'user', ...(byUser.get(value.refs.actorUserId ?? '') ?? { memberId: null, displayName: null }) };
                     if (value.refs.initiatedByUserId) item.trigger.initiatedBy = byUser.get(value.refs.initiatedByUserId) ?? { memberId: null, displayName: null };
-                    if (refsOf(item).some((ref) => !scope.allowed.has(ref.kind + ':' + ref.id))) {
+                    if (isRecurrenceActivityCode(item.code) || refsOf(item).some((ref) => !scope.allowed.has(ref.kind + ':' + ref.id))) {
                         item.subject = null;
                         item.params = null;
                         item.detailsUnavailable = true;
@@ -231,6 +234,9 @@ async function referenceScope(items: ActivityItem[], accountId: string, memberId
     const allowed = new Set<string>(),
         live = new Set<string>();
     for (const [kind, ids] of requested) {
+        // No production E07 domain resolver exists yet. Never alias identities to the legacy collection.
+        // All new-code params, including revision and old/new occurrence IDs, are withheld above.
+        if (kind === 'recurrence' || kind === 'occurrence') continue;
         let ownIds: Set<string>;
         if (kind === 'member' || kind === 'account') ownIds = new Set([...ids].filter((id) => (kind === 'member' ? memberIds.has(id) : id === accountId)));
         else {

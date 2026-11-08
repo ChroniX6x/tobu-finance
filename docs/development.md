@@ -1,5 +1,7 @@
 # Entwicklung ab Phase 3
 
+E07: [Recurrence-Activity-Primitiven](architecture/recurrence-activity-primitives.md), neue additive Eventvalidator-Migration ohne Backfill. Keine neue Domainroute/Ensure-Logik. Vor Nutzung bestehender Datenbanken separat den Migrationshandover befolgen; kein automatisches Anwenden durch `dev` oder GET.
+
 Account-Activity E06: [Read-API, Desktop-/Mobile-Ansicht, Cursor/Privacy und Diagnose](architecture/activity-read.md). Keine Migration/Ensure bei GET. Bei422 Filter/Cursor zurücksetzen; bei503 unlesbare Events read-only diagnostizieren, niemals beim GET reparieren.
 
 **E05:** Vor direkter API-Nutzung die neue [Domainbeleg-Verhandlung und Fehler-Recovery](architecture/activity-rollout.md) beachten (428 ohne Writes, signierter Create-/Mutation-Beleg, stale Revision 409). Der Webinterceptor übernimmt das auf same-origin `/api`. Neue Checkpoints/Belege liegen nur in der Browsersitzung, Access-Tokens weiter im Arbeitsspeicher. Zwei additive neue Migrationen ergänzen Validatoren ohne Backfill; Bestandsanwendung ausschließlich separat gemäß [Migrationshandover](database/migration-handover.md). E05 implementiert kein neues Recurrence-MVP und keine Account-Zonenroute.

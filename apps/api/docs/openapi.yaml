@@ -1765,6 +1765,667 @@ components:
               $ref: "#/components/schemas/ActivityItem___schema12"
             code:
               type: string
+              const: recurrence.created
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    revisionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    title:
+                      $ref: "#/components/schemas/ActivityItem___schema15"
+                  required:
+                    - recurrenceId
+                    - revisionId
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: recurrence.config.updated
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    revisionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    previousRevisionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    changedFields:
+                      minItems: 1
+                      maxItems: 10
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                          - title
+                          - type
+                          - expectedAmountMinor
+                          - categoryId
+                          - source
+                          - paidByMemberId
+                          - startMonth
+                          - intervalMonths
+                          - dayOfMonth
+                          - notes
+                  required:
+                    - recurrenceId
+                    - revisionId
+                    - changedFields
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: recurrence.activated
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                  required:
+                    - recurrenceId
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: recurrence.deactivated
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                  required:
+                    - recurrenceId
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: recurrence.revision.discarded
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    revisionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    restoredRevisionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                  required:
+                    - recurrenceId
+                    - revisionId
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: recurrence.deleted
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                  required:
+                    - recurrenceId
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: occurrence.generated
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    revisionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    occurrenceKey:
+                      $ref: "#/components/schemas/ActivityItem___schema20"
+                    transactionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                  required:
+                    - recurrenceId
+                    - revisionId
+                    - occurrenceKey
+                    - transactionId
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: occurrence.skipped
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    occurrenceKey:
+                      $ref: "#/components/schemas/ActivityItem___schema20"
+                  required:
+                    - recurrenceId
+                    - occurrenceKey
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: occurrence.unskipped
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    occurrenceKey:
+                      $ref: "#/components/schemas/ActivityItem___schema20"
+                    choice:
+                      type: string
+                      enum:
+                        - generate
+                        - release
+                  required:
+                    - recurrenceId
+                    - occurrenceKey
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: occurrence.linked
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    occurrenceKey:
+                      $ref: "#/components/schemas/ActivityItem___schema20"
+                    transactionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                  required:
+                    - recurrenceId
+                    - occurrenceKey
+                    - transactionId
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: occurrence.reassigned
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    occurrenceKey:
+                      $ref: "#/components/schemas/ActivityItem___schema20"
+                    transactionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    previousRecurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    previousOccurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    previousOccurrenceKey:
+                      $ref: "#/components/schemas/ActivityItem___schema20"
+                  required:
+                    - recurrenceId
+                    - occurrenceKey
+                    - transactionId
+                    - previousRecurrenceId
+                    - previousOccurrenceId
+                    - previousOccurrenceKey
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
+              const: occurrence.unlinked
+            params:
+              anyOf:
+                - type: object
+                  properties:
+                    recurrenceId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    occurrenceKey:
+                      $ref: "#/components/schemas/ActivityItem___schema20"
+                    transactionId:
+                      $ref: "#/components/schemas/ActivityItem___schema0"
+                    choice:
+                      type: string
+                      enum:
+                        - generate
+                        - release
+                  required:
+                    - recurrenceId
+                    - occurrenceKey
+                    - transactionId
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            detailsUnavailable:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            group:
+              $ref: "#/components/schemas/ActivityItem___schema9"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema12"
+            code:
+              type: string
               const: legacy.unknown
             params:
               type: object
@@ -1879,6 +2540,8 @@ components:
                 - carryOver
                 - accountBalance
                 - legacyRecurrence
+                - recurrence
+                - occurrence
             id:
               $ref: "#/components/schemas/ActivityItem___schema0"
             deleted:
@@ -2028,6 +2691,18 @@ components:
                 - legacyRecurrence.created
                 - legacyRecurrence.updated
                 - legacyRecurrence.deleted
+                - recurrence.created
+                - recurrence.config.updated
+                - recurrence.activated
+                - recurrence.deactivated
+                - recurrence.revision.discarded
+                - recurrence.deleted
+                - occurrence.generated
+                - occurrence.skipped
+                - occurrence.unskipped
+                - occurrence.linked
+                - occurrence.reassigned
+                - occurrence.unlinked
             - type: string
               const: legacy.unknown
         subjectKind:
@@ -2043,6 +2718,8 @@ components:
             - carryOver
             - accountBalance
             - legacyRecurrence
+            - recurrence
+            - occurrence
         subjectId:
           type: string
           pattern: ^[a-f\d]{24}$
@@ -2532,6 +3209,18 @@ paths:
                   - legacyRecurrence.created
                   - legacyRecurrence.updated
                   - legacyRecurrence.deleted
+                  - recurrence.created
+                  - recurrence.config.updated
+                  - recurrence.activated
+                  - recurrence.deactivated
+                  - recurrence.revision.discarded
+                  - recurrence.deleted
+                  - occurrence.generated
+                  - occurrence.skipped
+                  - occurrence.unskipped
+                  - occurrence.linked
+                  - occurrence.reassigned
+                  - occurrence.unlinked
               - type: string
                 const: legacy.unknown
         - name: subjectKind
@@ -2550,6 +3239,8 @@ paths:
               - carryOver
               - accountBalance
               - legacyRecurrence
+              - recurrence
+              - occurrence
         - name: subjectId
           in: query
           required: false
@@ -2694,6 +3385,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -2881,6 +3574,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -3072,6 +3767,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -3256,6 +3953,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -3441,6 +4140,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -3664,6 +4365,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -3853,6 +4556,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -4026,6 +4731,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -4202,6 +4909,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -4387,6 +5096,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -4563,6 +5274,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -4733,6 +5446,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -4909,6 +5624,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -5083,6 +5800,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -5252,6 +5971,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -5433,6 +6154,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -5612,6 +6335,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -5786,6 +6511,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -5960,6 +6687,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -6129,6 +6858,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -6309,6 +7040,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -6489,6 +7222,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -6664,6 +7399,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -6838,6 +7575,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -7012,6 +7751,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -7181,6 +7922,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -7361,6 +8104,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -7536,6 +8281,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -7712,6 +8459,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -7883,6 +8632,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -8051,6 +8802,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -8219,6 +8972,8 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$
@@ -8387,6 +9142,2166 @@ paths:
                                         - carryOver
                                         - accountBalance
                                         - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: recurrence.created
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    revisionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    title:
+                                      type: string
+                                      minLength: 1
+                                      maxLength: 120
+                                  required:
+                                    - recurrenceId
+                                    - revisionId
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: recurrence.config.updated
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    revisionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    previousRevisionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    changedFields:
+                                      minItems: 1
+                                      maxItems: 10
+                                      type: array
+                                      items:
+                                        type: string
+                                        enum:
+                                          - title
+                                          - type
+                                          - expectedAmountMinor
+                                          - categoryId
+                                          - source
+                                          - paidByMemberId
+                                          - startMonth
+                                          - intervalMonths
+                                          - dayOfMonth
+                                          - notes
+                                  required:
+                                    - recurrenceId
+                                    - revisionId
+                                    - changedFields
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: recurrence.activated
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                  required:
+                                    - recurrenceId
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: recurrence.deactivated
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                  required:
+                                    - recurrenceId
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: recurrence.revision.discarded
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    revisionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    restoredRevisionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                  required:
+                                    - recurrenceId
+                                    - revisionId
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: recurrence.deleted
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                  required:
+                                    - recurrenceId
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: occurrence.generated
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    revisionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    occurrenceKey:
+                                      type: string
+                                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
+                                    transactionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                  required:
+                                    - recurrenceId
+                                    - revisionId
+                                    - occurrenceKey
+                                    - transactionId
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: occurrence.skipped
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    occurrenceKey:
+                                      type: string
+                                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
+                                  required:
+                                    - recurrenceId
+                                    - occurrenceKey
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: occurrence.unskipped
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    occurrenceKey:
+                                      type: string
+                                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
+                                    choice:
+                                      type: string
+                                      enum:
+                                        - generate
+                                        - release
+                                  required:
+                                    - recurrenceId
+                                    - occurrenceKey
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: occurrence.linked
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    occurrenceKey:
+                                      type: string
+                                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
+                                    transactionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                  required:
+                                    - recurrenceId
+                                    - occurrenceKey
+                                    - transactionId
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: occurrence.reassigned
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    occurrenceKey:
+                                      type: string
+                                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
+                                    transactionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    previousRecurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    previousOccurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    previousOccurrenceKey:
+                                      type: string
+                                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
+                                  required:
+                                    - recurrenceId
+                                    - occurrenceKey
+                                    - transactionId
+                                    - previousRecurrenceId
+                                    - previousOccurrenceId
+                                    - previousOccurrenceKey
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
+                                    id:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    deleted:
+                                      type: boolean
+                                    label:
+                                      type: string
+                                      maxLength: 120
+                                  required:
+                                    - kind
+                                    - id
+                                    - deleted
+                                  additionalProperties: false
+                                - type: "null"
+                            detailsUnavailable:
+                              type: boolean
+                              const: true
+                            group:
+                              type: object
+                              properties:
+                                key:
+                                  type: string
+                                  pattern: ^[a-f\d]{64}$
+                                source:
+                                  type: string
+                                  enum:
+                                    - batch
+                                    - command
+                                scope:
+                                  type: string
+                                  const: loaded_only
+                              required:
+                                - key
+                                - source
+                                - scope
+                              additionalProperties: false
+                            correlationId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            batchId:
+                              type: string
+                              pattern: ^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$
+                            code:
+                              type: string
+                              const: occurrence.unlinked
+                            params:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    recurrenceId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    occurrenceKey:
+                                      type: string
+                                      pattern: ^[1-9]\d{3}-(0[1-9]|1[0-2])$
+                                    transactionId:
+                                      type: string
+                                      pattern: ^[a-f\d]{24}$
+                                    choice:
+                                      type: string
+                                      enum:
+                                        - generate
+                                        - release
+                                  required:
+                                    - recurrenceId
+                                    - occurrenceKey
+                                    - transactionId
+                                  additionalProperties: false
+                                - type: "null"
+                          required:
+                            - id
+                            - accountId
+                            - occurredAt
+                            - schemaVersion
+                            - actor
+                            - trigger
+                            - subject
+                            - code
+                            - params
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            accountId:
+                              type: string
+                              pattern: ^[a-f\d]{24}$
+                            occurredAt:
+                              type: string
+                              format: date-time
+                              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            schemaVersion:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            actor:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: user
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - kind
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: system
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      const: unknown
+                                  required:
+                                    - kind
+                                  additionalProperties: false
+                            trigger:
+                              type: object
+                              properties:
+                                kind:
+                                  type: string
+                                  enum:
+                                    - user_action
+                                    - account_open
+                                    - automation
+                                    - system_reconciliation
+                                    - unknown
+                                initiatedBy:
+                                  type: object
+                                  properties:
+                                    memberId:
+                                      anyOf:
+                                        - type: string
+                                          pattern: ^[a-f\d]{24}$
+                                        - type: "null"
+                                    displayName:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 120
+                                        - type: "null"
+                                  required:
+                                    - memberId
+                                    - displayName
+                                  additionalProperties: false
+                              required:
+                                - kind
+                              additionalProperties: false
+                            subject:
+                              anyOf:
+                                - type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      enum:
+                                        - account
+                                        - member
+                                        - transaction
+                                        - category
+                                        - memberIncome
+                                        - contributionRule
+                                        - categoryBudget
+                                        - carryOver
+                                        - accountBalance
+                                        - legacyRecurrence
+                                        - recurrence
+                                        - occurrence
                                     id:
                                       type: string
                                       pattern: ^[a-f\d]{24}$

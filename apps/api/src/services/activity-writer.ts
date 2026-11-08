@@ -3,7 +3,8 @@ import { isDeepStrictEqual } from 'node:util';
 import mongoose, { Types, type ClientSession } from 'mongoose';
 import { MongoOperationTimeoutError } from 'mongodb';
 import { DateTime } from 'luxon';
-import { ActivityWriteEventSchema, clipActivityText, ACTIVITY_TITLE_MAX, ACTIVITY_NAME_MAX, type ActivityCode, type ActivityParams, type ActivitySubjectKind, type ActivityWriteEvent } from '@tobu/contracts/activity';
+import { ActivityWriteEventSchema, clipActivityText, ACTIVITY_TITLE_MAX, ACTIVITY_NAME_MAX, isRecurrenceActivityCode, type ActivityCode, type ActivityParams, type ActivitySubjectKind, type ActivityWriteEvent } from '@tobu/contracts/activity';
+import { checkRecurrenceActivityScope, isRecurrenceActivityScope, type RecurrenceScopePort } from './recurrence-activity-scope.js';
 import { isTrustedAccountContext, isAccountCreateContext, type AuthorizedContext } from '../auth/account-context.js';
 import { isTrustedSystemActor, type SystemActor } from '../auth/system-actor.js';
 import { User } from '../auth/models.js';
@@ -12,7 +13,7 @@ import Member from '../models/Member.js';
 import Event from '../models/Event.js';
 
 // Collection names are the existing domain collections, never provided by a client.
-const collections: Record<Exclude<ActivitySubjectKind, 'member'>, string> = {
+const collections: Record<Exclude<ActivitySubjectKind, 'member' | 'recurrence' | 'occurrence'>, string> = {
     account: 'accounts',
     transaction: 'transactions',
     category: 'categories',
@@ -26,14 +27,23 @@ const collections: Record<Exclude<ActivitySubjectKind, 'member'>, string> = {
 export type ActivityAuthority = AuthorizedContext | { readonly accountId: string; readonly system: SystemActor };
 export type ActivityIntent = { [C in ActivityCode]: { code: C; subject: { kind: ActivitySubjectKind; id: string }; params: ActivityParams<C> } }[ActivityCode];
 const trustedCommands = new WeakSet<object>();
+const trustedBatches = new WeakSet<object>();
+/** Stable server-owned action identity; never adopt a client batch identifier. */
+export function activityBatch(domainIdentity: string) {
+    if (!domainIdentity.trim()) throw new Error('ACTIVITY_BATCH_IDENTITY_REQUIRED');
+    const batch = Object.freeze({ batchId: createHash('sha256').update('activity-batch:').update(domainIdentity).digest('hex') });
+    trustedBatches.add(batch);
+    return batch;
+}
 
 /** Stable *domain* identity (e.g. object id + expected version/action), never an HTTP body/header key.
  * New non-idempotent creates must allocate/recover a stable domain id before entering this layer.
  * A random new key on every HTTP retry does not provide idempotency and is forbidden by the caller contract.
  */
-export function activityCommand(domainIdentity: string) {
+export function activityCommand(domainIdentity: string, batch?: ReturnType<typeof activityBatch>) {
     if (!domainIdentity.trim()) throw new Error('ACTIVITY_DOMAIN_IDENTITY_REQUIRED');
-    const command = Object.freeze({ commandId: createHash('sha256').update(domainIdentity).digest('hex'), correlationId: randomUUID(), date: DateTime.utc().toJSDate() });
+    if (batch && !trustedBatches.has(batch)) throw new ActivityWriteError('ACTIVITY_UNTRUSTED_BATCH');
+    const command = Object.freeze({ commandId: createHash('sha256').update(domainIdentity).digest('hex'), correlationId: randomUUID(), date: DateTime.utc().toJSDate(), ...(batch ? { batchId: batch.batchId } : {}) });
     trustedCommands.add(command);
     return command;
 }
@@ -87,6 +97,7 @@ async function checkAuthority(context: ActivityAuthority, session?: ClientSessio
 }
 
 async function inAccount(kind: ActivitySubjectKind, id: string, accountId: string, session: ClientSession) {
+    if (kind === 'recurrence' || kind === 'occurrence') throw new ActivityWriteError('ACTIVITY_E07_SCOPE_CAPABILITY_REQUIRED');
     const db = mongoose.connection.db!;
     if (kind === 'member') return !!(await Account.exists({ _id: accountId, 'members.memberId': id }).session(session));
     const filter = kind === 'account' ? { _id: new Types.ObjectId(id) } : { _id: new Types.ObjectId(id), accountId: new Types.ObjectId(accountId) };
@@ -95,8 +106,12 @@ async function inAccount(kind: ActivitySubjectKind, id: string, accountId: strin
 const removed = (code: string) => /\.(deleted|removed)$|Deleted$/.test(code);
 const created = (code: string) => /\.(created|added|set)$|Created$/.test(code);
 
-async function checkScope(events: ActivityWriteEvent[], session: ClientSession, phase: 'before' | 'after') {
+async function checkScope(events: ActivityWriteEvent[], session: ClientSession, phase: 'before' | 'after', scope?: RecurrenceScopePort) {
     for (const event of events) {
+        if (isRecurrenceActivityCode(event.code)) {
+            await checkRecurrenceActivityScope(scope!, event, session, phase);
+            continue;
+        }
         if ((phase === 'before' && !created(event.code)) || (phase === 'after' && !removed(event.code))) {
             if (!(await inAccount(event.subject.kind, event.subject.id, event.accountId, session))) throw new ActivityWriteError('ACTIVITY_SUBJECT_NOT_IN_ACCOUNT');
         }
@@ -113,15 +128,27 @@ async function checkScope(events: ActivityWriteEvent[], session: ClientSession, 
     }
 }
 
-function prepare(context: ActivityAuthority, command: Command, intents: readonly ActivityIntent[]) {
+function prepare(context: ActivityAuthority, command: Command, intents: readonly ActivityIntent[], scope?: RecurrenceScopePort) {
     const auth = authority(context);
+    const recurrenceIntents = intents.filter((intent) => isRecurrenceActivityCode(intent.code));
+    if (recurrenceIntents.length) {
+        if (!isRecurrenceActivityScope(scope)) throw new ActivityWriteError('ACTIVITY_E07_SCOPE_CAPABILITY_REQUIRED');
+        if (auth.actor.kind === 'system' && recurrenceIntents.some((intent) => intent.code !== 'occurrence.generated')) throw new ActivityWriteError('ACTIVITY_E07_USER_REQUIRED');
+        if (recurrenceIntents.some((intent) => ['recurrence.deleted', 'recurrence.revision.discarded'].includes(intent.code)) && (!isTrustedAccountContext(context) || context.account.role !== 'owner'))
+            throw new ActivityWriteError('ACTIVITY_E07_OWNER_REQUIRED');
+        for (const intent of recurrenceIntents)
+            if ('choice' in intent.params && intent.params.choice === 'release' && recurrenceIntents.some((other) => other.code === 'occurrence.generated' && other.subject.id.toLowerCase() === intent.subject.id.toLowerCase()))
+                throw new ActivityWriteError('ACTIVITY_E07_RELEASE_CANNOT_GENERATE');
+    }
     if (!trustedCommands.has(command)) throw new ActivityWriteError('ACTIVITY_UNTRUSTED_COMMAND');
     if (intents.length === 0) throw new ActivityWriteError('ACTIVITY_INTENT_REQUIRED');
     if (isAccountCreateContext(context) && (intents.length !== 1 || intents[0]?.code !== 'account.created')) throw new ActivityWriteError('ACTIVITY_CREATE_CONTEXT_RESTRICTED');
     const events = intents.map((intent) => {
         const params: Record<string, unknown> = { ...intent.params };
+        // Optional E07 references must have the same identity before and after BSON omits undefined values.
+        if (isRecurrenceActivityCode(intent.code)) for (const key of Object.keys(params)) if (params[key] === undefined) delete params[key];
         // HTTP ObjectIds are case-insensitive; the frozen BSON validator stores canonical lower-case ids.
-        for (const key of ['transactionId', 'parentTransactionId', 'categoryId', 'memberId', 'ruleId']) {
+        for (const key of ['transactionId', 'parentTransactionId', 'categoryId', 'memberId', 'ruleId', 'recurrenceId', 'revisionId', 'previousRevisionId', 'restoredRevisionId', 'previousRecurrenceId', 'previousOccurrenceId']) {
             const value = params[key];
             const normalize = (id: unknown) => (typeof id === 'string' && /^[a-f\d]{24}$/i.test(id) ? id.toLowerCase() : id);
             if (value && typeof value === 'object' && !Array.isArray(value)) params[key] = Object.fromEntries(Object.entries(value).map(([side, id]) => [side, normalize(id)]));
@@ -138,6 +165,7 @@ function prepare(context: ActivityAuthority, command: Command, intents: readonly
             accountId: auth.accountId.toLowerCase(),
             commandId: command.commandId,
             correlationId: command.correlationId,
+            ...(command.batchId ? { batchId: command.batchId } : {}),
             date: command.date,
             schemaVersion: 1,
             code: intent.code,
@@ -194,13 +222,20 @@ async function readback(events: ActivityWriteEvent[], ids: Types.ObjectId[], ses
  * mutate must await sequential domain writes with this session and return true only for a real mutation;
  * false means NO writes at all. No network/filesystem side effects in retryable callbacks.
  */
-export async function writeActivityInSession(session: ClientSession, context: ActivityAuthority, command: Command, intents: readonly ActivityIntent[], mutate: (session: ClientSession) => Promise<boolean>): Promise<ActivityResult> {
+export async function writeActivityInSession(
+    session: ClientSession,
+    context: ActivityAuthority,
+    command: Command,
+    intents: readonly ActivityIntent[],
+    mutate: (session: ClientSession) => Promise<boolean>,
+    scope?: RecurrenceScopePort
+): Promise<ActivityResult> {
     if (!session.inTransaction()) throw new ActivityWriteError('ACTIVITY_TRANSACTION_REQUIRED');
-    const { events, ids } = prepare(context, command, intents);
+    const { events, ids } = prepare(context, command, intents, scope);
     await checkAuthority(context, session);
     const prior = await readback(events, ids, session);
     if (prior) return prior;
-    await checkScope(events, session, 'before');
+    await checkScope(events, session, 'before', scope);
     if (!(await mutate(session))) return { outcome: 'noop', eventIds: [] };
     if (isTrustedAccountContext(context)) {
         await lockActivityUser(context.actor.userId, session);
@@ -215,14 +250,14 @@ export async function writeActivityInSession(session: ClientSession, context: Ac
     if (!Number.isSafeInteger(version) || version < 0 || version === Number.MAX_SAFE_INTEGER) throw new ActivityWriteError('ACTIVITY_ACCOUNT_REVISION_INVALID');
     await Account.updateOne({ _id: account._id }, { $set: { updatedAt: command.date, __v: version + 1 } }, { session, timestamps: false });
     if (isAccountCreateContext(context)) await checkAuthority(context, session);
-    await checkScope(events, session, 'after');
+    await checkScope(events, session, 'after', scope);
     for (let index = 0; index < events.length; index++) await Event.create([{ ...events[index], _id: ids[index] }], { session });
     return { outcome: 'applied', eventIds: ids.map(String) };
 }
 
 /** Read-only reconciliation for a caller that owns the outer H02 transaction. */
-export async function reconcileActivity(context: ActivityAuthority, command: Command, intents: readonly ActivityIntent[], session?: ClientSession) {
-    const { events, ids } = prepare(context, command, intents);
+export async function reconcileActivity(context: ActivityAuthority, command: Command, intents: readonly ActivityIntent[], session?: ClientSession, scope?: RecurrenceScopePort) {
+    const { events, ids } = prepare(context, command, intents, scope);
     await checkAuthority(context, session);
     return readback(events, ids, session);
 }
@@ -230,12 +265,12 @@ export async function reconcileActivity(context: ActivityAuthority, command: Com
 /** Same transaction pattern as H02; commit errors are reconciled using durable existing Event _id keys.
  * Duplicate-key after concurrent commands is success ONLY after exact majority readback. No blind replay.
  */
-export async function commitActivity(context: ActivityAuthority, command: Command, intents: readonly ActivityIntent[], mutate: (session: ClientSession) => Promise<boolean>): Promise<ActivityResult> {
-    const { events, ids } = prepare(context, command, intents);
+export async function commitActivity(context: ActivityAuthority, command: Command, intents: readonly ActivityIntent[], mutate: (session: ClientSession) => Promise<boolean>, scope?: RecurrenceScopePort): Promise<ActivityResult> {
+    const { events, ids } = prepare(context, command, intents, scope);
     try {
         // Driver 6 supports timeoutMS here; Mongoose's narrower TransactionOptions omits that field.
         const options = { readConcern: { level: 'snapshot' as const }, writeConcern: { w: 'majority' as const }, maxCommitTimeMS: 5000, timeoutMS: 15000 };
-        return await mongoose.connection.transaction((session) => writeActivityInSession(session, context, command, intents, mutate), options);
+        return await mongoose.connection.transaction((session) => writeActivityInSession(session, context, command, intents, mutate, scope), options);
     } catch (error) {
         // CSOT expiry can replace the last labelled commit error. Treat it conservatively as unknown,
         // including an expiry before commit: absence of a receipt never authorizes a success response.

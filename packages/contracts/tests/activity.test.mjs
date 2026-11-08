@@ -27,6 +27,8 @@ import {
     renderActivityText
 } from '../dist/activity.js';
 import { endpoints } from '../dist/endpoints.js';
+import { recurrenceActivityExamples } from './recurrence-activity-examples.mjs';
+import { isRecurrenceActivityCode } from '../dist/activity.js';
 
 const hex = (n) => String(n).padStart(24, '0');
 const ACCOUNT = hex(1),
@@ -70,9 +72,23 @@ const samples = {
     'accountBalance.removed': { month: '2026-04' },
     'legacyRecurrence.created': { title: 'Netflix' },
     'legacyRecurrence.updated': {},
-    'legacyRecurrence.deleted': { title: 'Netflix' }
+    'legacyRecurrence.deleted': { title: 'Netflix' },
+    ...recurrenceActivityExamples({ recurrence: hex(12), revision: hex(14), previousRevision: hex(15), occurrence: hex(13), previousRecurrence: hex(16), previousOccurrence: hex(17), transaction: TX })
 };
-const subjectIds = { transaction: TX, category: CAT, account: ACCOUNT, member: MEMBER, memberIncome: hex(8), contributionRule: RULE, categoryBudget: hex(9), carryOver: hex(10), accountBalance: hex(11), legacyRecurrence: hex(12) };
+const subjectIds = {
+    transaction: TX,
+    category: CAT,
+    account: ACCOUNT,
+    member: MEMBER,
+    memberIncome: hex(8),
+    contributionRule: RULE,
+    categoryBudget: hex(9),
+    carryOver: hex(10),
+    accountBalance: hex(11),
+    legacyRecurrence: hex(12),
+    recurrence: hex(12),
+    occurrence: hex(13)
+};
 const userActor = { actor: { kind: 'user', userId: USER }, trigger: { kind: 'user_action' } };
 const writeEvent = (code, extra = {}) => {
     const entry = activityCatalog[code];
@@ -82,8 +98,8 @@ const writeEvent = (code, extra = {}) => {
 };
 const stored = (event, extra = {}) => ({ _id: hex(100), createdAt: new Date(), updatedAt: new Date(), __v: 0, ...event, ...extra });
 
-test('catalog: complete, labelled, typed subjects, no recurrence family, legacy codes are a subset', () => {
-    assert.equal(ACTIVITY_CODES.length, 32);
+test('catalog: complete, labelled, typed subjects, twelve explicit E07 primitives, legacy codes are a subset', () => {
+    assert.equal(ACTIVITY_CODES.length, 44);
     assert.deepEqual([...ACTIVITY_CODES].sort(), Object.keys(samples).sort(), 'every code needs a sample (and vice versa)');
     assert.deepEqual([...ACTIVITY_CODES].sort(), Object.keys(activityLabels).sort(), 'every code needs a label');
     for (const code of ACTIVITY_CODES) {
@@ -96,11 +112,11 @@ test('catalog: complete, labelled, typed subjects, no recurrence family, legacy 
     assert.ok(ACTIVITY_NO_EVENT_CASES.length >= 8);
 });
 
-test('write schema: every code accepts a valid user event and a valid system event', () => {
+test('write schema: every code accepts users; E07 system actors are restricted to generated', () => {
     for (const code of ACTIVITY_CODES) {
         assert.equal(ActivityWriteEventSchema.safeParse(writeEvent(code)).success, true, code);
         const system = writeEvent(code, { actor: { kind: 'system' }, trigger: { kind: 'account_open', initiatedByUserId: USER } });
-        assert.equal(ActivityWriteEventSchema.safeParse(system).success, true, `${code} system`);
+        assert.equal(ActivityWriteEventSchema.safeParse(system).success, !isRecurrenceActivityCode(code) || code === 'occurrence.generated', `${code} system`);
         assert.equal(ActivityWriteEventSchema.safeParse(writeEvent(code, { date: '2026-11-04T01:30:00.000Z' })).success, true, `${code} ISO instant`);
     }
 });

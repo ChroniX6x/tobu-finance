@@ -1,5 +1,17 @@
 # Offene Punkte der Transformation
 
+## Aktueller Nachtrag E07 (08.11.2026)
+
+**E07 A/Q PASS**: zwölf Recurrence-Eventprimitiven, enger Writer-Adapter und isolierte generische Mongo-Plattformproben umgesetzt; keine neue produktive Recurrence-Domain/Ensure-/Konto-Zonenroute. Maßgeblich: [E07-Abschlussbericht mit Belegen und zweigeteilter EIT-Matrix](../agents/runs/E07.md), [Integrations-/Betriebsgrenze](../architecture/recurrence-activity-primitives.md). Vollgate17/17 und unabhängiger Review bestanden; dies ist kein neuer CI-/Produktionsnachweis.
+
+Verpflichtend an folgende Agents weitergeben:
+
+- **E08/E09:** unabhängige plattformweite Sicherheits-/Race-/Negativprüfung, Befunde vor dem jeweiligen Gate beheben; E09 verlangt unter anderem passenden clean HEAD und tatsächliche vollständige Prüfbelege. Der E07-Review ersetzt E08 nicht. Jeder Schritt braucht eigenes GO.
+- **V08–V28:** echte Recurrence-Domain-/HTTP-/Ensure-/Revision-/FullDelete-Nachweise zu EIT25–30 samt R-EV/IT/E2E bleiben NOT-RUN/BLOCKED, bis diese Domain implementiert und tatsächlich getestet wird. Generische E07-Fixtures ersetzen diese Nachweise nicht.
+- **P04 vor D07:** Konto-Zonenfeature samt EIT35/TZ separat umsetzen und prüfen; keine offene Nutzer-Fachentscheidung daraus ableiten.
+- **H08/P02 und bestehende Defekte:** EX-07/A17, F3/Drawer, umfassende F5–F8-/AUTH-/P02-Gates, API-001 und Member.userId-Index/Altdatenmehrdeutigkeit/gesonderter Aufräumweg bleiben gemäß [H08-Ausnahmen und Fälligkeiten](../agents/h08-freigegebene-ausnahmen.md) und aktuellen E05/E06-Nachträgen offen. Historische Statusabsätze unten nicht ohne diese neueren Nachträge interpretieren.
+- **Security/Betrieb/Abnahme:** bekannte89Dependencybefunde gesondert bewerten und gezielt freigegebene Updates durchführen; keine pauschalen Baseline-/Versionsänderungen. Produktive S3–S7/S6b, neuer PR-CI-Nachweis und ausdrücklich nicht durchgeführte manuelle Abnahmepunkte bleiben separat. Keine Bestandsmigration/Restore/Deployment ohne gesonderten Auftrag.
+
 ## Aktueller Nachtrag E06 (08.11.2026)
 
 Account-Activity-GET und20er-Vorschau verwenden jetzt denselben aktiven User-/Memberguard und dieselbe sichere Actor-/Legacy-Projektion. Desktop-/Mobile-Read/UI einschließlich Kontextcursor, Filter, gelöschten Subjects und über Seiten geladenen Gruppen ist umgesetzt und mit vollständigem lokalem Gate geprüft: [E06-Bericht](../agents/runs/E06.md), [Read-Handbuch](../architecture/activity-read.md). Das erledigt den E06-Read/UI-Anteil, nicht AUTH-001/002, H08-Ausnahmen, Memberindex/Altdatenbereinigung, P02, E08/E09 oder neue CI-/Produktionsabnahme. Keine Migration oder Legacy-Datenreparatur durch GET.
