@@ -32,6 +32,12 @@ export default [
           import("@/transactions/transactions-page/transactions-page.routes"),
       },
       {
+        path: "activity",
+        data: { breadcrumb: "Aktivitäten" },
+        loadComponent: () =>
+          import("./activity/account-activity").then((m) => m.AccountActivity),
+      },
+      {
         path: "month",
         data: { breadcrumb: "Monat" },
         providers: [provideStates([MonthViewState])],

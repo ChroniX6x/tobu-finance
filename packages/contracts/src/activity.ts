@@ -22,6 +22,8 @@ export const ActivitySubjectKindSchema = z.enum(ActivitySubjectKinds);
 export type ActivitySubjectKind = z.infer<typeof ActivitySubjectKindSchema>;
 
 const Instant = z.string().datetime();
+// BSON instants have millisecond precision. Accept equivalent UTC spellings without rounding finer input.
+const FilterInstant = Instant.refine((value) => !/\.\d{4,}Z$/.test(value), 'At most three fractional second digits');
 /**
  * Free text in params is clipped, never rejected: the writer (E04) must not roll back a valid business mutation because a
  * title is long or empty. Empty after trim means "omit"; longer text is cut by code points.
@@ -205,7 +207,7 @@ const MemberRef = z.strictObject({ memberId: ObjId.nullable(), displayName: z.st
 export const ActivityActorViewSchema = z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('user'), ...MemberRef.shape }), z.strictObject({ kind: z.literal('system') }), z.strictObject({ kind: z.literal('unknown') })]);
 export const ActivityTriggerViewSchema = z.strictObject({ kind: z.enum([...ActivityTriggerKinds, 'unknown']), initiatedBy: MemberRef.optional() });
 /** `deleted` is computed by the server at read time; the UI links a subject only when `deleted` is false. */
-export const ActivitySubjectViewSchema = z.strictObject({ kind: ActivitySubjectKindSchema, id: ObjId, deleted: z.boolean() }).nullable();
+export const ActivitySubjectViewSchema = z.strictObject({ kind: ActivitySubjectKindSchema, id: ObjId, deleted: z.boolean(), label: z.string().max(120).optional() }).nullable();
 
 const itemBase = {
     id: ObjId,
@@ -216,6 +218,10 @@ const itemBase = {
     actor: ActivityActorViewSchema,
     trigger: ActivityTriggerViewSchema,
     subject: ActivitySubjectViewSchema,
+    /** Read-only privacy fallback: no reference ids or params when their account binding cannot be verified. */
+    detailsUnavailable: z.literal(true).optional(),
+    /** Only loaded events may be counted. No completion, planned-total or successful-batch claim. */
+    group: z.strictObject({ key: z.string().regex(/^[a-f\d]{64}$/), source: z.enum(['batch', 'command']), scope: z.literal('loaded_only') }).optional(),
     correlationId: ActivityKeySchema.optional(),
     batchId: ActivityKeySchema.optional()
 };
@@ -229,10 +235,14 @@ const unknownVariant = z.strictObject({
             .optional()
     })
 });
-const itemVariants = ACTIVITY_CODES.map((code) => z.strictObject({ ...itemBase, code: z.literal(code), params: activityCatalog[code].params }));
+const itemVariants = ACTIVITY_CODES.map((code) => z.strictObject({ ...itemBase, code: z.literal(code), params: activityCatalog[code].params.nullable() }));
 type ItemBase = z.infer<z.ZodObject<typeof itemBase>>;
-export type ActivityItem = { [C in ActivityCode]: ItemBase & { code: C; params: ActivityParams<C> } }[ActivityCode] | (ItemBase & { code: typeof LEGACY_UNKNOWN_CODE; params: { typeHint?: string } });
-export const ActivityItemSchema = z.discriminatedUnion('code', [...itemVariants, unknownVariant] as unknown as [typeof unknownVariant, ...(typeof unknownVariant)[]]) as unknown as z.ZodType<ActivityItem>;
+export type ActivityItem = { [C in ActivityCode]: ItemBase & { code: C; params: ActivityParams<C> | null } }[ActivityCode] | (ItemBase & { code: typeof LEGACY_UNKNOWN_CODE; params: { typeHint?: string } });
+export const ActivityItemSchema = z.discriminatedUnion('code', [...itemVariants, unknownVariant] as unknown as [typeof unknownVariant, ...(typeof unknownVariant)[]]).superRefine((item, ctx) => {
+    if ((item.params === null) !== (item.detailsUnavailable === true)) ctx.addIssue({ code: 'custom', message: 'Unavailable details require null params, and vice versa' });
+    if (item.detailsUnavailable && item.subject !== null) ctx.addIssue({ code: 'custom', message: 'Unavailable details cannot expose subject ids' });
+    if (item.schemaVersion !== 1 && (item.group || item.batchId || item.correlationId)) ctx.addIssue({ code: 'custom', message: 'Only validated current events may carry grouping keys' });
+}) as unknown as z.ZodType<ActivityItem>;
 export type ActivityActorView = z.infer<typeof ActivityActorViewSchema>;
 
 export const ActivityPageSchema = z.strictObject({ items: z.array(ActivityItemSchema).max(100), nextCursor: z.string().min(1).max(512).nullable() });
@@ -243,14 +253,14 @@ export const ActivityQuerySchema = z
     .strictObject({
         limit: z.coerce.number().int().min(1).max(100).default(20),
         cursor: z.string().min(1).max(512).optional(),
-        code: ActivityCodeSchema.optional(),
+        code: z.union([ActivityCodeSchema, z.literal(LEGACY_UNKNOWN_CODE)]).optional(),
         subjectKind: ActivitySubjectKindSchema.optional(),
         subjectId: ObjId.optional(),
         actorKind: z.enum(['user', 'system', 'unknown']).optional(),
-        from: Instant.optional(),
-        to: Instant.optional()
+        from: FilterInstant.optional(),
+        to: FilterInstant.optional()
     })
-    .refine((query) => !query.from || !query.to || query.from < query.to, { message: 'from must be before to', path: ['to'] });
+    .refine((query) => !query.from || !query.to || Date.parse(query.from) < Date.parse(query.to), { message: 'from must be before to', path: ['to'] });
 /** Context carried inside the opaque cursor; a cursor of another account or filter set must be rejected with 422 (E06). */
 export const ActivityCursorPayloadSchema = z.strictObject({ v: z.literal(1), accountId: ObjId, date: Instant, id: ObjId, filter: z.string().min(1).max(64) });
 
@@ -421,7 +431,44 @@ export const activityLabels: { [C in ActivityCode]: (params: ActivityParams<C>) 
     'legacyRecurrence.deleted': (p) => `Wiederkehrende Buchung gelöscht${withTitle(p.title)}`
 };
 
-export function renderActivityText(item: { code: string; params: unknown }): string {
+/** Human-readable filter labels, checked exhaustively against the current catalog. */
+export const activityCodeNames: Record<ActivityCode, string> = {
+    'transaction.created': 'Buchung angelegt',
+    'transaction.updated': 'Buchung geändert',
+    'transaction.deleted': 'Buchung gelöscht',
+    'transaction.booked': 'Buchung bestätigt',
+    'transaction.statusChanged': 'Buchungsstatus geändert',
+    'transaction.splitChildCreated': 'Split-Teil angelegt',
+    'transaction.splitChildDeleted': 'Split-Teil gelöscht',
+    'category.created': 'Kategorie angelegt',
+    'category.updated': 'Kategorie geändert',
+    'category.deleted': 'Kategorie gelöscht',
+    'account.created': 'Konto angelegt',
+    'account.settings.updated': 'Kontoeinstellungen geändert',
+    'account.member.added': 'Mitglied hinzugefügt',
+    'account.member.removed': 'Mitglied entfernt',
+    'account.member.roleChanged': 'Mitgliederrolle geändert',
+    'member.updated': 'Mitgliedsdaten geändert',
+    'memberIncome.added': 'Einkommen angelegt',
+    'memberIncome.updated': 'Einkommen geändert',
+    'memberIncome.removed': 'Einkommen entfernt',
+    'contributionRule.added': 'Beitragsregel angelegt',
+    'contributionRule.updated': 'Beitragsregel geändert',
+    'contributionRule.removed': 'Beitragsregel entfernt',
+    'categoryBudget.added': 'Budget angelegt',
+    'categoryBudget.updated': 'Budget geändert',
+    'categoryBudget.removed': 'Budget entfernt',
+    'carryOver.set': 'Übertrag gesetzt',
+    'carryOver.removed': 'Übertrag entfernt',
+    'accountBalance.set': 'Kontostand gesetzt',
+    'accountBalance.removed': 'Kontostand entfernt',
+    'legacyRecurrence.created': 'Wiederkehrende Buchung angelegt',
+    'legacyRecurrence.updated': 'Wiederkehrende Buchung geändert',
+    'legacyRecurrence.deleted': 'Wiederkehrende Buchung gelöscht'
+};
+
+export function renderActivityText(item: { code: string; params: unknown; detailsUnavailable?: true | undefined }): string {
+    if (isActivityCode(item.code) && item.params === null && item.detailsUnavailable) return `${activityCodeNames[item.code]} – Details nicht verfügbar`;
     if (!isActivityCode(item.code)) {
         const typeHint = (item.params as { typeHint?: unknown } | null)?.typeHint;
         return typeof typeHint === 'string' && typeHint ? `Aktivität (${typeHint})` : 'Aktivität';

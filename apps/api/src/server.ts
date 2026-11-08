@@ -33,6 +33,7 @@ import budgets from './routes/category-budgets.js';
 import docsRouter from './docs/swagger.js';
 import accountsSummaryRouter from './routes/accounts-summary.js';
 import accountOverviewRouter from './routes/account-overview.js';
+import accountActivityRouter from './routes/account-activity.js';
 import monthViewRouter from './routes/month-view.js';
 import masterDataRouter from './routes/master-data.js';
 import planningRouter from './routes/planning.js';
@@ -102,6 +103,7 @@ async function bootstrap() {
     // Wichtig: Spezifische account-Routen VOR dem generischen Router!
     app.use('/api/accounts', accountsSummaryRouter);
     app.use('/api/accounts', accountOverviewRouter);
+    app.use('/api/accounts', accountActivityRouter);
     app.use('/api/accounts', monthViewRouter);
     app.use('/api/accounts', masterDataRouter);
     app.use('/api/accounts', planningRouter);

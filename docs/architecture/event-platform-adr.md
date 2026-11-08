@@ -1,5 +1,7 @@
 # ADR: Event-/Activity-Plattform (E01)
 
+**Umsetzungsnachtrag E06,08.11.2026:** Der folgende Text hält den E01-Entscheidungsstand fest. E05 hat den Katalog auf32Codes erweitert; E06 implementiert nun den autorisierten GET, die identisch geschützte20er-Vorschau und die Desktop-/Mobile-Ansicht. Aktueller [Read-/Cursor-/Privacyvertrag](activity-read.md) und [A/Q-Bericht E06](../agents/runs/E06.md). Keine Recurrence-Engine oder pauschale Schließung der unten genannten Folgegates.
+
 Stand: 04.11.2026, Schritt E01 (Eventplan Kapitel 6 E01, §§22–24, Buchungsvorlagenplan §61). Dieses Dokument legt den **Vertrag** fest. Es führt keinen Writer, keine Route, keine Persistenzänderung und keine Migration ein; die Umsetzung folgt in E02–E07. Quelle der ausführbaren Schemas: [activity.ts](../../packages/contracts/src/activity.ts), Tests: [activity.test.mjs](../../packages/contracts/tests/activity.test.mjs). Iststand vor E01: [E00.md](../agents/runs/E00.md).
 
 ## Entscheidung
@@ -11,18 +13,18 @@ Stand: 04.11.2026, Schritt E01 (Eventplan Kapitel 6 E01, §§22–24, Buchungsvo
 
 ## Persistiertes Envelope (neue Events)
 
-| Feld | Regel |
-| --- | --- |
-| `accountId` | ObjectId, Pflicht, unveränderlich (INV-SCOPE). Referenzierte Entität gehört demselben Konto. |
-| `date` | BSON Date (UTC-Instant), Pflicht; vom Server gesetzt. |
-| `code` | Eintrag des Katalogs (siehe unten). Reservierte Familien `recurrence.*`, `occurrence.*` gehören E07 und werden vorher abgelehnt. |
-| `schemaVersion` | `1`. Nicht erkannte Versionen werden beim Lesen als unbekannt behandelt. |
-| `actor` | `{kind:'user', userId}` (JWT `sub`, serverseitig geprüft) oder `{kind:'system'}`. `legacy_unknown` ist **nie speicherbar**. |
-| `trigger` | `user_action` (nur mit user-Actor) oder `account_open` / `automation` / `system_reconciliation` (nur mit system-Actor), optional `initiatedByUserId` nur bei system. |
-| `subject` | `{kind, id}`: das geänderte Fachobjekt. `kind` ist durch den Code festgelegt; `id` muss dem Code-Parameter (z. B. `transactionId`) bzw. `accountId` entsprechen. |
-| `params` | strikt whitelisted pro Code; unbekannte Keys werden abgelehnt. |
-| `commandId`, `correlationId`, `batchId` | optional, 8–64 Zeichen `[A-Za-z0-9._:-]`, **nur server erzeugt** (Regeln unten). |
-| `createdByMemberId` | Legacy-Spalte. Neue Events setzen sie nicht (fehlt oder `null`); sie ist nie ein Actor. |
+| Feld                                    | Regel                                                                                                                                                                |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `accountId`                             | ObjectId, Pflicht, unveränderlich (INV-SCOPE). Referenzierte Entität gehört demselben Konto.                                                                         |
+| `date`                                  | BSON Date (UTC-Instant), Pflicht; vom Server gesetzt.                                                                                                                |
+| `code`                                  | Eintrag des Katalogs (siehe unten). Reservierte Familien `recurrence.*`, `occurrence.*` gehören E07 und werden vorher abgelehnt.                                     |
+| `schemaVersion`                         | `1`. Nicht erkannte Versionen werden beim Lesen als unbekannt behandelt.                                                                                             |
+| `actor`                                 | `{kind:'user', userId}` (JWT `sub`, serverseitig geprüft) oder `{kind:'system'}`. `legacy_unknown` ist **nie speicherbar**.                                          |
+| `trigger`                               | `user_action` (nur mit user-Actor) oder `account_open` / `automation` / `system_reconciliation` (nur mit system-Actor), optional `initiatedByUserId` nur bei system. |
+| `subject`                               | `{kind, id}`: das geänderte Fachobjekt. `kind` ist durch den Code festgelegt; `id` muss dem Code-Parameter (z. B. `transactionId`) bzw. `accountId` entsprechen.     |
+| `params`                                | strikt whitelisted pro Code; unbekannte Keys werden abgelehnt.                                                                                                       |
+| `commandId`, `correlationId`, `batchId` | optional, 8–64 Zeichen `[A-Za-z0-9._:-]`, **nur server erzeugt** (Regeln unten).                                                                                     |
+| `createdByMemberId`                     | Legacy-Spalte. Neue Events setzen sie nicht (fehlt oder `null`); sie ist nie ein Actor.                                                                              |
 
 Verschachtelte IDs (`actor.userId`, `subject.id`, ID-Params) werden als 24-stelliger Hex-String gespeichert, wie die bisherigen Params; `accountId` bleibt ObjectId. Der Decoder akzeptiert beides.
 
@@ -32,14 +34,14 @@ Verschachtelte IDs (`actor.userId`, `subject.id`, ID-Params) werden als 24-stell
 
 31 Codes in `activityCatalog` (Quelle der Wahrheit; Renderer, Schemas und Tests sind per Typ/Test an diese Liste gebunden). Persistierte Param-Namen der 16 bestehenden Codes bleiben unverändert, damit Altevents mit demselben Schema lesbar sind.
 
-| Familie | Codes (Subject) |
-| --- | --- |
-| Transaktion | `transaction.created`, `.splitChildCreated`, `.booked`, `.statusChanged`, `.updated`*, `.deleted`*, `.splitChildDeleted` (transaction) |
-| Kategorie | `category.created`*, `.updated`*, `.deleted`* (category) |
-| Konto | `account.created`*, `account.settings.updated`* (account); `account.member.added`, `.removed`, `.roleChanged`* (member) |
-| Einkommen / Regeln / Budget | `memberIncome.added/updated/removed`, `contributionRule.added/updated/removed`, `categoryBudget.added/updated/removed` |
-| Überträge / Salden | `carryOver.set`*, `.removed`*, `accountBalance.set`*, `.removed`* (Upsert: ein Code `set`, da Anlegen und Ändern nicht unterscheidbar sind) |
-| Legacy-Recurrence-CRUD | `legacyRecurrence.created/updated/deleted`* (nur bestehende Route; **kein** DEC-0052-Code) |
+| Familie                     | Codes (Subject)                                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Transaktion                 | `transaction.created`, `.splitChildCreated`, `.booked`, `.statusChanged`, `.updated`_, `.deleted`_, `.splitChildDeleted` (transaction)      |
+| Kategorie                   | `category.created`_, `.updated`_, `.deleted`\* (category)                                                                                   |
+| Konto                       | `account.created`_, `account.settings.updated`_ (account); `account.member.added`, `.removed`, `.roleChanged`\* (member)                    |
+| Einkommen / Regeln / Budget | `memberIncome.added/updated/removed`, `contributionRule.added/updated/removed`, `categoryBudget.added/updated/removed`                      |
+| Überträge / Salden          | `carryOver.set`_, `.removed`_, `accountBalance.set`_, `.removed`_ (Upsert: ein Code `set`, da Anlegen und Ändern nicht unterscheidbar sind) |
+| Legacy-Recurrence-CRUD      | `legacyRecurrence.created/updated/deleted`\* (nur bestehende Route; **kein** DEC-0052-Code)                                                 |
 
 \* neu in E01 (§22.3). **`legacyRecurrence.*` ist ausdrücklich ein Übergangsbestandteil (Entscheidung Eigentümer, 04.11.2026):** Die Codes existieren nur, solange die alte Route `/api/recurrences` erreichbar ist und E05 sie anbinden muss (§22.4). Die Route wird vom Web nicht genutzt und soll durch die neue Recurrence-Funktion ersetzt oder gelöscht werden (P02/D-Phase; offener Fehler EX-07). **Aufräumpflicht:** Sobald die Route gelöscht ist, werden die Codes samt Subject-Kind `legacyRecurrence` entfernt (Altevents bleiben dann als `legacy.unknown` lesbar) oder, falls die Route in die neue Funktion übergeht, auf die dann gültigen `recurrence.*`-Codes umbenannt bzw. dort gemappt. Der Name vermeidet nur, den Namensraum `recurrence.*` von E07 vorwegzunehmen.
 
@@ -56,11 +58,11 @@ Whitelist-Regeln: Geld nur als Integer-Minor-Units; Monate nur `YYYY-MM`; Freite
 
 ## Anzeigeklassen USER / SYSTEM / UNKNOWN
 
-| API-`actor.kind` | Bedeutung | Anzeige |
-| --- | --- | --- |
-| `user` | echte authentifizierte Person; `memberId`/`displayName` nur, wenn verknüpft und im Konto sichtbar, sonst `null` | Name, ersatzweise „Benutzer“ |
-| `system` | interne Automatik (kein Fake-Login); Trigger und optional Initiator getrennt | „System“ + Trigger-Label |
-| `unknown` | Altbestand ohne Actor oder nicht auswertbares Event; **nie** als Person oder Automation dargestellt | „Unbekannt (Altbestand)“ |
+| API-`actor.kind` | Bedeutung                                                                                                       | Anzeige                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `user`           | echte authentifizierte Person; `memberId`/`displayName` nur, wenn verknüpft und im Konto sichtbar, sonst `null` | Name, ersatzweise „Benutzer“ |
+| `system`         | interne Automatik (kein Fake-Login); Trigger und optional Initiator getrennt                                    | „System“ + Trigger-Label     |
+| `unknown`        | Altbestand ohne Actor oder nicht auswertbares Event; **nie** als Person oder Automation dargestellt             | „Unbekannt (Altbestand)“     |
 
 Die Read-Projektion enthält keine `userId`, `commandId` und keine Roh-Legacy-Spalten.
 

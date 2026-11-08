@@ -1,5 +1,7 @@
 # Entwicklung ab Phase 3
 
+Account-Activity E06: [Read-API, Desktop-/Mobile-Ansicht, Cursor/Privacy und Diagnose](architecture/activity-read.md). Keine Migration/Ensure bei GET. Bei422 Filter/Cursor zurücksetzen; bei503 unlesbare Events read-only diagnostizieren, niemals beim GET reparieren.
+
 **E05:** Vor direkter API-Nutzung die neue [Domainbeleg-Verhandlung und Fehler-Recovery](architecture/activity-rollout.md) beachten (428 ohne Writes, signierter Create-/Mutation-Beleg, stale Revision 409). Der Webinterceptor übernimmt das auf same-origin `/api`. Neue Checkpoints/Belege liegen nur in der Browsersitzung, Access-Tokens weiter im Arbeitsspeicher. Zwei additive neue Migrationen ergänzen Validatoren ohne Backfill; Bestandsanwendung ausschließlich separat gemäß [Migrationshandover](database/migration-handover.md). E05 implementiert kein neues Recurrence-MVP und keine Account-Zonenroute.
 
 Voraussetzungen: Node 24.13.1, npm 11.8.0, Docker mit Compose und laufender Linux-Engine. Windows/VS Code ist der primäre Prüfpfad; die Node-Skripte unterstützen auch Linux/macOS. Keine native MongoDB-Installation nötig. MongoDB ist für Entwicklung und Tests auf **mongo:9.0.4** festgelegt (auf Nutzerwunsch neueste veröffentlichte Version, geprüft am 21.10.2026 anhand der [offiziellen Image-Liste](https://github.com/docker-library/docs/blob/master/mongo/README.md)). Die Freigabe dieser Kombination erfolgt über Gate 3, nicht allein durch den Download.

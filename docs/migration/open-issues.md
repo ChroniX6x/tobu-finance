@@ -1,5 +1,9 @@
 # Offene Punkte der Transformation
 
+## Aktueller Nachtrag E06 (08.11.2026)
+
+Account-Activity-GET und20er-Vorschau verwenden jetzt denselben aktiven User-/Memberguard und dieselbe sichere Actor-/Legacy-Projektion. Desktop-/Mobile-Read/UI einschließlich Kontextcursor, Filter, gelöschten Subjects und über Seiten geladenen Gruppen ist umgesetzt und mit vollständigem lokalem Gate geprüft: [E06-Bericht](../agents/runs/E06.md), [Read-Handbuch](../architecture/activity-read.md). Das erledigt den E06-Read/UI-Anteil, nicht AUTH-001/002, H08-Ausnahmen, Memberindex/Altdatenbereinigung, P02, E08/E09 oder neue CI-/Produktionsabnahme. Keine Migration oder Legacy-Datenreparatur durch GET.
+
 ## Aktueller Nachtrag E05 (07.11.2026)
 
 Die AUTH-002–005-Beschreibungen unten dokumentieren den Ausgangsstand vor E05. Aktueller Implementierungs-/Abnahmestand: [E05-Bericht](../agents/runs/E05.md), vollständige [Routen-/Fehler-/Rollback-Matrix](../architecture/activity-rollout.md).

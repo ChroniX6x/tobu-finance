@@ -15,6 +15,7 @@ import * as resources from './resources.js';
 import * as views from './views.js';
 import { AccountPlanningResponseSchema } from './planning.js';
 import { AccountMasterDataResponseSchema } from './master-data.js';
+import { ActivityPageSchema, ActivityQuerySchema } from './activity.js';
 import { QueryAccountsSummary } from './accounts-summary.js';
 import { QueryMonthView, QueryPlanning, QueryMemberIncomes, QueryCategoryBudgets, QueryContributionRules } from './read-queries.js';
 export interface Endpoint {
@@ -44,6 +45,7 @@ const crud = (path: string, response: z.ZodType, create: z.ZodType, patch: z.Zod
 export const endpoints: Endpoint[] = [
     endpoint('get', '/api/accounts/summary', z.array(views.ApiAccountsSummaryItemSchema), undefined, QueryAccountsSummary),
     endpoint('get', '/api/accounts/:id/overview', views.ApiAccountOverviewSchema),
+    endpoint('get', '/api/accounts/:accountId/activity', ActivityPageSchema, undefined, ActivityQuerySchema),
     endpoint('get', '/api/accounts/:id/month-view', views.ApiMonthViewSchema, undefined, QueryMonthView),
     endpoint('get', '/api/accounts/:accountId/master-data', AccountMasterDataResponseSchema),
     endpoint('get', '/api/accounts/:accountId/planning', AccountPlanningResponseSchema, undefined, QueryPlanning),

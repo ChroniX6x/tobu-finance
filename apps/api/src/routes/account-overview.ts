@@ -12,7 +12,6 @@ import CategoryBudget from '../models/CategoryBudget.js';
 import MemberIncome from '../models/MemberIncome.js';
 import CarryOver from '../models/CarryOver.js';
 import ContributionRule from '../models/ContributionRule.js';
-import Event from '../models/Event.js';
 
 import { toMonthAnchorISO, monthRangeFromISO, lastNMonthAnchorsISO, forwardFill } from '../utils/date.js';
 import { now as clockNow } from '../lib/clock.js';
@@ -20,7 +19,7 @@ import { activeInMonthFilter } from '../lib/month.js';
 import { round1, linRegForecastNext } from '../utils/math.js';
 import { incomeWeights, distribute, type Dist } from '../utils/contrib.js';
 import { buildInsights } from '../services/insights.js';
-import { renderEventText } from '../utils/renderEvent.js';
+import { ActivityReadError, readAccountActivity, previewActivity } from '../services/activity-read.js';
 
 const r = Router();
 
@@ -270,17 +269,14 @@ r.get('/:id/overview', async (req, res) => {
         openDues
     });
 
-    // timeline (letzte 20)
-    const events = await Event.find({ accountId }).sort({ date: -1 }).limit(20).lean();
-    const timeline = events.map((ev) => {
-        const createdByMemberId = (ev as { createdByMemberId?: unknown }).createdByMemberId;
-        return {
-            id: String((ev as { _id: unknown })._id),
-            date: DateTime.fromJSDate((ev as { date: Date }).date, { zone: 'utc' }).toISO({ suppressMilliseconds: false }) as string,
-            user: createdByMemberId ? (memberNameById[String(createdByMemberId)] ?? null) : null,
-            text: renderEventText((ev as { code: string }).code, (ev as { params?: Record<string, unknown> }).params ?? {})
-        };
-    });
+    // Same decoder, actor mapping, privacy projection and keyset order as the full activity page.
+    let timeline;
+    try {
+        timeline = previewActivity(await readAccountActivity(req, id, { limit: 20 }));
+    } catch (error) {
+        if (error instanceof ActivityReadError && error.status === 404) return res.sendStatus(404);
+        return res.status(error instanceof ActivityReadError ? error.status : 503).json({ error: error instanceof ActivityReadError ? error.code : 'ACTIVITY_UNAVAILABLE' });
+    }
 
     res.json({
         account: {

@@ -1,5 +1,7 @@
 # Gemeinsame HTTP-Verträge
 
+**E06 Read-Vertrag:** Account-Activity mit JWT/Member-ACL, Kontextcursor, Filtern und sicherer Legacy-/Subject-Projektion; identisch geschützte20er-Overview-Vorschau. [Vertrag und Fehler/Betriebsgrenzen](activity-read.md).
+
 **E05-Vertragsänderung:** Root-POSTs der bestehenden Fachressourcen verhandeln write-free 428 mit `X-Tobu-Creation`; echte PATCH/PUT/DELETE und Account-Member-POST analog mit `X-Tobu-Mutation`. Shared-Schemas: `@tobu/contracts/creation-proof`; Ablauf, sichere Wiederholung, 409 stale/410 deleted/503 unknown und Client-Recovery: [Activity-Rollout](activity-rollout.md). Belege vor dem Commitrequest behalten, keine automatische Neuanlage nach unklarer Antwort. Browserinterceptor und reale HTTP-Fixtures sind gemeinsam angepasst. Kontowährung hat explizit 1–64 Zeichen, entsprechend dem vorhandenen Eventvertrag; kein stiller Runtimefehler durch überlange gültige Transportwerte. Aktueller Eventkatalog: 32 Codes einschließlich `member.updated`, keine Recurrence-MVP-Codes.
 
 `packages/contracts` ist die gepflegte Quelle für Requests und serialisierte Responses. Das private npm-Paket `@tobu/contracts` enthält ausschließlich TypeScript/Zod, keine Angular-, Express-, Mongoose- oder Datenbankmodule. Zod bleibt auf der bereits verwendeten Version 4.1.12. Die bisherigen API-Validierungsdateien und Frontend-Transportdateien sind überwiegend Kompatibilitäts-Reexports; UI- und Datenbankmodelle bleiben in ihren Anwendungen.

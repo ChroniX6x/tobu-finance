@@ -1,0 +1,134 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.activity {
+  padding: 1.25rem;
+  overflow-wrap: anywhere;
+}
+header,
+.entry-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+h1 {
+  font-size: 1.5rem;
+  font-weight: 650;
+  margin: 0 0 0.5rem;
+}
+.filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0 0.75rem;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+input,
+select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--p-content-border-color, #777);
+  border-radius: 0.35rem;
+  background: var(--p-content-background, white);
+  color: inherit;
+  font: inherit;
+}
+button {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--p-primary-color, #286748);
+  border-radius: 0.35rem;
+  font: inherit;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+a {
+  text-decoration: underline;
+  color: var(--p-primary-color, #286748);
+}
+:is(button, a, input, select, summary):focus-visible {
+  outline: 3px solid var(--p-primary-color, #286748);
+  outline-offset: 3px;
+}
+.filter-actions {
+  display: flex;
+  align-items: end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.activity-list {
+  list-style: none;
+  padding: 0;
+}
+.activity-group {
+  border-top: 1px solid var(--p-content-border-color, #aaa);
+  padding: 1rem 0;
+}
+.activity-group ol {
+  padding-left: 1.5rem;
+}
+.activity-group li + li {
+  margin-top: 1rem;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.35rem 0;
+}
+.actor,
+.muted,
+time {
+  color: var(--p-text-muted-color, #555);
+}
+time {
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.group-notice {
+  border-left: 3px solid var(--p-primary-color, #286748);
+  padding: 0.6rem;
+}
+.error {
+  border: 1px solid #b42318;
+  padding: 0.8rem;
+  margin: 0.8rem 0;
+}
+.result-status {
+  margin: 1rem 0;
+}
+.result-status:focus {
+  outline: 2px solid var(--p-primary-color, #286748);
+  outline-offset: 3px;
+}
+.load-more {
+  margin-top: 0.8rem;
+}
+@media (max-width: 700px) {
+  .activity {
+    padding: 1rem;
+  }
+  header,
+  .entry-heading {
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  time {
+    white-space: normal;
+  }
+  .load-more {
+    width: 100%;
+  }
+}

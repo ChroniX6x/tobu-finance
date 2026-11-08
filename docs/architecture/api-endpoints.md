@@ -6,6 +6,7 @@ Quelle: packages/contracts/src/endpoints.ts. Keine weiteren API-Verbraucher sind
 | --- | --- | --- | --- | --- | --- |
 | GET | /api/accounts/summary | bearer | — | Zod-Schema | 200 |
 | GET | /api/accounts/:id/overview | bearer | — | — | 200 |
+| GET | /api/accounts/:accountId/activity | bearer | — | Zod-Schema | 200 |
 | GET | /api/accounts/:id/month-view | bearer | — | Zod-Schema | 200 |
 | GET | /api/accounts/:accountId/master-data | bearer | — | — | 200 |
 | GET | /api/accounts/:accountId/planning | bearer | — | Zod-Schema | 200 |
