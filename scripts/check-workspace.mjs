@@ -99,6 +99,11 @@ const adapted = new Set([
     'src/routes/carryovers.ts',
     'src/routes/master-data.ts',
     'src/routes/members.ts',
+    // E05: optional trusted member provenance; renderer now delegates to the shared event catalog.
+    'src/models/Member.ts',
+    // E05 domain CAS revisions are additive; historical snapshots/import hashes stay frozen.
+    ...['Transaction', 'Category', 'MemberIncome', 'CategoryBudget', 'ContributionRule', 'CarryOver', 'AccountBalance', 'Recurrence'].map((name) => `src/models/${name}.ts`),
+    'src/utils/renderEvent.ts',
     'src/services/insights.ts',
     'src/services/contribution-rule-generator.ts',
     ...['account-balances', 'accounts-summary', 'accounts', 'carryovers', 'categories', 'category-budgets', 'common', 'contribution-rules', 'member-incomes', 'members', 'recurrences', 'transactions'].map((name) => `src/validation/${name}.ts`)

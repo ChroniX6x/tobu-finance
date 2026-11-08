@@ -1,3 +1,4 @@
+import { creationPost } from "./helpers/creation-request";
 import { test, expect } from "./helpers/test-fixture";
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -27,7 +28,7 @@ for (const c of CASES) {
       page,
     }) => {
       test.setTimeout(90000);
-      const login = await page.request.post("/api/auth/login", {
+      const login = await creationPost(page, "/api/auth/login", {
         data: {
           email: process.env["E2E_EMAIL"],
           password: process.env["E2E_PASSWORD"],
@@ -37,13 +38,13 @@ for (const c of CASES) {
       const auth = await login.json();
       const headers = { authorization: `Bearer ${auth.accessToken}` };
       const member = await (
-        await page.request.post("/api/members", {
+        await creationPost(page, "/api/members", {
           headers,
           data: { name: "Calendar owner", userId: auth.user.id },
         })
       ).json();
       const account = await (
-        await page.request.post("/api/accounts", {
+        await creationPost(page, "/api/accounts", {
           headers,
           data: {
             name: "Calendar account",
@@ -65,6 +66,7 @@ for (const c of CASES) {
       const createdResponse = page.waitForResponse(
         (r) =>
           r.request().method() === "POST" &&
+          r.status() !== 428 &&
           new URL(r.url()).pathname === "/api/transactions",
       );
       await page.getByRole("button", { name: /Anlegen/ }).click();

@@ -55,8 +55,9 @@ try {
     assert.equal(plan.target.environment, 'production');
     assert.equal(plan.target.database, new URL(db.uri).pathname.slice(1));
     assert.deepEqual(plan.migrations, []);
-    assert.deepEqual(plan.applied, ['20261105221750028-event-envelope'], 'compiled artifact must execute the actual catalog on its isolated fresh database');
-    await access(resolve(scratch, 'apps/api/dist/src/database/migrations/20261105221750028-event-envelope.js'));
+    const expectedMigrations = ['20261105221750028-event-envelope', '20261107163516618-member-activity', '20261107182346881-domain-writer-revisions'];
+    assert.deepEqual(plan.applied, expectedMigrations, 'compiled artifact must execute every actual catalog migration on its isolated fresh database');
+    for (const id of expectedMigrations) await access(resolve(scratch, `apps/api/dist/src/database/migrations/${id}.js`));
     await run(process.execPath, ['apps/api/dist/src/database/migration-cli.js', 'up', `--confirm=${plan.confirmation}`, `--writers-stopped=${plan.target.database}`], { cwd: scratch, env });
     abort.signal.throwIfAborted();
     server = start(process.execPath, ['scripts/serve-artifact.mjs'], { cwd: scratch, env, detached: process.platform !== 'win32' });

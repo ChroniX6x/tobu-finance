@@ -54,6 +54,7 @@ const samples = {
     'account.member.added': { memberId: MEMBER, role: 'member' },
     'account.member.removed': { memberId: MEMBER },
     'account.member.roleChanged': { memberId: MEMBER, from: 'member', to: 'owner' },
+    'member.updated': { memberId: MEMBER, changedFields: ['name', 'email'] },
     'memberIncome.added': { memberId: MEMBER, amountMinor: 250000 },
     'memberIncome.updated': { memberId: MEMBER, amountMinor: 260000 },
     'memberIncome.removed': { memberId: MEMBER },
@@ -82,7 +83,7 @@ const writeEvent = (code, extra = {}) => {
 const stored = (event, extra = {}) => ({ _id: hex(100), createdAt: new Date(), updatedAt: new Date(), __v: 0, ...event, ...extra });
 
 test('catalog: complete, labelled, typed subjects, no recurrence family, legacy codes are a subset', () => {
-    assert.equal(ACTIVITY_CODES.length, 31);
+    assert.equal(ACTIVITY_CODES.length, 32);
     assert.deepEqual([...ACTIVITY_CODES].sort(), Object.keys(samples).sort(), 'every code needs a sample (and vice versa)');
     assert.deepEqual([...ACTIVITY_CODES].sort(), Object.keys(activityLabels).sort(), 'every code needs a label');
     for (const code of ACTIVITY_CODES) {

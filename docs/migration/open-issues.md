@@ -1,5 +1,16 @@
 # Offene Punkte der Transformation
 
+## Aktueller Nachtrag E05 (07.11.2026)
+
+Die AUTH-002–005-Beschreibungen unten dokumentieren den Ausgangsstand vor E05. Aktueller Implementierungs-/Abnahmestand: [E05-Bericht](../agents/runs/E05.md), vollständige [Routen-/Fehler-/Rollback-Matrix](../architecture/activity-rollout.md).
+
+- AUTH-002: Account/Self-Owner/Event werden gemeinsam erzeugt; eigener Self eindeutig wiederverwendet, sonst deterministisch angelegt. Wizard zeigt nicht entfernbares „Du“, wartet auf die echte Konto-ID, sichert abgeschlossene Schritte und verhindert doppelte Saves. Altkonten ohne verifizierten User, mehrere historische Self-Member, Member.userId-Index und ein gesondert freigegebener Aufräumweg bleiben offen. Wizard benennt vorhandene Self-Stammdaten nicht ungeprüft um.
+- AUTH-003: Alle tatsächlich mutierenden E05-Pflichtfamilien verwenden den gemeinsamen atomaren Writer und den echten User-Actor. Globaler Member-PATCH erzeugt `member.updated` pro autorisiertem betroffenem Konto. Member POST/Orphan-DELETE bleiben gemäß E01 bewusst ohne Kontoevent. Historische Events unverändert; E06-Actor-UI/E09-Gesamtabnahme bleiben separat.
+- AUTH-004: Im E05-Schreibumfang transaktionale Autoritätsprüfung und gemeinsame echte Account-/User-/Member-Revisionswrites; Assignment/Memberänderung/Delete und Antwortverlust mit Zwischenänderung sind real geprüft. Das schließt nicht pauschal P02, F-5 oder das unabhängige E08-Gate.
+- AUTH-005: Private servertrusted `createdByUserId` für neue Member, neue additive Migration ohne Backfill; historische Orphans ohne Provenance werden nicht übernommen. Assignment prüft alle bestehenden Konten; früherer unbenutzter Helper entfernt. Member-PATCH verlangt alle betroffenen Kontorechte und protokolliert nur changedFields. Historische Aufräumarbeiten, mögliche Informationsorakel und F-8 bleiben gesondert offen.
+
+API-001, H08-A17/EX-07, F-3 (Drawer-Echtklick), F-5–F-8 als umfassende Folgegates, UI-001 und Dependencybefunde werden nicht als erledigt erklärt. Der zuvor dokumentierte Wizard-Navigationsfehler wird im E05-Umfang korrigiert und separat geprüft; das ist kein nachträglicher pauschaler H08-PASS.
+
 ## MIGRATION-S1–S7: Nacharbeiten am Migrationsbetrieb
 
 [Bewertete Findings S1–S7](../database/migration-findings.md): S1 (credentialfreie Zielidentität/Recovery) und S2 (sichere Diagnostik) wurden bei der E03-Wiederaufnahme implementiert und gezielt isoliert geprüft; vollständiger aktueller A/Q-/Reviewstatus im [E03-Bericht](../agents/runs/E03.md). S3–S7 bleiben offen, insbesondere S6b vor produktiven strukturellen Restores. Alte URI-gebundene Journale benötigen den dokumentierten versionsgebundenen Recoveryweg. Keine Produktions-/Bestandsmigration durch E03. Die Dokumentation ersetzt keinen erfolgreichen PR-CI-Lauf oder eine Merge-Freigabe.

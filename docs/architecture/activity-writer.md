@@ -1,5 +1,7 @@
 # Atomarer Activity-Writer (E04)
 
+**Aktueller Nachtrag E05:** Die vorhandenen Pflichtschreibmodule sind angebunden. Aktuelle [Routen-/Retry-/Rechte-/Migrationsregeln](activity-rollout.md), [E05-Belege](../agents/runs/E05.md). Die folgenden E04-Abschnitte beschreiben die ursprüngliche Plattformgrenze. E05 ergänzt einen sicheren Account-Create-Kontext, gemeinsame echte Account-/User-/Member-Revisionswrites und `activityRoute`: eine äußere H02-Transaktion, signierte Domainbelege und ausschließlich read-only Response-Recovery nach bewiesenem Commit. Niemals rekursiv den Domaincallback erneut ausführen. Ohne sicheren Ergebnisleser 503, keine erfundene historische Antwort. Die acht Modelle ohne Mongoose-Versionierung verwenden additive optionale `mutationVersion` und neue Migrationen; E03 bleibt unverändert.
+
 `apps/api/src/services/activity-writer.ts` stellt die gemeinsame Domain-/Event-Transaktion bereit. Es gibt keine neue Collection, Outbox, Route oder zweite Event-Session. Die bestehenden Routen werden erst mit eigenem E05-GO angebunden. Vertrag: [Event-ADR](event-platform-adr.md), Eventplan E04/§22.5; Belege: [E04](../agents/runs/E04.md).
 
 ## Aufruf und Grenzen

@@ -6,6 +6,7 @@
  * the real clock. The business month is always the UTC month of that instant, never the browser's local month.
  */
 import { expect, test } from "./helpers/test-fixture";
+import { mutationPut } from "./helpers/creation-request";
 import {
   createRealAccount,
   getJson,
@@ -54,6 +55,8 @@ for (const timezoneId of ZONES) {
         budgets: [] as Record<string, unknown>[],
       };
       page.on("request", (r) => {
+        if (!r.headers()["x-tobu-creation"] && !r.headers()["x-tobu-mutation"])
+          return;
         const path = new URL(r.url()).pathname;
         const body = () => r.postDataJSON() as Record<string, unknown>;
         if (path === "/api/account-balances" && r.method() === "PUT")
@@ -68,6 +71,9 @@ for (const timezoneId of ZONES) {
       await page.fill("#account-name", "Real wizard account");
       await page.getByRole("button", { name: "Next" }).click();
       await page.waitForURL(/\/wizard\/2$/);
+      const selfRow = page.getByText(/Du:\s/);
+      await expect(selfRow).toBeVisible();
+      await expect(selfRow.locator("button")).toHaveCount(0);
       for (const name of ["Tony Hoffmann", "Carolin Neumann"]) {
         await page.fill("#name", name);
         await page.getByRole("button", { name: "Add" }).click();
@@ -94,18 +100,24 @@ for (const timezoneId of ZONES) {
       page.on("response", (r) => {
         if (
           new URL(r.url()).pathname === "/api/category-budgets" &&
-          r.request().method() === "POST"
+          r.request().method() === "POST" &&
+          r.status() === 201
         )
           budgetResponses.push(r.status());
       });
       const created = page.waitForResponse(
         (r) =>
           new URL(r.url()).pathname === "/api/accounts" &&
-          r.request().method() === "POST",
+          r.request().method() === "POST" &&
+          r.status() === 201,
       );
       await page.getByRole("button", { name: "Next" }).click();
       const account = await (await created).json();
-      // The wizard navigates immediately (before the account exists, see the report); wait for the last write instead.
+      await page.waitForURL(new RegExp("/accounts/" + account._id + "(?:/|$)"));
+      expect(
+        account.members.filter((m: { role: string }) => m.role === "owner"),
+      ).toHaveLength(1);
+      // Navigation now waits for every completed wizard step and uses the actual resource id.
       await expect.poll(() => budgetResponses).toEqual([201, 201]);
 
       expect(seen.balance, "one balance upsert").toHaveLength(1);
@@ -117,9 +129,10 @@ for (const timezoneId of ZONES) {
       expect(seen.incomes.map((i) => i["fromMonth"])).toEqual([
         anchor(current),
         anchor(current),
+        anchor(current),
       ]);
       expect(seen.incomes.map((i) => i["amountMinor"]).sort()).toEqual([
-        100001, 200003,
+        0, 100001, 200003,
       ]);
       expect(seen.budgets.map((b) => b["fromMonth"])).toEqual([
         anchor(current),
@@ -143,9 +156,10 @@ for (const timezoneId of ZONES) {
       expect(incomes.map((i) => i.fromMonth)).toEqual([
         anchor(current),
         anchor(current),
+        anchor(current),
       ]);
       expect(incomes.map((i) => i.amountMinor).sort()).toEqual([
-        100001, 200003,
+        0, 100001, 200003,
       ]);
       const rules = await getJson<
         {
@@ -199,7 +213,7 @@ for (const timezoneId of ZONES) {
         user,
         "Snapshot account",
       );
-      const put = await page.request.put("/api/account-balances", {
+      const put = await mutationPut(page, "/api/account-balances", {
         headers: user.headers,
         data: {
           accountId: account._id,

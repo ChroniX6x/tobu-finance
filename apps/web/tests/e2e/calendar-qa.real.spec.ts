@@ -1,3 +1,4 @@
+import { creationPost } from "./helpers/creation-request";
 /**
  * H06 – real browser x real REST x real MongoDB calendar QA (CAL-08, CAL-21, CAL-23..25, CAL-28).
  *
@@ -28,7 +29,7 @@ const shiftMonth = (key: string, delta: number) => {
 };
 
 async function seed(page: Page, name: string) {
-  const login = await page.request.post("/api/auth/login", {
+  const login = await creationPost(page, "/api/auth/login", {
     data: {
       email: process.env["E2E_EMAIL"],
       password: process.env["E2E_PASSWORD"],
@@ -38,7 +39,7 @@ async function seed(page: Page, name: string) {
   const auth = await login.json();
   const headers = { authorization: `Bearer ${auth.accessToken}` };
   const post = async (path: string, data: unknown) => {
-    const response = await page.request.post(path, { headers, data });
+    const response = await creationPost(page, path, { headers, data });
     expect(response.status(), `${path}: ${await response.text()}`).toBe(201);
     return response.json();
   };
@@ -124,7 +125,7 @@ for (const timezoneId of ZONES) {
       });
 
       await test.step("monthly payment drawer books the local day and the server derives the month (CAL-24)", async () => {
-        const put = await page.request.post("/api/member-incomes", {
+        const put = await creationPost(page, "/api/member-incomes", {
           headers,
           data: {
             accountId: account._id,
@@ -135,7 +136,7 @@ for (const timezoneId of ZONES) {
           },
         });
         expect(put.status(), await put.text()).toBe(201);
-        const rule = await page.request.post("/api/contribution-rules", {
+        const rule = await creationPost(page, "/api/contribution-rules", {
           headers,
           data: {
             accountId: account._id,
@@ -168,7 +169,8 @@ for (const timezoneId of ZONES) {
           page.waitForResponse(
             (r) =>
               new URL(r.url()).pathname === "/api/transactions" &&
-              r.request().method() === "POST",
+              r.request().method() === "POST" &&
+              r.status() !== 428,
           ),
           // The drawer mask swallows pointer events while PrimeNG animates under automation.
           page
@@ -200,7 +202,7 @@ for (const timezoneId of ZONES) {
       await test.step("parent and split children keep one BankDate and no PATCH is sent on open (CAL-25)", async () => {
         const day = `${utcMonthKey(clock())}-01`;
         const create = async (data: Record<string, unknown>) => {
-          const response = await page.request.post("/api/transactions", {
+          const response = await creationPost(page, "/api/transactions", {
             headers,
             data: {
               accountId: account._id,

@@ -17,7 +17,7 @@ const EventSchema = new Schema(
         correlationId: { type: String },
         batchId: { type: String }
     },
-    { timestamps: true }
+    { timestamps: true, minimize: false }
 );
 
 EventSchema.index({ accountId: 1, date: -1 });

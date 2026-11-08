@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { endpoints } from '@tobu/contracts/endpoints';
 import { ErrorResponse } from '@tobu/contracts/resources';
 import { activityOpenApiSchemas } from '@tobu/contracts/activity';
+import { CreationProofRequiredSchema, MutationProofRequiredSchema, CreationProofSchema, CREATION_PROOF_HEADER, MUTATION_PROOF_HEADER, usesCreationProof, usesMutationProof } from '@tobu/contracts/creation-proof';
 import { root, apiRequire } from './lib/config.mjs';
 const YAML = apiRequire('yaml');
 const { z } = apiRequire('zod');
@@ -29,14 +30,27 @@ export function generateOpenApi() {
         }
         const success = { description: e.status === 204 ? 'No content' : 'Success' };
         if (e.response) success.content = { 'application/json': { schema: schema(e.response, 'input') } };
+        if (usesCreationProof(e.method, e.path) || usesMutationProof(e.method, e.path))
+            parameters.push({
+                name: usesMutationProof(e.method, e.path) ? MUTATION_PROOF_HEADER : CREATION_PROOF_HEADER,
+                in: 'header',
+                required: false,
+                description: 'Server-issued domain proof. Missing proof returns a write-free 428 challenge. Retain before submitting; reuse after response loss.',
+                schema: schema(CreationProofSchema)
+            });
         paths[path] ??= {};
         paths[path][e.method] = {
             operationId: e.method + e.path.replace(/[^a-zA-Z0-9]+/g, '_'),
             security: e.auth === 'bearer' ? [{ bearerAuth: [] }] : [],
             ...(parameters.length ? { parameters } : {}),
             ...(e.body ? { requestBody: { required: true, content: { 'application/json': { schema: schema(e.body) } } } } : {}),
-            responses: { [e.status]: success, ...Object.fromEntries([400, 401, 403, 404, 409, 422].map((status) => [status, { $ref: '#/components/responses/ApiError' }])) }
+            responses: { [e.status]: success, ...Object.fromEntries([400, 401, 403, 404, 409, 410, 422, 503].map((status) => [status, { $ref: '#/components/responses/ApiError' }])) }
         };
+        if (usesCreationProof(e.method, e.path) || usesMutationProof(e.method, e.path))
+            paths[path][e.method].responses[428] = {
+                description: 'No mutation. Retain the signed domain proof before resubmitting once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation revision returns 409 without writes.',
+                content: { 'application/json': { schema: schema(usesMutationProof(e.method, e.path) ? MutationProofRequiredSchema : CreationProofRequiredSchema) } }
+            };
         if (e.path === '/api/transactions')
             paths[path][e.method].description =
                 'Create: booked requires bookDate; without bookDate month (YYYY-MM) is required; private payments require paidByMemberId. Patch rules use merged state; split inheritance and sum constraints are checked against the database. GET accepts categoryIds and categoryIds[]; parent-list items include children, explicit child-list items do not.';

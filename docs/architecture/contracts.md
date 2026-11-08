@@ -1,5 +1,7 @@
 # Gemeinsame HTTP-Verträge
 
+**E05-Vertragsänderung:** Root-POSTs der bestehenden Fachressourcen verhandeln write-free 428 mit `X-Tobu-Creation`; echte PATCH/PUT/DELETE und Account-Member-POST analog mit `X-Tobu-Mutation`. Shared-Schemas: `@tobu/contracts/creation-proof`; Ablauf, sichere Wiederholung, 409 stale/410 deleted/503 unknown und Client-Recovery: [Activity-Rollout](activity-rollout.md). Belege vor dem Commitrequest behalten, keine automatische Neuanlage nach unklarer Antwort. Browserinterceptor und reale HTTP-Fixtures sind gemeinsam angepasst. Kontowährung hat explizit 1–64 Zeichen, entsprechend dem vorhandenen Eventvertrag; kein stiller Runtimefehler durch überlange gültige Transportwerte. Aktueller Eventkatalog: 32 Codes einschließlich `member.updated`, keine Recurrence-MVP-Codes.
+
 `packages/contracts` ist die gepflegte Quelle für Requests und serialisierte Responses. Das private npm-Paket `@tobu/contracts` enthält ausschließlich TypeScript/Zod, keine Angular-, Express-, Mongoose- oder Datenbankmodule. Zod bleibt auf der bereits verwendeten Version 4.1.12. Die bisherigen API-Validierungsdateien und Frontend-Transportdateien sind überwiegend Kompatibilitäts-Reexports; UI- und Datenbankmodelle bleiben in ihren Anwendungen.
 
 ## Nutzung und Build
@@ -15,15 +17,15 @@ import type { CreateTransactionDto, ValidatedCreateTransaction } from '@tobu/con
 
 ## Endpunktgruppen und Verbraucher
 
-| Gruppe | Verbraucher im Web | Gemeinsame Quelle |
-| --- | --- | --- |
-| Buchungen und Splits | TransactionsApiService, Detailformular, Capture-State, Mock-E2E | transactions.ts |
-| Konten/Mitglieder/Kategorien | Datenservices, Wizard, Stammdatenservice | accounts.ts, members.ts, categories.ts, resources.ts |
-| Budgets/Einkommen/Beitragsregeln | PlanningApiService, Wizard | category-budgets.ts, member-incomes.ts, contribution-rules.ts |
-| Salden/Überträge/Wiederkehrer | Wizard bzw. API; kein eigener aktiver Web-CRUD für alle Ressourcen | account-balances.ts, carryovers.ts, recurrences.ts, resources.ts |
-| Monatsansicht/Kontoübersicht/Kontoliste | View-Datenservices | views.ts |
-| Stammdaten/Planung | MasterDataApiService, PlanningApiService | master-data.ts, planning.ts, read-queries.ts |
-| Auth | AuthService, Login/Registrierung, Sessiontests | auth.ts |
+| Gruppe                                  | Verbraucher im Web                                                 | Gemeinsame Quelle                                                |
+| --------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| Buchungen und Splits                    | TransactionsApiService, Detailformular, Capture-State, Mock-E2E    | transactions.ts                                                  |
+| Konten/Mitglieder/Kategorien            | Datenservices, Wizard, Stammdatenservice                           | accounts.ts, members.ts, categories.ts, resources.ts             |
+| Budgets/Einkommen/Beitragsregeln        | PlanningApiService, Wizard                                         | category-budgets.ts, member-incomes.ts, contribution-rules.ts    |
+| Salden/Überträge/Wiederkehrer           | Wizard bzw. API; kein eigener aktiver Web-CRUD für alle Ressourcen | account-balances.ts, carryovers.ts, recurrences.ts, resources.ts |
+| Monatsansicht/Kontoübersicht/Kontoliste | View-Datenservices                                                 | views.ts                                                         |
+| Stammdaten/Planung                      | MasterDataApiService, PlanningApiService                           | master-data.ts, planning.ts, read-queries.ts                     |
+| Auth                                    | AuthService, Login/Registrierung, Sessiontests                     | auth.ts                                                          |
 
 Das vollständige [Endpunktinventar](api-endpoints.md) enthält Methode, Pfad, Authentifizierung, Request-/Query-Schema und Erfolgsstatus aller 50 implementierten HTTP-Endpunkte unter `/api`. Health/Readiness und Swagger sind Infrastrukturendpunkte außerhalb dieses Inventars. Weitere externe API-Verbraucher sind nach Nutzerangabe nicht vorhanden.
 
@@ -41,13 +43,13 @@ Begriffe, Pflichten für spätere Recurrence- und Bank-Adapter, Rollout/Backout 
 
 **Luxon überall, auch in `calendar.ts`:** `apps/api`, `apps/web` und `packages/contracts/src/calendar.ts` verwenden für Datums- und Zeitlogik (Arithmetik, Parsen, Formatieren, Anzeige) Luxon (`DateTime`, in allen drei `package.json` auf dieselbe Version gepinnt), immer mit expliziter Zone, z. B. `DateTime.utc(...)`, `DateTime.fromISO(x, { zone: 'utc' })` oder `DateTime.fromJSDate(d, { zone })`. Die Nutzer- oder Kontozone gilt nur für die Anzeige echter Zeitpunkte und für `currentMonthKey`. Nicht zulässig sind `DateTime.fromJSDate(d)`/`DateTime.now()` ohne Zone, lokales `new Date(y, m, d)`, `getMonth()`/`getDate()` und `toLocale*` zur Ableitung fachlicher Monate oder Buchungstage sowie eine zweite Datumsbibliothek. Außerhalb von `calendar.ts` bleiben die Contract-Dateien zod-only; `npm run check:contracts` erlaubt Luxon nur dort und nur in der Version der Apps. Neue Abhängigkeiten im Contracts-Paket brauchen Freigabe. Die Stellen, die diese Regeln verletzten, sind in H02–H04 umgestellt; der Status je Fundstelle steht in [date-month-semantics.md](date-month-semantics.md).
 
-| Begriff | Format | Verwendung |
-| --- | --- | --- |
-| `MonthKey` | `YYYY-MM` | Fachlicher Monat für Befehle, Queries und Planning/MonthView-ReadModels. Strenge Kalenderprüfung, Jahr 1000–9999. |
-| Monatsanker | `YYYY-MM-01T00:00:00.000Z` | Persistierter BSON-Monat und ISO-Form in bestehenden Ressourcenantworten (`resources.ts`). Diese Antworten werden nicht auf `YYYY-MM` umgestellt. |
+| Begriff      | Format                             | Verwendung                                                                                                                                                                                                                                                                                                                                    |
+| ------------ | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MonthKey`   | `YYYY-MM`                          | Fachlicher Monat für Befehle, Queries und Planning/MonthView-ReadModels. Strenge Kalenderprüfung, Jahr 1000–9999.                                                                                                                                                                                                                             |
+| Monatsanker  | `YYYY-MM-01T00:00:00.000Z`         | Persistierter BSON-Monat und ISO-Form in bestehenden Ressourcenantworten (`resources.ts`). Diese Antworten werden nicht auf `YYYY-MM` umgestellt.                                                                                                                                                                                             |
 | `MonthInput` | `YYYY-MM` oder exakter Monatsanker | Übergangsinput für `fromMonth`/`toMonth` von Einkommen, Budgets und Beitragsregeln. Andere Tage, Uhrzeiten oder Offsets werden abgelehnt; `normalizeMonthInput` liefert sofort den `MonthKey`. Das Schema selbst gibt den Originalstring zurück; die Routen normalisieren erst mit H03 (bis dahin parst `toMonthDate` beide Formen UTC-fest). |
-| `BankDate` | `YYYY-MM-DD` | Buchungstag der Bank als Kalendertag. Träger in JSON/BSON ist `YYYY-MM-DDT00:00:00.000Z`; er ist kein Zeitpunkt und wird nie lokalisiert. Der Buchungsmonat folgt dem Kalendertag unabhängig von Zeitzonen. |
-| Instant | ISO-UTC | Echte Zeitpunkte wie Ereignisse und `createdAt`. Für sie niemals die BankDate-Helfer verwenden. |
+| `BankDate`   | `YYYY-MM-DD`                       | Buchungstag der Bank als Kalendertag. Träger in JSON/BSON ist `YYYY-MM-DDT00:00:00.000Z`; er ist kein Zeitpunkt und wird nie lokalisiert. Der Buchungsmonat folgt dem Kalendertag unabhängig von Zeitzonen.                                                                                                                                   |
+| Instant      | ISO-UTC                            | Echte Zeitpunkte wie Ereignisse und `createdAt`. Für sie niemals die BankDate-Helfer verwenden.                                                                                                                                                                                                                                               |
 
 `currentMonthKey(zone, now)` berechnet den aktuellen Monat aus einer IANA-Zone und einem vertrauenswürdigen Zeitpunkt (DST-sicher, keine festen Offsets, `+01:00` wird abgelehnt). Das Account-Zonen-Feature selbst ist damit noch nicht eingeführt (D-02/P04). Ungültige oder nicht kanonische Altwerte werden nie stillschweigend korrigiert: `monthKeyFromAnchor` und `bankDateFromCarrier` lehnen sie ab.
 

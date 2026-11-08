@@ -1,3 +1,4 @@
+import { creationInterceptor } from "./core/auth/interceptors/creation.interceptor";
 import {
   ApplicationConfig,
   inject,
@@ -57,7 +58,10 @@ export const appConfig: ApplicationConfig = {
     ),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([creationInterceptor, authInterceptor]),
+    ),
     provideStore(
       [
         AccountState,

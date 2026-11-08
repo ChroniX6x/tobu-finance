@@ -42,8 +42,8 @@ test('H05 calendar audit: fresh baseline plus seed and legacy fixtures on a real
     assert.ok(process.env.TOBU_MIGRATION_BACKUP_DIR);
     const client = mongoose.connection.getClient();
     const runner = new MigrationRunner(client, db, uri.toString(), 'test', undefined, { backup: new ToolsBackup(client, db, uri.toString(), process.env.TOBU_MIGRATION_BACKUP_DIR, 'docker-local') });
-    const plan = await runner.plan();
-    await runner.run('up', plan.confirmation, true);
+    // Structural changes are confirmed individually; never seed a partially upgraded catalog.
+    for (let plan = await runner.plan(); plan.migrations.length; plan = await runner.plan()) await runner.run('up', plan.confirmation, true);
     await seedDevelopment('2026-04');
     await verifyBaseline();
 

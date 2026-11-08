@@ -78,7 +78,7 @@ export async function foreignReference(accountId: unknown, refs: { categoryId?: 
     const named = Object.entries(refs.memberIds ?? {}).filter(([, value]) => value);
     if (named.length > 0) {
         const allowed = await accountMemberIdSet(account);
-        for (const [field, value] of named) if (!allowed.has(String(value))) return field;
+        for (const [field, value] of named) if (!allowed.has(String(value).toLowerCase())) return field;
     }
     return null;
 }
@@ -86,29 +86,15 @@ export async function foreignReference(accountId: unknown, refs: { categoryId?: 
 /** Members the caller may read or change: those linked to the caller and those listed in the caller's accounts. */
 export async function visibleMemberIds(req: Request): Promise<Types.ObjectId[]> {
     const own = await callerMemberIds(req);
+    const created = await Member.find({ createdByUserId: callerUserId(req) }, { _id: 1 }).lean();
+    const assignedCreated = created.length ? await Account.find({ 'members.memberId': { $in: created.map((m) => m._id) } }, { members: 1 }).lean() : [];
+    const assignedIds = new Set(assignedCreated.flatMap((account) => account.members.map((entry) => String(entry.memberId))));
     const accountIds = await callerAccountIds(req);
     const accounts = accountIds.length > 0 ? await Account.find({ _id: { $in: accountIds } }, { members: 1 }).lean() : [];
     const all = new Map<string, Types.ObjectId>();
     for (const id of own) all.set(String(id), id);
+    // Provenance permits managing one's own orphans; it does not bypass account scope after assignment elsewhere.
+    for (const member of created) if (!assignedIds.has(String(member._id))) all.set(String(member._id), member._id as Types.ObjectId);
     for (const account of accounts) for (const m of account.members ?? []) all.set(String(m.memberId), m.memberId as Types.ObjectId);
     return [...all.values()];
-}
-
-/**
- * Members a caller may put into an account: members linked to the caller, or unlinked members that are not part of
- * an account the caller cannot access. A member linked to another user can never be pulled in (no impersonation).
- */
-export async function membersAssignable(req: Request, memberIds: unknown[]): Promise<boolean> {
-    const ids = [...new Set(memberIds.map(String))];
-    if (ids.length === 0) return true;
-    if (!ids.every(isObjectId)) return false;
-    const objectIds = ids.map((id) => new Types.ObjectId(id));
-    const members = await Member.find({ _id: { $in: objectIds } }, { userId: 1 }).lean();
-    if (members.length !== ids.length) return false;
-    const caller = callerUserId(req);
-    if (members.some((m) => m.userId && String(m.userId) !== String(caller))) return false;
-    const unlinked = members.filter((m) => !m.userId).map((m) => m._id);
-    if (unlinked.length === 0) return true;
-    const mine = await callerAccountIds(req);
-    return !(await Account.exists({ 'members.memberId': { $in: unlinked }, _id: { $nin: mine } }));
 }

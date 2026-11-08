@@ -1,3 +1,4 @@
+import { creationFetch as fetch } from '../fixtures/creation-fetch.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { spawn } from 'node:child_process';
@@ -165,7 +166,11 @@ test('E02 actor/account context: real JWT, HTTP and Mongo (owner, member, strang
         const linkedToGhost = await mongoose.connection.db.collection('members').countDocuments({ _id: new ObjectId(ghost._id), userId: { $ne: null } });
         assert.equal(linkedToGhost, 0);
         // A user linked twice in one account counts as owner when one of the linked entries is owner.
-        const second = (await call(alice.token, 'POST', '/api/members', { name: 'Alice second', userId: alice.userId })).json;
+        const reused = (await call(alice.token, 'POST', '/api/members', { name: 'Alice second', userId: alice.userId })).json;
+        assert.equal(reused._id, aliceMember._id, 'E05 self creation reuses the unique linked member');
+        // Explicit legacy fixture: the current API correctly refuses to create a second self identity.
+        const second = { _id: new ObjectId().toHexString() };
+        await db.collection('members').insertOne({ _id: new ObjectId(second._id), name: 'Legacy second link', userId: new ObjectId(alice.userId) });
         await db.collection('accounts').updateOne({ _id: new ObjectId(accountA) }, { $push: { members: { memberId: new ObjectId(second._id), role: 'member' } } });
         assert.equal((await resolveAccountContext(asUser(alice.userId), accountA)).account.role, 'owner', 'owner entry wins');
         await db.collection('accounts').updateOne({ _id: new ObjectId(accountA) }, { $pull: { members: { memberId: new ObjectId(second._id) } } });
@@ -174,6 +179,7 @@ test('E02 actor/account context: real JWT, HTTP and Mongo (owner, member, strang
         assert.equal((await resolveAccountContext(asUser(alice.userId), accountC)).account.role, 'member');
         await db.collection('accounts').updateOne({ _id: new ObjectId(accountC) }, { $pull: { members: { memberId: new ObjectId(second._id) } } });
         assert.equal(await resolveAccountContext(asUser(alice.userId), accountC), null);
+        await db.collection('members').deleteOne({ _id: new ObjectId(second._id) });
         let status;
         const res = { sendStatus: (s) => (status = s), status: (s) => ({ json: (b) => (status = [s, b]) }) };
         assert.equal(await requireOwnerContext(asUser(bob.userId), res, accountA), null);
@@ -260,8 +266,11 @@ test('E02 actor/account context: real JWT, HTTP and Mongo (owner, member, strang
         for (const key of ['actorUserId', 'actorKind', 'actor', 'trigger', 'subject', 'userId', 'role', 'roles']) assert.equal(key in stored, false, `forged ${key} is not persisted`);
         const written = (await events(accountA)).filter((e) => e.params?.transactionId === created.json._id);
         assert.equal(written.length, 1);
-        for (const key of ['actorUserId', 'actorKind', 'actor', 'trigger', 'subject', 'userId']) assert.equal(key in written[0] || key in written[0].params, false, `forged ${key} not in the event`);
-        assert.equal(written[0].schemaVersion, undefined, 'the persisted event model is unchanged by E02');
+        for (const key of ['actorUserId', 'actorKind', 'userId']) assert.equal(key in written[0] || key in written[0].params, false, `forged ${key} not in the event`);
+        assert.deepEqual(written[0].actor, { kind: 'user', userId: alice.userId });
+        assert.deepEqual(written[0].trigger, { kind: 'user_action' });
+        assert.deepEqual(written[0].subject, { kind: 'transaction', id: created.json._id });
+        assert.equal(written[0].schemaVersion, 1, 'E05 persists the trusted envelope');
     });
 
     await t.test('payer is not the actor: a member books for another member and for an unregistered member', async () => {
@@ -298,10 +307,10 @@ test('E02 actor/account context: real JWT, HTTP and Mongo (owner, member, strang
             status: 'pending'
         });
         assert.equal(toForeign.status, 422, 'a member of another account can be neither payer nor subject here');
-        // Characterization of the current writers (known gap for E04/E05): the event stores the payer, not the acting user.
+        // E05: the actor is the authenticated caller, independently of payer identity.
         const [payerEvent] = (await events(accountA)).filter((e) => e.params?.transactionId === forOwner.json._id);
-        assert.equal(String(payerEvent.createdByMemberId), aliceMember._id, 'createdByMemberId is the payer (alice), the actor was bob');
-        assert.equal(payerEvent.actor, undefined, 'no actor is persisted before E04');
+        assert.equal(payerEvent.createdByMemberId, null);
+        assert.deepEqual(payerEvent.actor, { kind: 'user', userId: bob.userId });
     });
 
     await t.test('owner-only: membership and role changes; members, strangers and admin are rejected with 0 writes and 0 events', async () => {
@@ -406,7 +415,9 @@ test('E02 actor/account context: real JWT, HTTP and Mongo (owner, member, strang
         assert.equal((await call(alice.token, 'POST', `/api/accounts/${accountA}/members`, { memberId: bobMember._id, role: 'owner' })).status, 200);
         assert.equal(await roleOf(bobMember._id), 'owner', 'owner promoted bob');
         // The role is read from the database on every request: bob is now owner, no new token needed.
-        assert.equal((await call(bob.token, 'POST', `/api/accounts/${accountA}/members`, { memberId: spare._id, role: 'member' })).status, 200);
+        assert.equal((await call(bob.token, 'POST', `/api/accounts/${accountA}/members`, { memberId: spare._id, role: 'member' })).status, 422, 'an orphan created by alice is not assignable by bob');
+        assert.equal((await call(bob.token, 'PATCH', `/api/accounts/${accountA}`, { name: 'Owner role applied immediately' })).status, 200);
+        assert.equal((await call(alice.token, 'POST', `/api/accounts/${accountA}/members`, { memberId: spare._id, role: 'member' })).status, 200);
         assert.equal((await call(bob.token, 'DELETE', `/api/accounts/${accountA}/members/${spare._id}`)).status, 200);
         await db.collection('accounts').updateOne({ _id: new ObjectId(accountA), 'members.memberId': new ObjectId(bobMember._id) }, { $set: { 'members.$.role': 'member' } });
         assert.equal((await call(bob.token, 'POST', `/api/accounts/${accountA}/members`, { memberId: spare._id, role: 'member' })).status, 403, 'demotion applies immediately to an existing token');

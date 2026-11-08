@@ -4,7 +4,7 @@ import mongoose, { Types, type ClientSession } from 'mongoose';
 import { MongoOperationTimeoutError } from 'mongodb';
 import { DateTime } from 'luxon';
 import { ActivityWriteEventSchema, clipActivityText, ACTIVITY_TITLE_MAX, ACTIVITY_NAME_MAX, type ActivityCode, type ActivityParams, type ActivitySubjectKind, type ActivityWriteEvent } from '@tobu/contracts/activity';
-import { isTrustedAccountContext, type AuthorizedContext } from '../auth/account-context.js';
+import { isTrustedAccountContext, isAccountCreateContext, type AuthorizedContext } from '../auth/account-context.js';
 import { isTrustedSystemActor, type SystemActor } from '../auth/system-actor.js';
 import { User } from '../auth/models.js';
 import Account from '../models/Account.js';
@@ -44,6 +44,17 @@ export class ActivityWriteError extends Error {}
 /** Unknown is deliberately not reported as rollback or success. Caller must retry/read with the SAME domain identity. */
 export class ActivityCommitUnknown extends ActivityWriteError {}
 
+/** A real write serializes user revocation with domain commands; null/missing historical revisions start at zero. */
+export async function lockActivityUser(userId: string, session: ClientSession) {
+    const user = await User.findOne({ _id: userId, isActive: true }, { __v: 1 }).session(session);
+    if (!user) throw new ActivityWriteError('ACTIVITY_ACTOR_UNAVAILABLE');
+    const rawVersion = user.get('__v');
+    if (rawVersion !== undefined && rawVersion !== null && typeof rawVersion !== 'number') throw new ActivityWriteError('ACTIVITY_USER_REVISION_INVALID');
+    const version = Number(rawVersion ?? 0);
+    if (!Number.isSafeInteger(version) || version < 0 || version === Number.MAX_SAFE_INTEGER) throw new ActivityWriteError('ACTIVITY_USER_REVISION_INVALID');
+    await User.updateOne({ _id: userId, isActive: true }, { $set: { __v: version + 1 } }, { session, timestamps: false });
+}
+
 function authority(context: ActivityAuthority) {
     if (isTrustedAccountContext(context)) return { accountId: context.account.accountId, actor: context.actor, trigger: { kind: 'user_action' as const } };
     if ('system' in context && isTrustedSystemActor(context.system)) {
@@ -56,12 +67,21 @@ async function checkAuthority(context: ActivityAuthority, session?: ClientSessio
     const auth = authority(context);
     const options = session ? { session } : {};
     const account = await Account.findById(auth.accountId, { members: 1 }, options).lean();
-    if (!account) throw new ActivityWriteError('ACTIVITY_ACCOUNT_UNAVAILABLE');
+    if (!account) {
+        if (isAccountCreateContext(context) && isTrustedAccountContext(context) && (await User.exists({ _id: context.actor.userId, isActive: true }).setOptions(options))) return auth;
+        throw new ActivityWriteError('ACTIVITY_ACCOUNT_UNAVAILABLE');
+    }
     if (isTrustedAccountContext(context)) {
         const user = await User.exists({ _id: context.actor.userId, isActive: true }).setOptions(options);
         const member = await Member.exists({ _id: context.account.memberId, userId: context.actor.userId }).setOptions(options);
         const entry = account.members.find((item) => String(item.memberId) === context.account.memberId);
         if (!user || !member || !entry || entry.role !== context.account.role) throw new ActivityWriteError('ACTIVITY_AUTHORITY_CHANGED');
+        if (isAccountCreateContext(context)) {
+            const linked = await Member.find({ userId: context.actor.userId }, { _id: 1 }, options).lean();
+            const own = new Set(linked.map((item) => String(item._id)));
+            const memberships = account.members.filter((item) => own.has(String(item.memberId)));
+            if (memberships.length !== 1 || memberships[0]?.role !== 'owner') throw new ActivityWriteError('ACTIVITY_CREATOR_MAPPING_INVALID');
+        }
     }
     return auth;
 }
@@ -97,15 +117,33 @@ function prepare(context: ActivityAuthority, command: Command, intents: readonly
     const auth = authority(context);
     if (!trustedCommands.has(command)) throw new ActivityWriteError('ACTIVITY_UNTRUSTED_COMMAND');
     if (intents.length === 0) throw new ActivityWriteError('ACTIVITY_INTENT_REQUIRED');
+    if (isAccountCreateContext(context) && (intents.length !== 1 || intents[0]?.code !== 'account.created')) throw new ActivityWriteError('ACTIVITY_CREATE_CONTEXT_RESTRICTED');
     const events = intents.map((intent) => {
         const params: Record<string, unknown> = { ...intent.params };
+        // HTTP ObjectIds are case-insensitive; the frozen BSON validator stores canonical lower-case ids.
+        for (const key of ['transactionId', 'parentTransactionId', 'categoryId', 'memberId', 'ruleId']) {
+            const value = params[key];
+            const normalize = (id: unknown) => (typeof id === 'string' && /^[a-f\d]{24}$/i.test(id) ? id.toLowerCase() : id);
+            if (value && typeof value === 'object' && !Array.isArray(value)) params[key] = Object.fromEntries(Object.entries(value).map(([side, id]) => [side, normalize(id)]));
+            else if (value !== undefined) params[key] = normalize(value);
+        }
         if ('title' in params) {
             const title = compatibleText(params.title, ACTIVITY_TITLE_MAX);
             delete params.title;
             if (title) params.title = title;
         }
         if ('name' in params) params.name = compatibleText(params.name, ACTIVITY_NAME_MAX) ?? null;
-        return ActivityWriteEventSchema.parse({ ...auth, commandId: command.commandId, correlationId: command.correlationId, date: command.date, schemaVersion: 1, code: intent.code, subject: intent.subject, params });
+        return ActivityWriteEventSchema.parse({
+            ...auth,
+            accountId: auth.accountId.toLowerCase(),
+            commandId: command.commandId,
+            correlationId: command.correlationId,
+            date: command.date,
+            schemaVersion: 1,
+            code: intent.code,
+            subject: { ...intent.subject, id: intent.subject.id.toLowerCase() },
+            params
+        });
     });
     const identities = events.map((event) => `${event.code}:${event.subject.kind}:${event.subject.id}`);
     if (new Set(identities).size !== identities.length) throw new ActivityWriteError('ACTIVITY_DUPLICATE_INTENT');
@@ -164,9 +202,29 @@ export async function writeActivityInSession(session: ClientSession, context: Ac
     if (prior) return prior;
     await checkScope(events, session, 'before');
     if (!(await mutate(session))) return { outcome: 'noop', eventIds: [] };
+    if (isTrustedAccountContext(context)) {
+        await lockActivityUser(context.actor.userId, session);
+    }
+    // Every account writer shares the account document with membership/role mutations.
+    // A concurrent revocation forces a retry and a fresh authority check, rather than write skew.
+    const account = await Account.findById(events[0]!.accountId, { __v: 1 }).session(session);
+    if (!account) throw new ActivityWriteError('ACTIVITY_ACCOUNT_UNAVAILABLE');
+    const rawVersion = account.get('__v');
+    if (rawVersion !== undefined && rawVersion !== null && typeof rawVersion !== 'number') throw new ActivityWriteError('ACTIVITY_ACCOUNT_REVISION_INVALID');
+    const version = Number(rawVersion ?? 0);
+    if (!Number.isSafeInteger(version) || version < 0 || version === Number.MAX_SAFE_INTEGER) throw new ActivityWriteError('ACTIVITY_ACCOUNT_REVISION_INVALID');
+    await Account.updateOne({ _id: account._id }, { $set: { updatedAt: command.date, __v: version + 1 } }, { session, timestamps: false });
+    if (isAccountCreateContext(context)) await checkAuthority(context, session);
     await checkScope(events, session, 'after');
     for (let index = 0; index < events.length; index++) await Event.create([{ ...events[index], _id: ids[index] }], { session });
     return { outcome: 'applied', eventIds: ids.map(String) };
+}
+
+/** Read-only reconciliation for a caller that owns the outer H02 transaction. */
+export async function reconcileActivity(context: ActivityAuthority, command: Command, intents: readonly ActivityIntent[], session?: ClientSession) {
+    const { events, ids } = prepare(context, command, intents);
+    await checkAuthority(context, session);
+    return readback(events, ids, session);
 }
 
 /** Same transaction pattern as H02; commit errors are reconciled using durable existing Event _id keys.

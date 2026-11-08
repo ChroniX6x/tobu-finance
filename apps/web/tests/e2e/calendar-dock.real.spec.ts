@@ -66,7 +66,7 @@ for (const timezoneId of ZONES) {
 
       const patches: { url: string; body: Record<string, unknown> }[] = [];
       page.on("request", (r) => {
-        if (r.method() === "PATCH")
+        if (r.method() === "PATCH" && r.headers()["x-tobu-mutation"])
           patches.push({
             url: r.url(),
             body: r.postDataJSON() as Record<string, unknown>,
@@ -76,7 +76,8 @@ for (const timezoneId of ZONES) {
         page.waitForResponse(
           (r) =>
             new URL(r.url()).pathname === "/api/transactions" &&
-            r.request().method() === "POST",
+            r.request().method() === "POST" &&
+            r.status() !== 428,
         );
 
       await page.goto(`/accounts/${account._id}/transactions`);
@@ -168,7 +169,8 @@ for (const timezoneId of ZONES) {
           page.waitForResponse(
             (r) =>
               r.url().endsWith(`/api/transactions/${parent._id}`) &&
-              r.request().method() === "PATCH",
+              r.request().method() === "PATCH" &&
+              r.status() !== 428,
           ),
           page.getByRole("button", { name: /^\W*Speichern$/ }).click(),
         ]);
@@ -208,7 +210,8 @@ for (const timezoneId of ZONES) {
         const patched = page.waitForResponse(
           (r) =>
             r.url().endsWith(`/api/transactions/${parent._id}`) &&
-            r.request().method() === "PATCH",
+            r.request().method() === "PATCH" &&
+            r.status() !== 428,
           { timeout: 30000 },
         );
         await save.click({ timeout: 30000 });

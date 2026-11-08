@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { Types } from 'mongoose';
+import { Types, type ClientSession } from 'mongoose';
 import Account from '../models/Account.js';
 import Member from '../models/Member.js';
 
@@ -35,6 +35,17 @@ export interface AuthorizedContext {
 
 const OBJECT_ID = /^[a-f\d]{24}$/i;
 const trustedContexts = new WeakSet<object>();
+const createContexts = new WeakSet<object>();
+export const isAccountCreateContext = (value: object) => createContexts.has(value);
+/** Internal account-create capability. The writer permits only account.created and verifies the final self-owner. */
+export function accountCreateContext(req: Request, accountId: string, memberId: string): AuthorizedContext {
+    const actor = actorOf(req);
+    if (!actor) throw new Error('AUTHENTICATED_CREATOR_REQUIRED');
+    const context = Object.freeze({ actor, account: Object.freeze({ accountId, memberId, role: 'owner' as const }) });
+    trustedContexts.add(context);
+    createContexts.add(context);
+    return context;
+}
 /** Runtime capability, not a structurally compatible request body. */
 export const isTrustedAccountContext = (value: object): value is AuthorizedContext => trustedContexts.has(value);
 const isObjectId = (value: unknown): value is string => typeof value === 'string' && OBJECT_ID.test(value);
@@ -45,14 +56,14 @@ function actorOf(req: Request): UserActor | null {
 }
 
 /** Resolves the caller's membership of an account, or null (not a member, unknown account, legacy account without a linked user). */
-export async function resolveAccountContext(req: Request, accountId: unknown): Promise<AuthorizedContext | null> {
+export async function resolveAccountContext(req: Request, accountId: unknown, session?: ClientSession): Promise<AuthorizedContext | null> {
     const actor = actorOf(req);
     const id = accountId instanceof Types.ObjectId ? accountId.toHexString() : accountId;
     if (!actor || !isObjectId(id)) return null;
-    const linked = await Member.find({ userId: new Types.ObjectId(actor.userId) }, { _id: 1 }).lean();
+    const linked = await Member.find({ userId: new Types.ObjectId(actor.userId) }, { _id: 1 }, { ...(session ? { session } : {}) }).lean();
     if (linked.length === 0) return null;
     const own = new Set(linked.map((member) => String(member._id)));
-    const account = await Account.findById(id, { members: 1 }).lean();
+    const account = await Account.findById(id, { members: 1 }, { ...(session ? { session } : {}) }).lean();
     const entries = (account?.members ?? []).filter((entry) => own.has(String(entry.memberId)));
     if (entries.length === 0) return null;
     const chosen = entries.find((entry) => entry.role === 'owner') ?? entries[0]!;

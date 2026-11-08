@@ -62,6 +62,18 @@ test('baseline, indexes, resumability, seeds and manual edits', { timeout: 12000
         const plan = await runner.plan();
         assert.equal(plan.migrations.length, 1);
         await runner.run('up', plan.confirmation, true);
+        const memberPlan = await runner.plan();
+        assert.deepEqual(
+            memberPlan.migrations.map((entry) => entry.id),
+            ['20261107163516618-member-activity']
+        );
+        await runner.run('up', memberPlan.confirmation, true);
+        const revisionPlan = await runner.plan();
+        assert.deepEqual(
+            revisionPlan.migrations.map((entry) => entry.id),
+            ['20261107182346881-domain-writer-revisions']
+        );
+        await runner.run('up', revisionPlan.confirmation, true);
         await verifyBaseline();
         assert.equal((await schemaStatus()).ready, true);
         assert.equal(await initializeBaseline(), false);

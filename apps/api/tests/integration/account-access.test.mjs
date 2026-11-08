@@ -1,3 +1,4 @@
+import { creationFetch as fetch } from '../fixtures/creation-fetch.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { spawn } from 'node:child_process';
@@ -448,8 +449,9 @@ test('account membership: two real users on a real replica set, 404 for everythi
         const carolMember = (await call(carol.token, 'POST', '/api/members', { name: 'Carol', userId: carol.userId })).json;
         const other = (await call(carol.token, 'POST', '/api/members', { name: 'Other' })).json;
         const without = await call(carol.token, 'POST', '/api/accounts', { name: 'no creator', members: [{ memberId: other._id, role: 'owner' }] });
-        assert.deepEqual([without.status, without.json.error], [422, 'CREATOR_MEMBER_REQUIRED']);
-        assert.deepEqual([(await call(carol.token, 'POST', '/api/accounts', { name: 'empty' })).status], [422]);
+        assert.equal(without.status, 201);
+        assert.equal(without.json.members.filter((m) => m.memberId === carolMember._id && m.role === 'owner').length, 1, 'server adds the verified self owner');
+        assert.equal((await call(carol.token, 'POST', '/api/accounts', { name: 'empty' })).status, 201);
         const impersonate = await call(carol.token, 'POST', '/api/accounts', { name: 'steal', members: [{ memberId: carolMember._id }, { memberId: B.member }] });
         assert.deepEqual([impersonate.status, impersonate.json.error], [422, 'MEMBER_NOT_ASSIGNABLE']);
         const pullUnlinked = await call(carol.token, 'POST', '/api/accounts', { name: 'pull', members: [{ memberId: carolMember._id }, { memberId: B.partner }] });
@@ -515,7 +517,7 @@ test('account membership: two real users on a real replica set, 404 for everythi
         await expectNoWrites(
             'remove the own member from the account (lock-out)',
             () => call(alice.token, 'DELETE', `/api/accounts/${A.acc}/members/${A.member}`),
-            (r) => assert.deepEqual([r.status, r.json.error], [409, 'CALLER_WOULD_LOSE_ACCESS'])
+            (r) => assert.deepEqual([r.status, r.json.error], [409, 'LAST_OWNER'])
         );
         await expectNoWrites(
             'delete a member that is still part of an account',
@@ -534,8 +536,16 @@ test('account membership: two real users on a real replica set, 404 for everythi
         const extra = (await call(alice.token, 'POST', '/api/members', { name: 'extra' })).json;
         assert.equal((await call(alice.token, 'POST', `/api/accounts/${A.acc}/members`, { memberId: extra._id, role: 'member' })).status, 200);
         assert.equal((await call(alice.token, 'DELETE', `/api/accounts/${A.acc}/members/${extra._id}`)).status, 200);
-        // Removed from the account, the unlinked member is an orphan nobody can reach any more.
-        assert.equal((await call(alice.token, 'DELETE', `/api/members/${extra._id}`)).status, 404);
+        // E05 provenance keeps only the verified creator's orphan reachable; strangers cannot claim/delete it.
+        await expectNoWrites(
+            'foreign orphan deletion',
+            () => call(bob.token, 'DELETE', `/api/members/${extra._id}`),
+            (r) => assert.equal(r.status, 404)
+        );
+        const beforeOrphanEvents = await db.collection('events').countDocuments();
+        assert.equal((await call(alice.token, 'DELETE', `/api/members/${extra._id}`)).status, 204);
+        assert.equal(await db.collection('members').countDocuments({ _id: new ObjectId(extra._id) }), 0);
+        assert.equal(await db.collection('events').countDocuments(), beforeOrphanEvents, 'user-scoped orphan delete has no account event');
     });
 
     await t.test('category-budgets: rejected requests (409 BUDGET_OVERLAP, 404, 422, 400) write nothing, not even accounts.updatedAt, and emit no event', async () => {

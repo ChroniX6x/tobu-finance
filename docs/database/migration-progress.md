@@ -1,5 +1,11 @@
 # Sichere Migrationen: Umsetzungsstand
 
+## E05: zusätzliche Validatoren, keine Bestandsanwendung
+
+`20261107163516618-member-activity` erweitert den eingefrorenen E03-Eventvalidator um `member.updated` und Member um optionale private `createdByUserId`, ohne Backfill/Indexänderung. Down verweigert erhaltene `member.updated`-Events. `20261107182346881-domain-writer-revisions` ergänzt optionale ganzzahlige `mutationVersion` bei acht bislang nicht Mongoose-versionierten Domainmodellen; kein Backfill/Indexumbau. Beide Quellen und Checksummen stehen im generierten Katalog; historische E03-Migration und Baseline unverändert.
+
+Reale isolierte Migrationstests prüfen BSON, effektive Collectionoptionen, sämtliche Indexdefinitionen, echte Tools-Archive und tatsächlichen Restore, Teilschritt-Resume/Ambiguität, unterbrochenen Restore und Prozesskill. Down bewahrt spätere Nutzerdaten statt ein historisches erfolgreiches Backup darüber zu restaurieren. Genaue Lauf-/A/Q-Belege und Grenzen: [E05](../agents/runs/E05.md), [Rollout-/Recoveryregeln](../architecture/activity-rollout.md). Keine Entwicklungs-/Bestands-/Produktionsdatenbank migriert; produktive S3–S7/S6b bleiben separat offen.
+
 ## E03-Vorbereitung (05.11.2026)
 
 Erster Lauf: additive Event-Modellfelder und isolierte Vorbereitung, damals S1/S2 und aktiver Übergang offen. **Wiederaufnahme nach Nutzer-GO, Abschluss 06.11.2026: A-E03/Q-E03 PASS, quality:full 17/17, Integration 111/111.** S1/S2 implementiert, reguläre unveränderliche Migration `20261105221750028-event-envelope` mit generiertem Katalog erstellt. Tatsächliche Migration isoliert mit Legacy/Fresh, allen 31 Codes, echten Tools-Archiven, Down-Fehler, Resume/Restore und Prozesskill geprüft. Die historische Baseline bleibt unverändert. Vollständige Belege, unabhängige Reviews und Grenzen: [E03](../agents/runs/E03.md). Keine Bestandsanwendung oder Produktionsfreigabe.

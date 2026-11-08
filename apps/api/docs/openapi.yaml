@@ -795,6 +795,58 @@ components:
               $ref: "#/components/schemas/ActivityItem___schema10"
             code:
               type: string
+              const: member.updated
+            params:
+              type: object
+              properties:
+                memberId:
+                  $ref: "#/components/schemas/ActivityItem___schema0"
+                changedFields:
+                  minItems: 1
+                  maxItems: 2
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - name
+                      - email
+              required:
+                - memberId
+                - changedFields
+              additionalProperties: false
+          required:
+            - id
+            - accountId
+            - occurredAt
+            - schemaVersion
+            - actor
+            - trigger
+            - subject
+            - code
+            - params
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            accountId:
+              $ref: "#/components/schemas/ActivityItem___schema0"
+            occurredAt:
+              $ref: "#/components/schemas/ActivityItem___schema1"
+            schemaVersion:
+              $ref: "#/components/schemas/ActivityItem___schema2"
+            actor:
+              $ref: "#/components/schemas/ActivityItem___schema3"
+            trigger:
+              $ref: "#/components/schemas/ActivityItem___schema6"
+            subject:
+              $ref: "#/components/schemas/ActivityItem___schema7"
+            correlationId:
+              $ref: "#/components/schemas/ActivityItem___schema8"
+            batchId:
+              $ref: "#/components/schemas/ActivityItem___schema10"
+            code:
+              type: string
               const: memberIncome.added
             params:
               type: object
@@ -1737,6 +1789,7 @@ components:
             - account.member.added
             - account.member.removed
             - account.member.roleChanged
+            - member.updated
             - memberIncome.added
             - memberIncome.updated
             - memberIncome.removed
@@ -1903,7 +1956,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/accounts/{id}/overview:
     get:
@@ -2179,7 +2236,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/accounts/{id}/month-view:
     get:
@@ -2413,7 +2474,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/accounts/{accountId}/master-data:
     get:
@@ -2621,7 +2686,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/accounts/{accountId}/planning:
     get:
@@ -3139,7 +3208,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/accounts:
     get:
@@ -3240,12 +3313,27 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     post:
       operationId: post_api_accounts
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Creation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -3260,6 +3348,8 @@ paths:
                 currency:
                   default: EUR
                   type: string
+                  minLength: 1
+                  maxLength: 64
                 members:
                   type: array
                   items:
@@ -3396,7 +3486,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: CREATION_PROOF_REQUIRED
+                  creationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - creationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/accounts/{id}:
     get:
@@ -3495,7 +3610,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     patch:
       operationId: patch_api_accounts_id
@@ -3508,6 +3627,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -3522,6 +3651,8 @@ paths:
                 currency:
                   default: EUR
                   type: string
+                  minLength: 1
+                  maxLength: 64
                 members:
                   type: array
                   items:
@@ -3658,7 +3789,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/accounts/{id}/expanded:
     get:
@@ -4165,7 +4321,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/accounts/{id}/members:
     post:
@@ -4179,6 +4339,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -4282,7 +4452,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/accounts/{id}/members/{memberId}:
     delete:
@@ -4302,6 +4497,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "200":
           description: Success
@@ -4387,7 +4592,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/members:
     get:
@@ -4447,12 +4677,27 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     post:
       operationId: post_api_members
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Creation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -4519,7 +4764,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: CREATION_PROOF_REQUIRED
+                  creationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - creationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/members/{id}:
     patch:
@@ -4533,6 +4803,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -4599,7 +4879,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
     delete:
       operationId: delete_api_members_id
@@ -4612,6 +4917,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "204":
           description: No content
@@ -4625,7 +4940,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/categories:
     get:
@@ -4689,12 +5029,27 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     post:
       operationId: post_api_categories
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Creation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -4776,7 +5131,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: CREATION_PROOF_REQUIRED
+                  creationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - creationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/categories/{id}:
     patch:
@@ -4790,6 +5170,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -4869,7 +5259,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
     delete:
       operationId: delete_api_categories_id
@@ -4882,6 +5297,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "204":
           description: No content
@@ -4895,7 +5320,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/transactions:
     get:
@@ -5186,7 +5636,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
       description: "Create: booked requires bookDate; without bookDate month (YYYY-MM)
         is required; private payments require paidByMemberId. Patch rules use
@@ -5197,6 +5651,17 @@ paths:
       operationId: post_api_transactions
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Creation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -5365,7 +5830,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: CREATION_PROOF_REQUIRED
+                  creationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - creationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
       description: "Create: booked requires bookDate; without bookDate month (YYYY-MM)
         is required; private payments require paidByMemberId. Patch rules use
@@ -5384,6 +5874,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -5537,7 +6037,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
     delete:
       operationId: delete_api_transactions_id
@@ -5550,6 +6075,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "204":
           description: No content
@@ -5563,7 +6098,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/recurrences:
     get:
@@ -5694,12 +6254,27 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     post:
       operationId: post_api_recurrences
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Creation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -5866,7 +6441,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: CREATION_PROOF_REQUIRED
+                  creationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - creationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/recurrences/{id}:
     patch:
@@ -5880,6 +6480,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -6042,7 +6652,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
     delete:
       operationId: delete_api_recurrences_id
@@ -6055,6 +6690,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "204":
           description: No content
@@ -6068,7 +6713,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/member-incomes:
     get:
@@ -6138,12 +6808,27 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     post:
       operationId: post_api_member_incomes
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Creation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -6225,7 +6910,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: CREATION_PROOF_REQUIRED
+                  creationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - creationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/member-incomes/{id}:
     patch:
@@ -6239,6 +6949,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -6310,7 +7030,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
     delete:
       operationId: delete_api_member_incomes_id
@@ -6323,6 +7068,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "204":
           description: No content
@@ -6336,7 +7091,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/category-budgets:
     get:
@@ -6406,12 +7186,27 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     post:
       operationId: post_api_category_budgets
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Creation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -6493,7 +7288,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: CREATION_PROOF_REQUIRED
+                  creationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - creationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/category-budgets/{id}:
     patch:
@@ -6507,6 +7327,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -6578,7 +7408,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
     delete:
       operationId: delete_api_category_budgets_id
@@ -6591,6 +7446,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "204":
           description: No content
@@ -6604,7 +7469,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/contribution-rules:
     get:
@@ -6714,12 +7604,27 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     post:
       operationId: post_api_contribution_rules
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Creation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -6862,7 +7767,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: CREATION_PROOF_REQUIRED
+                  creationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - creationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/contribution-rules/{id}:
     patch:
@@ -6876,6 +7806,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -7004,7 +7944,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
     delete:
       operationId: delete_api_contribution_rules_id
@@ -7017,6 +7982,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "204":
           description: No content
@@ -7030,7 +8005,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/account-balances:
     get:
@@ -7097,12 +8097,27 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     put:
       operationId: put_api_account_balances
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -7163,7 +8178,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/account-balances/{id}:
     delete:
@@ -7177,6 +8217,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "204":
           description: No content
@@ -7190,7 +8240,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/carryovers:
     get:
@@ -7272,12 +8347,27 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
     put:
       operationId: put_api_carryovers
       security:
         - bearerAuth: []
+      parameters:
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       requestBody:
         required: true
         content:
@@ -7355,7 +8445,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/carryovers/{id}:
     delete:
@@ -7369,6 +8484,16 @@ paths:
           schema:
             type: string
             pattern: ^[a-fA-F0-9]{24}$
+        - name: X-Tobu-Mutation
+          in: header
+          required: false
+          description: Server-issued domain proof. Missing proof returns a write-free 428
+            challenge. Retain before submitting; reuse after response loss.
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 2048
+            pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
       responses:
         "204":
           description: No content
@@ -7382,7 +8507,32 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "428":
+          description: No mutation. Retain the signed domain proof before resubmitting
+            once with X-Tobu-Creation or X-Tobu-Mutation. A stale mutation
+            revision returns 409 without writes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: MUTATION_PROOF_REQUIRED
+                  mutationProof:
+                    type: string
+                    minLength: 64
+                    maxLength: 2048
+                    pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+                required:
+                  - error
+                  - mutationProof
+                additionalProperties: false
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/auth/register:
     post:
@@ -7450,7 +8600,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/auth/login:
     post:
@@ -7514,7 +8668,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/auth/refresh:
     post:
@@ -7542,7 +8700,11 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
   /api/auth/logout:
     post:
@@ -7561,5 +8723,9 @@ paths:
           $ref: "#/components/responses/ApiError"
         "409":
           $ref: "#/components/responses/ApiError"
+        "410":
+          $ref: "#/components/responses/ApiError"
         "422":
+          $ref: "#/components/responses/ApiError"
+        "503":
           $ref: "#/components/responses/ApiError"
