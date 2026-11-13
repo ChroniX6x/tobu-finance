@@ -1,5 +1,11 @@
 # Offene Punkte der Transformation
 
+## Aktueller Nachtrag E08 – abgeschlossen (13.11.2026)
+
+**A/Q E08 PASS**, unabhängiger Gesamtbelegreview abgeschlossen: [Bericht](../agents/runs/E08.md). Eigene Reviewer-Negativ-/Writerproben22/22 und AX-Browser3/3, unveränderte E07-Retention-/10k-Rohbelege quellgebunden wiederverwendet. Keine offenen neuen Produktfindings und kein E08-Pflichtrest. Der Reviewer-Nutzungslimitblocker vom09.11 ist aufgelöst. Sechs Test-/Dokumentationsdateien uncommittet, Produktcode und vier Migrationen unverändert. Am13.11 keine Tests wiederholt.
+
+Frisches Release-Vollgate/freshci/clean-HEAD-/EIT34-Abnahme bleibt **E09 NOT-RUN** gemäß Eventplan E09/§22.8; kein E09-/CI-/Produktions-PASS behauptet. Alle folgenden H08-/P02-/ACL-/API-/Security-/Betriebsgrenzen und späteren Recurrence-/P04-/TZ-Nachweise bleiben offen. E09 braucht eigenes GO und seine vollständigen Voraussetzungen.
+
 ## Aktueller Nachtrag E07 (08.11.2026)
 
 **E07 A/Q PASS**: zwölf Recurrence-Eventprimitiven, enger Writer-Adapter und isolierte generische Mongo-Plattformproben umgesetzt; keine neue produktive Recurrence-Domain/Ensure-/Konto-Zonenroute. Maßgeblich: [E07-Abschlussbericht mit Belegen und zweigeteilter EIT-Matrix](../agents/runs/E07.md), [Integrations-/Betriebsgrenze](../architecture/recurrence-activity-primitives.md). Vollgate17/17 und unabhängiger Review bestanden; dies ist kein neuer CI-/Produktionsnachweis.

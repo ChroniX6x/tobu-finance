@@ -2,7 +2,13 @@
 
 Stand: 03.11.2026. Arbeitsplan für den Nutzer; keine Feature-Implementierung und kein Schritt-GO. Die externen Dokumente wurden für diese Planung gezielt ausgewertet, nicht vollständig fachlich auditiert. Umsetzungsstatus muss am jeweiligen Code-SHA geprüft werden.
 
-## Aktueller Übergabestand: E07 abgeschlossen (08.11.2026)
+## Aktueller Übergabestand: E08 abgeschlossen (13.11.2026)
+
+**A-E08 PASS / Q-E08 PASS**, unabhängiger Schlussreview abgeschlossen. [E08-Bericht mit tatsächlichen Belegen und Gatezuordnung](runs/E08.md), [sechs Änderungsdateien](runs/E08-changed-files.md), [offene Folgepflichten](../migration/open-issues.md). Unabhängige22/22-Negativ-/Writerproben und3/3-AX-Browsernachweise sowie quellgebundene unveränderte E07-Retention-/10k-Belege; am13.11 keine Tests wiederholt. Zwischenstand BLOCKED09.11 ist überholt. Basis2a6aa41, sechs Änderungen uncommittet.
+
+Frisches Release-Vollgate/freshci/EIT34 auf passendem clean HEAD bleibt ausdrücklich **E09 NOT-RUN**, kein behaupteter neuer Vollgate-PASS. E09 nur nach eigenem GO und seinen Voraussetzungen. H08-/P02-/Security-/Betriebsgrenzen sowie spätere Recurrence-Domain- und P04/TZ-Nachweise bleiben offen. Vor jedem Schritt tatsächlichen SHA/Dirty/Quellenstand und Belegbindung prüfen.
+
+## Vorheriger Übergabestand: E07 abgeschlossen (08.11.2026)
 
 **E07 A/Q PASS**, einschließlich unabhängigem Abschlussreview. Verbindlicher Einstieg für folgende Agents: [E07-Bericht mit Plattform-/Domain-Testmatrix und offenen Grenzen](runs/E07.md), [vollständige Änderungsdateiliste](runs/E07-changed-files.md) und [zentrale offene Punkte](../migration/open-issues.md). Die älteren Einstiegsangaben unten sind historisch. Tatsächlichen Branch/HEAD/Dirty-Status und Quellenänderungen erneut prüfen.
 
