@@ -208,12 +208,10 @@ for (const timezoneId of ZONES) {
             r.url().endsWith("/api/transactions") &&
             r.request().method() === "POST",
         ),
-        // PrimeNG keeps the drawer mask in its enter-animation state under automation and it swallows pointer events,
-        // so the form is submitted programmatically.
         page
-          .locator("form")
-          .filter({ has: page.locator('button[type="submit"]') })
-          .evaluate((f) => (f as HTMLFormElement).requestSubmit()),
+          .locator(".p-drawer:visible")
+          .getByRole("button", { name: /Einzahlung buchen$/ })
+          .click(),
       ]);
       expect(posted!["bookDate"]).toBe(`${localDay}T00:00:00.000Z`);
       expect(posted!["month"]).toBeUndefined();

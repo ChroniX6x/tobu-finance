@@ -1,5 +1,7 @@
 # H08 – Abschlussbericht (Date/Month-Harmonisierung, unabhängiger Negativreview)
 
+**Aktueller Nachtrag 13.11.2026:** Der unten historisch offene F-3 wurde im E09-GO mit begrenztem Drawer-Fix und echten Klick-/API-/Mongo-Proben in vier Browserzonen geschlossen. [Korrektur und Belege](E09-prerequisites.md). Übrige Ausnahmen behalten ihre Fälligkeiten; dies ersetzt keinen E09-Vollgate-Nachweis.
+
 Zusammenfassung aller H08-Berichte. Die Einzelberichte bleiben als Belege bestehen und werden hier nicht erneut beschrieben: [H08.md](H08.md) (Erstreview, Wiederholung 1 und 2), [H08-FIX-ACL.md](H08-FIX-ACL.md), [H08-FIX-CAL.md](H08-FIX-CAL.md), [H08-FIX-ACL2.md](H08-FIX-ACL2.md), [H08-NACHTRAG-TESTS.md](H08-NACHTRAG-TESTS.md), Ausnahmen: [h08-freigegebene-ausnahmen.md](../h08-freigegebene-ausnahmen.md).
 
 ## Ergebnis

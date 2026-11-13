@@ -172,11 +172,10 @@ for (const timezoneId of ZONES) {
               r.request().method() === "POST" &&
               r.status() !== 428,
           ),
-          // The drawer mask swallows pointer events while PrimeNG animates under automation.
           page
-            .locator("form")
-            .filter({ has: page.locator('button[type="submit"]') })
-            .evaluate((f) => (f as HTMLFormElement).requestSubmit()),
+            .locator(".p-drawer:visible")
+            .getByRole("button", { name: /Einzahlung buchen$/ })
+            .click(),
         ]);
         expect(response.request().postDataJSON().month).toBeUndefined();
         expect(response.status(), await response.text()).toBe(201);
