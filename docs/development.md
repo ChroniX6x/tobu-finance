@@ -128,6 +128,8 @@ Für die Mock-E2E gelten auf ausdrücklichen Nutzerwunsch 60 Sekunden pro Test u
 
 `npm run quality` prüft Quellen, Typen, Verträge, Builds, Units und Mock-E2E. `npm run quality:full` (Alias `npm run verify:phase5`) ergänzt Docker-Integration, echte Browserabläufe, Start/Stop/Persistenz und eine saubere Produktionsinstallation. Docker und Paketdownloads müssen dafür verfügbar sein. Fehlende Voraussetzungen führen zu einem Fehler; der Bericht liegt in `test-results/quality.json`.
 
+Bei begrenzten lokalen Ressourcen lässt sich ausschließlich die Anzahl gleichzeitig laufender Integrationsdateien steuern: PowerShell `$env:TOBU_INTEGRATION_CONCURRENCY='1'; npm run quality:full` (danach die Variable entfernen), ebenso für `test:integration`. Erlaubt sind ganze Werte1–32; ohne Variable bleibt das bisherige Scheduling erhalten. Alle Dateien, internen Race-/Parallelitätstests, Assertions und Zeitlimits bleiben unverändert. Ein roter Lauf bleibt als Beleg erhalten; ein erfolgreicher Nachlauf braucht denselben geprüften clean Quellstand und einen eigenen offiziellen Bericht.
+
 Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren.
 
 `npm run test:web` (Karma, `ChromeHeadless`) wählt den Browser in dieser Reihenfolge:

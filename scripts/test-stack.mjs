@@ -46,13 +46,16 @@ process.on('SIGTERM', () => {
 try {
     const mode = process.argv[2];
     if (!['integration', 'browser'].includes(mode)) throw new Error('Use integration or browser');
+    const integrationConcurrency = process.env.TOBU_INTEGRATION_CONCURRENCY;
+    if (mode === 'integration' && integrationConcurrency !== undefined && (!/^[1-9]\d*$/.test(integrationConcurrency) || !Number.isSafeInteger(Number(integrationConcurrency)) || Number(integrationConcurrency) > 32))
+        throw new Error('TOBU_INTEGRATION_CONCURRENCY must be an integer from 1 to 32');
     database = await temporaryDatabase(abort.signal);
     abort.signal.throwIfAborted();
     backupRoot = await mkdtemp(join(tmpdir(), 'tobu-stack-backups-'));
     const env = { ...process.env, NODE_ENV: 'test', TEST_MONGODB_URI: database.uri, MONGODB_URI: database.uri, TOBU_MIGRATION_BACKUP_DIR: backupRoot, TOBU_MIGRATION_BACKUP_MODE: 'docker-local' };
     delete env.MONGOD_BIN; // Tests never inherit a native or developer fallback.
     if (mode === 'integration') {
-        await run(process.execPath, ['--test', 'tests/integration/*.test.mjs'], { cwd: apiRoot, env });
+        await run(process.execPath, ['--test', ...(integrationConcurrency === undefined ? [] : [`--test-concurrency=${integrationConcurrency}`]), 'tests/integration/*.test.mjs'], { cwd: apiRoot, env });
     } else {
         scratch = await mkdtemp(join(tmpdir(), 'tobu-e2e-'));
         env.PORT = String(await freePort());
