@@ -15,6 +15,8 @@ Kein uneingeschränktes PASS: Das Plan-Kriterium „CAL-01–28 reproduziert“ 
 
 ## ⚠️ Offene Punkte (nicht gelöst)
 
+**Historischer Befundkatalog des H08-Abschlusses.** Aktuelle Fälligkeiten und Teilabschlüsse stehen verbindlich in der [konsolidierten Restpunktliste](../date-event-followups.md). F-3, Wizard-Navigation, die500-Zulassung im Parent-Paralleltest und mehrere F8-Teilbefunde sind inzwischen korrigiert (E05/E09); die unten wiedergegebenen ursprünglichen Aussagen sind keine aktuellen Defektbehauptungen. F5/F7/F8 bleiben als umfassende P02-Pakete offen. E09 ist mittlerweile unabhängig A/Q PASS; keine erneute Freigabe daraus für Datenkorrektur/Recurrence/Produktion.
+
 Alle Punkte stehen mit Zuständigkeit in der Ausnahmen-Doku. Ein späterer Schritt (E09, P02, P04, V14) gilt erst als PASS, wenn die ihm zugeordneten Punkte geschlossen sind.
 
 ### Vom Eigentümer zur Kenntnis genommen / freigegeben
