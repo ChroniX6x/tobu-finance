@@ -1,5 +1,7 @@
 # Recurrence-Handover (H09): Schnittstellen und Readiness
 
+**Aktueller signierter Nachtrag E09 (13.11.2026): A-E09 PASS / Q-E09 PASS.** [Release-/Pre-Recurrence-Bericht mit A/Q, SHA, Unterschriften und Belegen](../agents/runs/E09.md) ist der aktuelle Einstieg. E00–E09-Plattform-A/Q sind PASS; F-3 ist mit echten vierzonigen Zahlungs-/Eventproben geschlossen. Vollständiges frisches17/17Gate auf clean `27c21d4`,180/180Integration/30/30Realbrowser und zusätzlicher echter Tools-/KnownTrigger-/API-Neustart-Restore unabhängig abschließend bestätigt. Der H09-Stand und seine Tabelle unten sind historisch und keine aktuelle Behauptung „Eventplattform nicht umgesetzt“. Recurrence-Domain-/HTTP-/Ensure-/FullDelete-EIT25–30, P01/P02 und technischer Account-Zonen-Rollout P04/EIT35/TZ bleiben eigenständige Folgegates. Kein Recurrence-Coding-, Push-/Merge-/Deploy- oder Bestandsmigrations-GO. **STOP nach E09.**
+
 Stand: Repository-HEAD `781c290` (nach H08), 03.11.2026. Reine Dokumentation und Verweissammlung, **kein** Recurrence-Coding-GO, keine Abnahme von E00–E09 oder des Account-Zonen-Rollouts. Quellen: Date/Month-Plan H09 und §§11–19, Eventplan E09 und §§9, 22–24, Buchungsvorlagenplan D04, D05, V14, §§57.2, 59–61 (lokaler Quellenordner, Hashes in [source-index.md](../agents/source-index.md)).
 
 ## Abhängigkeit

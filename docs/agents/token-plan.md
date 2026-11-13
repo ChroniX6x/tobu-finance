@@ -2,7 +2,13 @@
 
 Stand: 03.11.2026. Arbeitsplan für den Nutzer; keine Feature-Implementierung und kein Schritt-GO. Die externen Dokumente wurden für diese Planung gezielt ausgewertet, nicht vollständig fachlich auditiert. Umsetzungsstatus muss am jeweiligen Code-SHA geprüft werden.
 
-## Aktueller Übergabestand: E08 abgeschlossen (13.11.2026)
+## Aktueller Übergabestand: E09 abgeschlossen (13.11.2026)
+
+**A-E09 PASS / Q-E09 PASS**, unabhängig abschließend bestätigt. Maßgeblicher Einstieg: [E09-Bericht und Pflichtbelege](runs/E09.md). E08 ist auf `e031bf5` committed; H08-F-3 wurde im E09-GO tatsächlich behoben und unabhängig mit vierzonigen nativen Zahlungs-/Eventproben geschlossen. Clean Integrationscommit des tatsächlichen frischen17/17Vollgates: `27c21d40fd4a79f1758e087b27b54cf54d066402`,180/180Integration und30/30Realbrowser, zusätzlicher echter Tools-/KnownTrigger-/API-Neustart-Restore. Der erste Vollgatelauf bleibt rot dokumentiert; vollständiger Nachlauf mit optionaler Datei-Parallelitätssteuerung ohne Timeout-/Assertionlockerung PASS. Danach nur vier Abschlussdokumente dirty. **STOP, kein automatischer Folgeschritt.**
+
+EIT25–30-Domain/Ensure/FullDelete bleiben bis V08–V28 NOT-RUN/BLOCKED; EIT35/TZ gehören zu P04 vor D07. P01/P02-, Legacy-, AUTH-/API-, Security- und Betriebsrestpflichten stehen im E09-Bericht und [open-issues](../migration/open-issues.md). Kein automatisches Recurrence-Coding, keine Bestandsmigration, kein Push/Merge/Deploy.
+
+## Vorheriger Übergabestand: E08 abgeschlossen (13.11.2026)
 
 **A-E08 PASS / Q-E08 PASS**, unabhängiger Schlussreview abgeschlossen. [E08-Bericht mit tatsächlichen Belegen und Gatezuordnung](runs/E08.md), [sechs Änderungsdateien](runs/E08-changed-files.md), [offene Folgepflichten](../migration/open-issues.md). Unabhängige22/22-Negativ-/Writerproben und3/3-AX-Browsernachweise sowie quellgebundene unveränderte E07-Retention-/10k-Belege; am13.11 keine Tests wiederholt. Zwischenstand BLOCKED09.11 ist überholt. Basis2a6aa41, sechs Änderungen uncommittet.
 

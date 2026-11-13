@@ -1,6 +1,12 @@
 # Offene Punkte der Transformation
 
-## Aktueller Nachtrag E08 – abgeschlossen (13.11.2026)
+## Aktueller Nachtrag E09 – abgeschlossen (13.11.2026)
+
+**A-E09 PASS / Q-E09 PASS**, unabhängig abschließend bestätigt; [E09-Bericht](../agents/runs/E09.md) ist der aktuelle Einstieg. E08 ist auf `e031bf5` committed. H08-F-3 wurde tatsächlich reproduziert, eng korrigiert und unabhängig mit vierzonigen nativen Zahlungs-/Event-/Centproben geschlossen. Ergänzender echter EIT34-Tools-Restore/User-/Systemtrigger-/API-Neustart-Nachweis PASS; erstes Fresh-Vollgate bleibt rot dokumentiert. Tatsächliches neues vollständiges Gate auf clean `27c21d4`:17/17PASS,180/180Integration und30/30Realbrowser mit optionalem Datei-Scheduling1 und unveränderten internen Race-Tests/Timeouts/Assertions. Keine offenen E09-Pflichtfindings; vier Abschlussdokumente folgen im separat beauftragten Dokumentationscommit ohne Änderung der Gatequellen. **STOP, kein automatischer Folgeschritt.**
+
+Offen bleiben EX-07/A17 vor Legacy-Nutzung/P02, F5/F7/F8 vor P02, F6/P04, F1/gesonderte Bestandskorrektur; umfassende AUTH-001/002/API-001/Memberindex-/Altzuordnungs-/Aufräumpflichten. EIT25–30-Domain bis V08–V28 NOT-RUN/BLOCKED, P04/EIT35/TZ vor D07 separater technischer Rollout. Aktuell89Dependencybefunde (**5critical/36high/43moderate/5low**); keine Upgrades/Sicherheitsfreigabe durch Funktionstests. Produktive S3–S7/S6b, Live-Migration/Backup/Restore, neuer CI-/manueller Abnahmenachweis bleiben separat. Keine automatische Folgeimplementierung oder Produktionsfreigabe.
+
+## Historischer Nachtrag E08 – abgeschlossen (13.11.2026)
 
 **A/Q E08 PASS**, unabhängiger Gesamtbelegreview abgeschlossen: [Bericht](../agents/runs/E08.md). Eigene Reviewer-Negativ-/Writerproben22/22 und AX-Browser3/3, unveränderte E07-Retention-/10k-Rohbelege quellgebunden wiederverwendet. Keine offenen neuen Produktfindings und kein E08-Pflichtrest. Der Reviewer-Nutzungslimitblocker vom09.11 ist aufgelöst. Sechs Test-/Dokumentationsdateien uncommittet, Produktcode und vier Migrationen unverändert. Am13.11 keine Tests wiederholt.
 
