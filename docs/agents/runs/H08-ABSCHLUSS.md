@@ -1,5 +1,7 @@
 # H08 – Abschlussbericht (Date/Month-Harmonisierung, unabhängiger Negativreview)
 
+**Aktueller Nachtrag 13.11.2026:** Der unten historisch offene F-3 wurde im E09-GO mit begrenztem Drawer-Fix und echten Klick-/API-/Mongo-Proben in vier Browserzonen geschlossen. [Korrektur und Belege](E09-prerequisites.md). Übrige Ausnahmen behalten ihre Fälligkeiten; dies ersetzt keinen E09-Vollgate-Nachweis.
+
 Zusammenfassung aller H08-Berichte. Die Einzelberichte bleiben als Belege bestehen und werden hier nicht erneut beschrieben: [H08.md](H08.md) (Erstreview, Wiederholung 1 und 2), [H08-FIX-ACL.md](H08-FIX-ACL.md), [H08-FIX-CAL.md](H08-FIX-CAL.md), [H08-FIX-ACL2.md](H08-FIX-ACL2.md), [H08-NACHTRAG-TESTS.md](H08-NACHTRAG-TESTS.md), Ausnahmen: [h08-freigegebene-ausnahmen.md](../h08-freigegebene-ausnahmen.md).
 
 ## Ergebnis
@@ -12,6 +14,8 @@ Zusammenfassung aller H08-Berichte. Die Einzelberichte bleiben als Belege besteh
 Kein uneingeschränktes PASS: Das Plan-Kriterium „CAL-01–28 reproduziert“ gilt nur unter den unten genannten Ausnahmen. Die Freigabe von H08 ist keine Freigabe für Prod-Migration, Deploy, Bestandsdatenkorrektur, Recurrence- oder Activity-Implementierung.
 
 ## ⚠️ Offene Punkte (nicht gelöst)
+
+**Historischer Befundkatalog des H08-Abschlusses.** Aktuelle Fälligkeiten und Teilabschlüsse stehen verbindlich in der [konsolidierten Restpunktliste](../date-event-followups.md). F-3, Wizard-Navigation, die500-Zulassung im Parent-Paralleltest und mehrere F8-Teilbefunde sind inzwischen korrigiert (E05/E09); die unten wiedergegebenen ursprünglichen Aussagen sind keine aktuellen Defektbehauptungen. F5/F7/F8 bleiben als umfassende P02-Pakete offen. E09 ist mittlerweile unabhängig A/Q PASS; keine erneute Freigabe daraus für Datenkorrektur/Recurrence/Produktion.
 
 Alle Punkte stehen mit Zuständigkeit in der Ausnahmen-Doku. Ein späterer Schritt (E09, P02, P04, V14) gilt erst als PASS, wenn die ihm zugeordneten Punkte geschlossen sind.
 

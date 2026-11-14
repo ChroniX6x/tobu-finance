@@ -1,5 +1,11 @@
 # Entwicklung ab Phase 3
 
+E07: [Recurrence-Activity-Primitiven](architecture/recurrence-activity-primitives.md), neue additive Eventvalidator-Migration ohne Backfill. Keine neue Domainroute/Ensure-Logik. Vor Nutzung bestehender Datenbanken separat den Migrationshandover befolgen; kein automatisches Anwenden durch `dev` oder GET.
+
+Account-Activity E06: [Read-API, Desktop-/Mobile-Ansicht, Cursor/Privacy und Diagnose](architecture/activity-read.md). Keine Migration/Ensure bei GET. Bei422 Filter/Cursor zurücksetzen; bei503 unlesbare Events read-only diagnostizieren, niemals beim GET reparieren.
+
+**E05:** Vor direkter API-Nutzung die neue [Domainbeleg-Verhandlung und Fehler-Recovery](architecture/activity-rollout.md) beachten (428 ohne Writes, signierter Create-/Mutation-Beleg, stale Revision 409). Der Webinterceptor übernimmt das auf same-origin `/api`. Neue Checkpoints/Belege liegen nur in der Browsersitzung, Access-Tokens weiter im Arbeitsspeicher. Zwei additive neue Migrationen ergänzen Validatoren ohne Backfill; Bestandsanwendung ausschließlich separat gemäß [Migrationshandover](database/migration-handover.md). E05 implementiert kein neues Recurrence-MVP und keine Account-Zonenroute.
+
 Voraussetzungen: Node 24.13.1, npm 11.8.0, Docker mit Compose und laufender Linux-Engine. Windows/VS Code ist der primäre Prüfpfad; die Node-Skripte unterstützen auch Linux/macOS. Keine native MongoDB-Installation nötig. MongoDB ist für Entwicklung und Tests auf **mongo:9.0.4** festgelegt (auf Nutzerwunsch neueste veröffentlichte Version, geprüft am 21.10.2026 anhand der [offiziellen Image-Liste](https://github.com/docker-library/docs/blob/master/mongo/README.md)). Die Freigabe dieser Kombination erfolgt über Gate 3, nicht allein durch den Download.
 
 ## Erstes Setup
@@ -34,15 +40,15 @@ Die native MongoDB samt altem Datenverzeichnis bleibt unberührt. Der Docker-Sta
 
 Root-`.env` ist die zentrale Entwicklungssteuerung. Prozess-Umgebungsvariablen überschreiben diese Werte. `apps/api/.env` enthält lokale API-Schlüssel; der Root-Runner setzt DB-URI, API-Port, Host und CORS gezielt aus der Root-Konfiguration.
 
-| Variable | Standard | Bedeutung |
-| --- | --- | --- |
-| DB_MODE | docker | docker oder ausdrücklich external |
-| DB_PORT | 27018 | Nur an 127.0.0.1 veröffentlichter MongoDB-Port |
-| DEV_DB_NAME | tobu_finance_dev | Name der Docker-Entwicklungsdatenbank |
-| COMPOSE_PROJECT | tobu-finance-dev | Bestimmt Container und persistentes Volume |
-| API_PORT / WEB_PORT | 4000 / 4200 | Müssen frei und verschieden sein |
-| MONGODB_URI | leer | Nur im externen Modus erforderlich |
-| SEED_MONTH | leer | Beim ersten Seed aktueller UTC-Monat; danach gespeichert |
+| Variable            | Standard         | Bedeutung                                                |
+| ------------------- | ---------------- | -------------------------------------------------------- |
+| DB_MODE             | docker           | docker oder ausdrücklich external                        |
+| DB_PORT             | 27018            | Nur an 127.0.0.1 veröffentlichter MongoDB-Port           |
+| DEV_DB_NAME         | tobu_finance_dev | Name der Docker-Entwicklungsdatenbank                    |
+| COMPOSE_PROJECT     | tobu-finance-dev | Bestimmt Container und persistentes Volume               |
+| API_PORT / WEB_PORT | 4000 / 4200      | Müssen frei und verschieden sein                         |
+| MONGODB_URI         | leer             | Nur im externen Modus erforderlich                       |
+| SEED_MONTH          | leer             | Beim ersten Seed aktueller UTC-Monat; danach gespeichert |
 
 Eine bewusst gewählte eigene Datenbank lässt sich mit `DB_MODE=external` und einer expliziten `MONGODB_URI=mongodb://127.0.0.1:27017/tobu_neu` verwenden. Nur eine neue/leere Datenbank oder eine bereits bekannte Baseline wählen. Der Runner startet/stoppt diesen Server nicht. Eine nicht erreichbare externe DB führt zum Fehler, niemals zum Wechsel auf Docker. Docker bleibt für isolierte Tests erforderlich.
 
@@ -50,14 +56,14 @@ Fehler bei belegten Ports werden vor dem Stackstart gemeldet. Fehlende Docker-En
 
 ## Datenbankbefehle
 
-| Befehl | Wirkung |
-| --- | --- |
-| npm run db:init | Baseline auf leerer DB erzeugen oder vorhandenen Stand prüfen; keine Demo |
-| npm run db:replica:init -- --writers-stopped=tobu_finance_dev | Bekannte lokale Standalone-DB nach Backup und Restore-Probe auf Replica Set umstellen; alle Writer müssen beendet sein |
-| npm run db:seed | Fehlende Demo-Dokumente ergänzen; bestehende Dokumente unverändert lassen |
-| npm run db:migrate:plan | Ziel, ausstehende Migrationen und Bestätigungshash lesen |
+| Befehl                                                                  | Wirkung                                                                                                                       |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| npm run db:init                                                         | Baseline auf leerer DB erzeugen oder vorhandenen Stand prüfen; keine Demo                                                     |
+| npm run db:replica:init -- --writers-stopped=tobu_finance_dev           | Bekannte lokale Standalone-DB nach Backup und Restore-Probe auf Replica Set umstellen; alle Writer müssen beendet sein        |
+| npm run db:seed                                                         | Fehlende Demo-Dokumente ergänzen; bestehende Dokumente unverändert lassen                                                     |
+| npm run db:migrate:plan                                                 | Ziel, ausstehende Migrationen und Bestätigungshash lesen                                                                      |
 | npm run db:migrate -- --confirm=HASH --writers-stopped=tobu_finance_dev | Bestätigte transaktionale Up-Migrationen bei gestoppten Writern ausführen; siehe [Anleitung](database/migration-authoring.md) |
-| npm run db:reset -- --confirm=tobu_finance_dev | Bewusst ausschließlich die Docker-DB tobu_finance_dev löschen und neu aufbauen |
+| npm run db:reset -- --confirm=tobu_finance_dev                          | Bewusst ausschließlich die Docker-DB tobu_finance_dev löschen und neu aufbauen                                                |
 
 Das rein lesende Kalender-Audit (H05) läuft mit explizitem `MONGODB_URI` über `node --import tsx apps/api/src/database/cli.ts audit-calendar` (im Verzeichnis `apps/api`, gebaut: `node apps/api/dist/src/database/cli.js audit-calendar`). Es gibt nur aggregierte Zähler als JSON auf stdout aus und schreibt nichts. Entscheidung `NO MIGRATION` (keine blockierenden oder tolerierten Befunde; reine Info-Befunde zu Legacy-Recurrences erlaubt), `REVIEW` (tolerierte Altwerte, Entscheidung durch den Eigentümer nötig) oder `STOP-DATA` (Exit-Code 2, keine Migration ohne eigenen freigegebenen Plan).
 
@@ -67,38 +73,38 @@ Reset ist im externen Modus und ohne die exakte Bestätigung gesperrt. Die Entwi
 
 Passwort für alle Demo-Nutzer: `Tobu-Demo-2026!`. Nur für lokale Entwicklung. E-Mail: `<name>@demo.tobu.test`.
 
-| Name | Vorbereitung |
-| --- | --- |
-| admin | Globaler Admin ohne Kontomitgliedschaft |
-| admin-owner | Admin, Owner seines eigenen Kontos und Mitglied im Haushalt |
-| alice | Owner von leerem Konto, Einzelhaushalt, Haushalt, Null-Einkommen und 60/40-Konto |
-| bob | Mitglied mehrerer Konten, Teilzahlung/private Vorleistung |
-| chris | Mitglied ohne Einkommen im Drei-Personen-Konto |
-| outsider | Owner eines separaten fremden Kontos |
-| new | Aktiver Nutzer ohne Mitglied/Konto |
-| blocked | Gesperrter Nutzer, Konto und Historie bleiben erhalten |
+| Name        | Vorbereitung                                                                     |
+| ----------- | -------------------------------------------------------------------------------- |
+| admin       | Globaler Admin ohne Kontomitgliedschaft                                          |
+| admin-owner | Admin, Owner seines eigenen Kontos und Mitglied im Haushalt                      |
+| alice       | Owner von leerem Konto, Einzelhaushalt, Haushalt, Null-Einkommen und 60/40-Konto |
+| bob         | Mitglied mehrerer Konten, Teilzahlung/private Vorleistung                        |
+| chris       | Mitglied ohne Einkommen im Drei-Personen-Konto                                   |
+| outsider    | Owner eines separaten fremden Kontos                                             |
+| new         | Aktiver Nutzer ohne Mitglied/Konto                                               |
+| blocked     | Gesperrter Nutzer, Konto und Historie bleiben erhalten                           |
 
 Diese Zuordnungen bereiten die vereinbarte [Rechtematrix](migration/roles-and-access.md) vor. Phase 3 implementiert **keine vollständige Kontozugriffskontrolle**. Insbesondere ist die gewünschte Trennung zwischen globalem Admin und privaten Finanzdaten noch kein bestandenes Sicherheitsmerkmal. Keine echten Finanzdaten in die Demo übernehmen.
 
 `M` bezeichnet den in `_tobu_seed` gespeicherten Referenzmonat. Bei älteren Seeds diesen Monat in der UI wählen. Alle Geldwerte unten sind Cent; stabile IDs werden aus `tobu-demo-v1:<Kennung>` abgeleitet.
 
-| Kennung / Konto | Manuell prüfbare Ausgangslage und Erwartungswerte |
-| --- | --- |
-| account:empty / 01 | Alice; drei Kategorien, keine Buchungen, Salden oder Beiträge: Leerzustände |
-| account:solo / 02 | Ein Mitglied; Einkommen 200000, Grundbeitrag 30000, Historie M-6 bis M |
-| account:household / 03 | Einkommen Alice/Bob/Admin 200000/100000/0; Grundbeitrag 30000 verteilt 20000/10000/0 |
-| Beiträge / 03 | Alice bezahlt 20000 vollständig; Bob bezahlt 5000 teilweise, offen 5000; Übertrag Bob separat 2500 |
-| Budgetvergleich / 03 | Lebensmittelbudget 10000; Ausgaben M-2: 8000, M-1: 10000, M: 12000 |
-| Vormerkung / 03 | M+1: 3500 vorgemerkt, Buchungsdatum null |
-| Private Vorleistung / 03 | Bob zahlt 1750 aus eigenen Mitteln |
-| Teilzuordnung / 03 | Elternbuchung 10000, Kinder 3000+2000: Rest 5000 |
-| Vollzuordnung / 03 | Elternbuchung 10000, Kinder 6000+4000: Rest 0 |
-| Suche & Pagination / 03 | 65 Buchungen, Beträge 101 bis 165; Summe 8645, Kategorie Sonstiges ohne Budget |
-| Wiederkehrend / 03 | Monatliche Mietvorlage 90000, nächster Termin M+1; keine automatische Ausführung beim Start |
-| Einzelbeitrag / 03 | Einmaliger Zusatzbeitrag Bob 12500 in M+1, Verteilung perMember |
-| account:zero / 04 | Drei Mitglieder ohne Einkommen, offener Grundbeitrag 10000; Gleichverteilung mit Centrest 3334/3333/3333 |
-| account:custom / 05 | 60/40 von 10001: 6001/4000; letzter Saldenstand M-3, Lücken danach |
-| account:admin, foreign, blocked / 06–08 | Rollen-/Zuordnungsfälle; gesperrter Owner behält Historie |
+| Kennung / Konto                         | Manuell prüfbare Ausgangslage und Erwartungswerte                                                        |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| account:empty / 01                      | Alice; drei Kategorien, keine Buchungen, Salden oder Beiträge: Leerzustände                              |
+| account:solo / 02                       | Ein Mitglied; Einkommen 200000, Grundbeitrag 30000, Historie M-6 bis M                                   |
+| account:household / 03                  | Einkommen Alice/Bob/Admin 200000/100000/0; Grundbeitrag 30000 verteilt 20000/10000/0                     |
+| Beiträge / 03                           | Alice bezahlt 20000 vollständig; Bob bezahlt 5000 teilweise, offen 5000; Übertrag Bob separat 2500       |
+| Budgetvergleich / 03                    | Lebensmittelbudget 10000; Ausgaben M-2: 8000, M-1: 10000, M: 12000                                       |
+| Vormerkung / 03                         | M+1: 3500 vorgemerkt, Buchungsdatum null                                                                 |
+| Private Vorleistung / 03                | Bob zahlt 1750 aus eigenen Mitteln                                                                       |
+| Teilzuordnung / 03                      | Elternbuchung 10000, Kinder 3000+2000: Rest 5000                                                         |
+| Vollzuordnung / 03                      | Elternbuchung 10000, Kinder 6000+4000: Rest 0                                                            |
+| Suche & Pagination / 03                 | 65 Buchungen, Beträge 101 bis 165; Summe 8645, Kategorie Sonstiges ohne Budget                           |
+| Wiederkehrend / 03                      | Monatliche Mietvorlage 90000, nächster Termin M+1; keine automatische Ausführung beim Start              |
+| Einzelbeitrag / 03                      | Einmaliger Zusatzbeitrag Bob 12500 in M+1, Verteilung perMember                                          |
+| account:zero / 04                       | Drei Mitglieder ohne Einkommen, offener Grundbeitrag 10000; Gleichverteilung mit Centrest 3334/3333/3333 |
+| account:custom / 05                     | 60/40 von 10001: 6001/4000; letzter Saldenstand M-3, Lücken danach                                       |
+| account:admin, foreign, blocked / 06–08 | Rollen-/Zuordnungsfälle; gesperrter Owner behält Historie                                                |
 
 Salden sind bewusst eigene Snapshot-Beispiele, keine aus sämtlichen Beispielbuchungen rekonstruierte Bankhistorie. Der vollständige Verlauf hat in M den Saldo 290000; das lückenhafte Konto zuletzt 245000 in M-3. Die Baseline enthält keine Demo-Nutzer. Automatisierte API-/Browser-Tests erstellen eigene minimale Fixtures in zufälligen Datenbanken statt die manuelle Demo umzuschreiben.
 
@@ -121,6 +127,8 @@ Datum und Monat: Begriffe, Pflichten und der Status je Fundstelle stehen in [dat
 Für die Mock-E2E gelten auf ausdrücklichen Nutzerwunsch 60 Sekunden pro Test und 15 Sekunden für wiederholte Assertions (zuvor 30/5 Sekunden). Erfolgreiche Schritte warten diese Budgets nicht ab. Parallelität und Videoaufzeichnung bleiben aktiv; fehlgeschlagene Tests behalten zusätzlich einen Trace, ohne automatische Wiederholungen. Der längere Real-API-CRUD-Test behält sein bestehendes 90-Sekunden-Budget. Die Wizard-Prüfungen verwenden das gemeinsame Assertion-Budget statt kürzerer lokaler Überschreibungen. Falls für einen Diagnoseversuch `$env:PLAYWRIGHT_VIDEO = "off"` gesetzt wurde, vor dem nächsten Lauf in PowerShell `Remove-Item Env:PLAYWRIGHT_VIDEO -ErrorAction SilentlyContinue` ausführen. Diese Zeitbudgets sind keine Garantie bei beliebiger Rechnerüberlastung.
 
 `npm run quality` prüft Quellen, Typen, Verträge, Builds, Units und Mock-E2E. `npm run quality:full` (Alias `npm run verify:phase5`) ergänzt Docker-Integration, echte Browserabläufe, Start/Stop/Persistenz und eine saubere Produktionsinstallation. Docker und Paketdownloads müssen dafür verfügbar sein. Fehlende Voraussetzungen führen zu einem Fehler; der Bericht liegt in `test-results/quality.json`.
+
+Bei begrenzten lokalen Ressourcen lässt sich ausschließlich die Anzahl gleichzeitig laufender Integrationsdateien steuern: PowerShell `$env:TOBU_INTEGRATION_CONCURRENCY='1'; npm run quality:full` (danach die Variable entfernen), ebenso für `test:integration`. Erlaubt sind ganze Werte1–32; ohne Variable bleibt das bisherige Scheduling erhalten. Alle Dateien, internen Race-/Parallelitätstests, Assertions und Zeitlimits bleiben unverändert. Ein roter Lauf bleibt als Beleg erhalten; ein erfolgreicher Nachlauf braucht denselben geprüften clean Quellstand und einen eigenen offiziellen Bericht.
 
 Chromium einmalig mit `npm exec --workspace=@tobu/web -- playwright install chromium` installieren.
 

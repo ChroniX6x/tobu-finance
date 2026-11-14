@@ -1,8 +1,51 @@
 # Offene Punkte der Transformation
 
+**Reviewnachtrag14.11.2026:** Refresh-/Proof-Koordination und Activity-Theme-Tokens korrigiert; [Änderungen und aktuelle Belege](../agents/runs/E09-review-fixes.md).29/29Angular- und5/5gezielte Mockbrowsertests PASS; zusätzlicher Real-API-Nachlauf wegen fehlendem Docker/Compose vor Teststart BLOCKED und vor entsprechender Integrations-/Releaseabnahme nachzuholen. Das frühere17/17E09-Gate gehört unverändert zu27c21d4, kein neuer Vollgate-PASS für diese Änderungen.
+
+**Verbindlicher Einstieg für Date/Month und Events:** [Restpunktliste mit Fälligkeit und Abschlusskriterium](../agents/date-event-followups.md). Abgenommene Implementierungsphasen bleiben abgeschlossen; die aufgeführten Folgepflichten müssen vor dem jeweils genannten Gate tatsächlich gelöst werden. Historische Absätze sind kein aktueller Defektkatalog.
+
+## Aktueller Nachtrag E09 – abgeschlossen (13.11.2026)
+
+**A-E09 PASS / Q-E09 PASS**, unabhängig abschließend bestätigt; [E09-Bericht](../agents/runs/E09.md) ist der aktuelle Einstieg. E08 ist auf `e031bf5` committed. H08-F-3 wurde tatsächlich reproduziert, eng korrigiert und unabhängig mit vierzonigen nativen Zahlungs-/Event-/Centproben geschlossen. Ergänzender echter EIT34-Tools-Restore/User-/Systemtrigger-/API-Neustart-Nachweis PASS; erstes Fresh-Vollgate bleibt rot dokumentiert. Tatsächliches neues vollständiges Gate auf clean `27c21d4`:17/17PASS,180/180Integration und30/30Realbrowser mit optionalem Datei-Scheduling1 und unveränderten internen Race-Tests/Timeouts/Assertions. Keine offenen E09-Pflichtfindings; Dokumentationsabschluss41a1558 ist committed, Gatequellen unverändert. **STOP, kein automatischer Folgeschritt.**
+
+Offen bleiben EX-07/A17 vor Legacy-Nutzung/P02, F5/F7/F8 vor P02, F6/P04, F1/gesonderte Bestandskorrektur; umfassende AUTH-001/002/API-001/Memberindex-/Altzuordnungs-/Aufräumpflichten. EIT25–30-Domain bis V08–V28 NOT-RUN/BLOCKED, P04/EIT35/TZ vor D07 separater technischer Rollout. Aktuell89Dependencybefunde (**5critical/36high/43moderate/5low**); keine Upgrades/Sicherheitsfreigabe durch Funktionstests. Produktive S3–S7/S6b, Live-Migration/Backup/Restore, neuer CI-/manueller Abnahmenachweis bleiben separat. Keine automatische Folgeimplementierung oder Produktionsfreigabe.
+
+## Historischer Nachtrag E08 – abgeschlossen (13.11.2026)
+
+**A/Q E08 PASS**, unabhängiger Gesamtbelegreview abgeschlossen: [Bericht](../agents/runs/E08.md). Eigene Reviewer-Negativ-/Writerproben22/22 und AX-Browser3/3, unveränderte E07-Retention-/10k-Rohbelege quellgebunden wiederverwendet. Keine offenen neuen Produktfindings und kein E08-Pflichtrest. Der Reviewer-Nutzungslimitblocker vom09.11 ist aufgelöst. Sechs Test-/Dokumentationsdateien uncommittet, Produktcode und vier Migrationen unverändert. Am13.11 keine Tests wiederholt.
+
+Frisches Release-Vollgate/freshci/clean-HEAD-/EIT34-Abnahme bleibt **E09 NOT-RUN** gemäß Eventplan E09/§22.8; kein E09-/CI-/Produktions-PASS behauptet. Alle folgenden H08-/P02-/ACL-/API-/Security-/Betriebsgrenzen und späteren Recurrence-/P04-/TZ-Nachweise bleiben offen. E09 braucht eigenes GO und seine vollständigen Voraussetzungen.
+
+## Historischer Nachtrag E07 (08.11.2026)
+
+**E07 A/Q PASS**: zwölf Recurrence-Eventprimitiven, enger Writer-Adapter und isolierte generische Mongo-Plattformproben umgesetzt; keine neue produktive Recurrence-Domain/Ensure-/Konto-Zonenroute. Maßgeblich: [E07-Abschlussbericht mit Belegen und zweigeteilter EIT-Matrix](../agents/runs/E07.md), [Integrations-/Betriebsgrenze](../architecture/recurrence-activity-primitives.md). Vollgate17/17 und unabhängiger Review bestanden; dies ist kein neuer CI-/Produktionsnachweis.
+
+Verpflichtend an folgende Agents weitergeben:
+
+- **E08/E09:** unabhängige plattformweite Sicherheits-/Race-/Negativprüfung, Befunde vor dem jeweiligen Gate beheben; E09 verlangt unter anderem passenden clean HEAD und tatsächliche vollständige Prüfbelege. Der E07-Review ersetzt E08 nicht. Jeder Schritt braucht eigenes GO.
+- **V08–V28:** echte Recurrence-Domain-/HTTP-/Ensure-/Revision-/FullDelete-Nachweise zu EIT25–30 samt R-EV/IT/E2E bleiben NOT-RUN/BLOCKED, bis diese Domain implementiert und tatsächlich getestet wird. Generische E07-Fixtures ersetzen diese Nachweise nicht.
+- **P04 vor D07:** Konto-Zonenfeature samt EIT35/TZ separat umsetzen und prüfen; keine offene Nutzer-Fachentscheidung daraus ableiten.
+- **H08/P02 und bestehende Defekte:** EX-07/A17, F3/Drawer, umfassende F5–F8-/AUTH-/P02-Gates, API-001 und Member.userId-Index/Altdatenmehrdeutigkeit/gesonderter Aufräumweg bleiben gemäß [H08-Ausnahmen und Fälligkeiten](../agents/h08-freigegebene-ausnahmen.md) und aktuellen E05/E06-Nachträgen offen. Historische Statusabsätze unten nicht ohne diese neueren Nachträge interpretieren.
+- **Security/Betrieb/Abnahme:** bekannte89Dependencybefunde gesondert bewerten und gezielt freigegebene Updates durchführen; keine pauschalen Baseline-/Versionsänderungen. Produktive S3–S7/S6b, neuer PR-CI-Nachweis und ausdrücklich nicht durchgeführte manuelle Abnahmepunkte bleiben separat. Keine Bestandsmigration/Restore/Deployment ohne gesonderten Auftrag.
+
+## Historischer Nachtrag E06 (08.11.2026)
+
+Account-Activity-GET und20er-Vorschau verwenden jetzt denselben aktiven User-/Memberguard und dieselbe sichere Actor-/Legacy-Projektion. Desktop-/Mobile-Read/UI einschließlich Kontextcursor, Filter, gelöschten Subjects und über Seiten geladenen Gruppen ist umgesetzt und mit vollständigem lokalem Gate geprüft: [E06-Bericht](../agents/runs/E06.md), [Read-Handbuch](../architecture/activity-read.md). Das erledigt den E06-Read/UI-Anteil, nicht AUTH-001/002, H08-Ausnahmen, Memberindex/Altdatenbereinigung, P02, E08/E09 oder neue CI-/Produktionsabnahme. Keine Migration oder Legacy-Datenreparatur durch GET.
+
+## Historischer Nachtrag E05 (07.11.2026)
+
+Die AUTH-002–005-Beschreibungen unten dokumentieren den Ausgangsstand vor E05. Aktueller Implementierungs-/Abnahmestand: [E05-Bericht](../agents/runs/E05.md), vollständige [Routen-/Fehler-/Rollback-Matrix](../architecture/activity-rollout.md).
+
+- AUTH-002: Account/Self-Owner/Event werden gemeinsam erzeugt; eigener Self eindeutig wiederverwendet, sonst deterministisch angelegt. Wizard zeigt nicht entfernbares „Du“, wartet auf die echte Konto-ID, sichert abgeschlossene Schritte und verhindert doppelte Saves. Altkonten ohne verifizierten User, mehrere historische Self-Member, Member.userId-Index und ein gesondert freigegebener Aufräumweg bleiben offen. Wizard benennt vorhandene Self-Stammdaten nicht ungeprüft um.
+- AUTH-003: Alle tatsächlich mutierenden E05-Pflichtfamilien verwenden den gemeinsamen atomaren Writer und den echten User-Actor. Globaler Member-PATCH erzeugt `member.updated` pro autorisiertem betroffenem Konto. Member POST/Orphan-DELETE bleiben gemäß E01 bewusst ohne Kontoevent. Historische Events unverändert; E06-Actor-UI/E09-Gesamtabnahme bleiben separat.
+- AUTH-004: Im E05-Schreibumfang transaktionale Autoritätsprüfung und gemeinsame echte Account-/User-/Member-Revisionswrites; Assignment/Memberänderung/Delete und Antwortverlust mit Zwischenänderung sind real geprüft. Das schließt nicht pauschal P02, F-5 oder das unabhängige E08-Gate.
+- AUTH-005: Private servertrusted `createdByUserId` für neue Member, neue additive Migration ohne Backfill; historische Orphans ohne Provenance werden nicht übernommen. Assignment prüft alle bestehenden Konten; früherer unbenutzter Helper entfernt. Member-PATCH verlangt alle betroffenen Kontorechte und protokolliert nur changedFields. Historische Aufräumarbeiten, mögliche Informationsorakel und F-8 bleiben gesondert offen.
+
+API-001, H08-A17/EX-07, F-3 (Drawer-Echtklick), F-5–F-8 als umfassende Folgegates, UI-001 und Dependencybefunde werden nicht als erledigt erklärt. Der zuvor dokumentierte Wizard-Navigationsfehler wird im E05-Umfang korrigiert und separat geprüft; das ist kein nachträglicher pauschaler H08-PASS.
+
 ## MIGRATION-S1–S7: Nacharbeiten am Migrationsbetrieb
 
-Offen und noch nicht implementiert: [bewertete Findings S1–S7](../database/migration-findings.md). S1 (Credential-freie Zielidentität/Recovery) und S2 (sichere Diagnostik) vor der ersten echten Migration bzw. Produktiveinsatz beheben; erneute TTL-Vorprüfung S6b vor produktiven strukturellen Restores. Dort stehen Prioritäten, abweichende Bewertungen, Abnahmekriterien und akzeptierte Restrisiken. Die Dokumentation ersetzt keinen erfolgreichen PR-CI-Lauf oder eine Merge-Freigabe.
+[Bewertete Findings S1–S7](../database/migration-findings.md): S1 (credentialfreie Zielidentität/Recovery) und S2 (sichere Diagnostik) wurden bei der E03-Wiederaufnahme implementiert und gezielt isoliert geprüft; vollständiger aktueller A/Q-/Reviewstatus im [E03-Bericht](../agents/runs/E03.md). S3–S7 bleiben offen, insbesondere S6b vor produktiven strukturellen Restores. Alte URI-gebundene Journale benötigen den dokumentierten versionsgebundenen Recoveryweg. Keine Produktions-/Bestandsmigration durch E03. Die Dokumentation ersetzt keinen erfolgreichen PR-CI-Lauf oder eine Merge-Freigabe.
 
 ## TEST-001: Vite-Proxy ECONNREFUSED in Mock-E2E
 
@@ -17,18 +60,45 @@ Offen und noch nicht implementiert: [bewertete Findings S1–S7](../database/mig
 
 ## AUTH-001: Vollständige Durchsetzung der Rollenentscheidung
 
-Status: **teilweise umgesetzt** (H08-FIX-ACL 01.11.2026, H08-FIX-ACL2 02.11.2026). Die gemeinsame Vertragsschicht ersetzt keine Autorisierung; Zugriffstests bleiben Pflicht. Durchgesetzt ist die Kontomitgliedschaft (Nutzer über `Member.userId` in `Account.members`, 404 für Nichtmitglied/unbekanntes Konto/Altkonto, kein Rollenunterschied, globaler Admin ohne Zugriff) auf `transactions`, `month-view`, `overview`, `planning`, `master-data`, `account-balances`, `carryovers`, `category-budgets`, `member-incomes`, `contribution-rules`, `accounts` (GET/PATCH/Mitglieder), `members`, `accounts/summary` sowie seit H08-FIX-ACL2 `categories` und `recurrences` (Listen ohne `accountId` nur über die eigenen Konten, `accountId` im PATCH unveränderlich → 422 `ACCOUNT_IMMUTABLE`, `customSplit`-/Kategorie-/Member-Referenzen gegen das Konto, 422 `REFERENCE_NOT_IN_ACCOUNT`). Belegt durch `apps/api/tests/integration/account-access.test.mjs` (Details: [H08-FIX-ACL](../agents/runs/H08-FIX-ACL.md), [H08-FIX-ACL2](../agents/runs/H08-FIX-ACL2.md)).
+Status: **im Event-/Kalenderumfang durchgesetzt; spätere Ausbaustufen und P02-Restnachweise offen.** E02 erzwingt Owner-only für Kontoeinstellungen/Mitglieder/Rollen, Finanzdaten und Kategorien bleiben für Owner/Member gleich. Nichtmitglied/Admin ohne Mitgliedschaft404; gesperrte/gelöschte Nutzer verlieren Tokenzugriff. E05 integriert transaktionale Autoritätsprüfung und Domain-/Account-/User-/Memberrevisionen; E08/E09 prüfen echte Negativ-/Race-/Rollbackfälle. Keine pauschale Aussage „Race weder getestet noch behoben“ mehr.
 
-Weiterhin **offen**: Owner-gebundene Rechte (Mitglieder/Berechtigungen verwalten, roles-and-access Tests 3–5), Sperren bestehender Sitzungen, Einladung, Index auf `Member.userId`, Altkonto-Aufräumweg. Die Rollen-Detailfragen sind unverändert offen. Die Legacy-Route `recurrences` ist zugriffsgeschützt, fachlich aber unverändert (A17).
+Offen: individuelle Memberrechte, Einladungen, Member.userId-Index, historische Zuordnung/Aufräumen und umfassende F5/F7/F8-/P02-Abnahme. [Verbindliche Fälligkeiten](../agents/date-event-followups.md), [Rollenvertrag](roles-and-access.md), [E05](../agents/runs/E05.md), [E09](../agents/runs/E09.md).
 
 ## AUTH-002: Kontoersteller wird Owner; Zuordnung separat nach Zusammenlegung
 
-Status: **serverseitig umgesetzt, UI offen** (H08-FIX-ACL). Nutzerentscheidung 22.10.2026: Der Ersteller wird Owner. Entscheidung Eigentümer 01.11.2026: Der Wizard legt automatisch ein Member für den angemeldeten Nutzer an (nicht löschbar, Name ggf. änderbar). Umgesetzt: `POST /api/accounts` verlangt ein mit dem Login verknüpftes Member (sonst 422 `CREATOR_MEMBER_REQUIRED`) und erzwingt dafür `owner`; `POST /api/members` darf `userId` nur auf die eigene ID setzen (sonst 403), `PATCH` ändert `userId` nie, verknüpfte Member sind nicht löschbar (409). Der Wizard sendet das Creator-Member aus dem Auth-User automatisch und ohne eigene Anzeige. **Offen:** Sichtbarkeit und Umbenennung im Wizard-Schritt „Mitglieder“, Wiederverwendung eines vorhandenen verknüpften Members statt eines neuen je Konto (Duplikate), Altkonten ohne verknüpften Nutzer (bleiben blockiert; Aufräumweg ist eine separate freigabepflichtige Datenmigration).
-Nutzerentscheidung vom 22.10.2026: Der angemeldete Nutzer soll beim Anlegen eines Kontos Owner werden. Welcher erfassten Person in der Wizard-Mitgliederliste dieser Nutzer entspricht, ist derzeit nicht eindeutig; diese Zuordnung soll separat nach der Zusammenlegung gelöst werden.
+Status: **neue Kontoanlage/Self-Owner/Wizard seit E05 umgesetzt und abgenommen; historische Daten offen.** Verifizierte Useridentität statt Listenposition/Name/E-Mail; eindeutiger Self wird wiederverwendet oder deterministisch erzeugt. Konto, Self-Owner und Event committen gemeinsam und sind retry-sicher. Der Wizard zeigt „Du“, verhindert Entfernen/Parallel-Saves, sichert Checkpoints und navigiert erst nach echter Konto-ID. Der frühere Promise-Navigationsfehler ist geschlossen; „UI offen“/„pro Konto zwingend neuer Member“ beschreibt nicht mehr den heutigen Ablauf.
 
-Phase 4 vergibt deshalb keine Owner-Rolle anhand der Listenposition. Die Wizard-Mitgliedsreferenzen verwenden zunächst den bisherigen API-Default `member`; automatische Ersteller-Ownership ist damit ausdrücklich noch nicht umgesetzt. Solche neuen Wizard-Konten können bis zur späteren Korrektur ohne Owner bzw. ohne Verknüpfung zum angemeldeten Nutzer entstehen. Dies ist keine fertige fachliche Kontoerstellung.
+Offen bleiben mehrdeutige historische Self-Member, Altkonten ohne verifizierten Nutzer, Member.userId-Index und ein separat freigegebener Aufräumweg. Kein automatisches Bestandsmapping/-backfill. [E05](../agents/runs/E05.md), [Folgepflichten](../agents/date-event-followups.md).
 
-Spätere Umsetzung: die Nutzeridentität serverseitig aus der authentifizierten Sitzung bestimmen, eine eindeutige Member-Zuordnung herstellen oder die benötigte Auswahl in der UI anbieten, dann den Ersteller als Owner eintragen. Nicht anhand von Reihenfolge, Namen oder ungeprüfter E-Mail gleichsetzen. Tests: Ersteller nicht an erster Listenposition, noch kein verknüpftes Mitglied, wiederholte Erstellung, fremde User-ID im Request, globale Adminrolle ohne zusätzliche Kontorechte. Bereits erzeugte Konten ohne Owner gesondert behandeln.
+## AUTH-003: Event-Actor und fehlende Events der Konto-Verwaltung
+
+Status: **für die tatsächlichen bestehenden Pflichtpfade E04–E09 geschlossen.** Gemeinsamer atomarer Writer, verifizierter User-/Systemactor, Subject/Trigger, No-op/Failpoint/Rollback/Retry und Kontorechte sind implementiert und real geprüft. Actor ist weder Zahler noch Betroffener. member.updated wird pro betroffenem autorisiertem Konto geschrieben; Member-Create/Orphan-Delete erzeugen gemäß Vertrag kein Kontoevent. GET und20erVorschau sind gleich geschützt.
+
+Historische Events bleiben unverändert/Legacy-Unknown. EIT25–30 auf späterer echter Recurrence-Domainebene sowie P04/EIT35 sind weiterhin NOT-RUN/BLOCKED. [Routenmatrix](../architecture/activity-rollout.md), [E09](../agents/runs/E09.md).
+
+## AUTH-004: Race zwischen Rechteprüfung und Write
+
+Status: **E05-Schreibumfang abgesichert und real geprüft; umfassendes P02-Paket weiterhin offen.** Account-/User-/Memberrevisionen, Assignment/Memberänderung/Delete und echte Fachmutationen laufen im gemeinsamen Writer-/Transaktionsrahmen. Parallele Entziehung/Zuordnung und Antwortverlust mit Zwischenänderung sind geprüft. Die frühere Aussage „nur sequenziell getestet, keine gemeinsame Transaktion“ ist überholt.
+
+Kein pauschaler Abschluss von F5/F7/F8 oder künftig neuen Routen; verbleibende Vor-Fix-/Member-/Altbestandsnachweise vor P02 nach [Restpunktliste](../agents/date-event-followups.md) einzeln übernehmen. [E05](../agents/runs/E05.md), [E08](../agents/runs/E08.md).
+
+## AUTH-005: Member-ID-Orakel und fehlendes `createdBy`
+
+Status: **private Provenance/fail-closed Assignment seit E05 umgesetzt; umfassende Orakel-/Altbestandsabnahme offen.** Neue Member haben servertrusted private createdByUserId; historische Orphans ohne Herkunft werden nicht ungeprüft übernommen. Assignment prüft sämtliche bestehenden Konten, globaler Member-PATCH alle betroffenen Kontorechte und protokolliert nur changedFields. Kategorienamen im Overview sind auf accountId begrenzt; Kontomitglieder/Rollen ändern nur Owner.
+
+Keine vollständige Schließung von F8/AUTH/P02: verbleibende Informationsorakel, historische Mehrdeutigkeiten, Memberindex und Aufräumweg separat prüfen/belegen. [E05](../agents/runs/E05.md), [Folgepflichten](../agents/date-event-followups.md).
+
+## UI-001: Konto-Verwaltung für Nicht-Owner
+
+Status: **offen**. Die Stammdaten-Seite zeigt Nicht-Ownern weiter Konto-, Mitglieder- und Rollenaktionen; der Server antwortet seit E02 mit 403 `OWNER_REQUIRED` und die UI zeigt nur den Fehlertoast. Aktionen für Nicht-Owner ausblenden oder deaktivieren und die Rolle des Nutzers aus dem Konto lesen (kein Eingriff in E02).
+
+## API-001: Beitragsregeln mit falsch geformter `distribution` antworten 500
+
+Status: **offen** (vor P02, F-7). Das Schema erlaubt `distribution: unknown`; ein passendes Schema aber unpassende Form (z. B. `{mode:'perMember', amounts:[…]}`) führt zu HTTP 500 `INTERNAL` statt 422. Betrifft `POST`/`PATCH /api/contribution-rules`. Kein Sicherheitsproblem, aber Robustheitslücke.
+
+## AUTH-006: Owner-Aktionen der Buchungsvorlagen
+
+Status: **offen** (P02/V-Schritte). Der Eigentümer hat am 04.11.2026 festgelegt, dass die exklusiven Buchungsvorlagen-Aktionen nur Owner ausführen. Die Routen existieren noch nicht; sie müssen `requireOwnerContext` verwenden und einen Negativtest für Member bekommen. Individuelle Mitgliedsberechtigungen bleiben einer späteren Ausbaustufe vorbehalten.
 
 ## DEV-001: Manuelle Abnahme
 
@@ -36,7 +106,9 @@ Status: erledigt laut Nutzerbestaetigung vom 22.10.2026. Die angeleiteten manuel
 
 ## DATE-001: Bei H08 freigegebene Ausnahmen (Nachtrag)
 
-Status: teilweise nachgetragen, weiter offen. Der Eigentümer hat am 02.11.2026 CAL-06/08/09/22/25/26 als teilweise belegt und A17 (`recurrences.ts` `activeFrom`) als bekannte Fehlfunktion für die H08-Abnahme freigegeben, mit Pflicht zum späteren Nachtrag. Mit H08-NACHTRAG-TESTS (Commit `a7380e4`) sind die testbaren Ausnahmen EX-01–EX-06 sowie F-2 und F-4 durch Tests belegt; **offen** bleiben EX-07/A17 (P02), F-1, F-3 (Drawer-Echtklick, möglicher UI-Defekt), F-5–F-8. Zwei neue, nicht kalenderbezogene Produktbefunde stehen im [Bericht](../agents/runs/H08-NACHTRAG-TESTS.md) (Wizard-Navigation auf `[object Promise]`, Drawer-Maske). Liste, Belege und Fristen: [H08-Ausnahmen](../agents/h08-freigegebene-ausnahmen.md). Zusammenfassung und offene Punkte: [H08-Abschlussbericht](../agents/runs/H08-ABSCHLUSS.md). F-1 vom Eigentümer am 03.11.2026 zur Kenntnis genommen.
+Status: **Date/Month abgenommen mit weiter verbindlichen Folgepflichten.** EX01–06 sowie F2/F4 sind nachgetragen; F3 ist seit E09 mit echten Klick-/API-/Mongo-/Centnachweisen geschlossen. Wizard-Navigation und die500-Zulassung im Parent-Paralleltest sind ebenfalls korrigiert. Historische H08-Aussagen darüber dürfen nicht als aktuelle Fehlerliste verwendet werden.
+
+Offen: EX07/A17 vor Legacy-Nutzung/P02, F1/gesonderte Datenkorrektur, F6/P04 sowie umfassende F5/F7/F8-/P02-Pakete. [Aktuelle Fälligkeiten und Abschlusskriterien](../agents/date-event-followups.md), [historische Freigaben](../agents/h08-freigegebene-ausnahmen.md), [E09](../agents/runs/E09.md).
 
 ## UI-001: Vorgemerkte Buchung ohne Datum in der Detailmaske
 
@@ -48,7 +120,9 @@ Status: in Phase 5 umgesetzt. ESLint und Prettier sind installiert und verpflich
 
 ## SECURITY-001: Dependency-Sicherheitsbefunde
 
-Der Audit vom 22.10.2026 meldete 82 betroffene Paketeintraege (4 kritisch, 47 hoch, 26 mittel, 5 niedrig). Die gemeldeten Versionen waren bereits vor Phase 5 vorhanden. Sechs voruebergehend durch die Lint-Werkzeuge hinzugekommene Meldungen entfielen mit typescript-eslint 8.72.0. Die anschliessende Verschiebung von primeclt nach devDependencies entfernt diese Kette aus der Produktionsinstallation, beseitigt aber nicht ihre Sicherheitsbefunde in der Entwicklungsumgebung. Der Audit ist eine historische Momentaufnahme, kein neuer Scan nach der Verschiebung. Siehe [Bewertung](phase-5-security.md).
+Status: **offen.** Letzter belegter Audit13.11.2026:89Befunde,5critical/36high/43moderate/5low. Keine neue Audit-Ausführung durch diese Dokumentationsbereinigung. Frühere82- bzw.4critical/37high-Angaben sind historische Momentaufnahmen.
+
+Der unabhängige begrenzte [E09-Advisoryreview](../../test-results/e09/reviewer-audit.md) bestätigt keinen konkret erreichbaren kritischen countDocuments-Injectionpfad; Mongoose8.19.1 und übrige Abhängigkeiten bleiben betroffen. Gezielte Updates benötigen Ownerfreigabe/Upgradeevidenz und Gates. Keine allgemeine Sicherheits-/Deploymentfreigabe durch funktionale17/17Gates. [Historische Bewertung](phase-5-security.md), [Fälligkeit](../agents/date-event-followups.md).
 
 ## TRANSITION-001: GitHub und manuelle Gesamtabnahme
 

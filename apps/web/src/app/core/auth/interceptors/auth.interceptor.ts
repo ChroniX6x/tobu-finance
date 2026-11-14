@@ -1,8 +1,8 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { catchError, switchMap, throwError } from 'rxjs';
-import { AuthService } from '../services/auth.service';
-import { Router } from '@angular/router';
+import { HttpInterceptorFn, HttpErrorResponse } from "@angular/common/http";
+import { inject } from "@angular/core";
+import { catchError, switchMap, throwError } from "rxjs";
+import { AuthService } from "../services/auth.service";
+import { Router } from "@angular/router";
 
 /**
  * Auth HTTP Interceptor
@@ -22,12 +22,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Helper: Check if URL is an API endpoint
   const isApiEndpoint = (url: string): boolean => {
-    return url.includes('/api/');
+    const target = new URL(url, location.origin);
+    return (
+      target.origin === location.origin && target.pathname.startsWith("/api/")
+    );
   };
 
   // Helper: Check if URL is an auth endpoint
   const isAuthEndpoint = (url: string): boolean => {
-    return url.includes('/api/auth/');
+    return url.includes("/api/auth/");
   };
 
   // Step 1: Attach Authorization header for non-auth API requests
@@ -37,8 +40,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     if (token) {
       clonedReq = req.clone({
         setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
     }
   }
@@ -47,40 +50,45 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(clonedReq).pipe(
     catchError((error: HttpErrorResponse) => {
       // Only handle 401 for non-auth endpoints
-      if (error.status === 401 && !isAuthEndpoint(req.url)) {
-        console.log('[AuthInterceptor] 401 detected, attempting refresh...');
+      if (
+        error.status === 401 &&
+        isApiEndpoint(req.url) &&
+        !isAuthEndpoint(req.url)
+      ) {
+        const expireSession = (authError: unknown) => {
+          authService.setAccessToken(null);
+          void router.navigate(["/auth/login"], {
+            queryParams: { returnUrl: router.url, reason: "session-expired" },
+          });
+          return throwError(() => authError);
+        };
 
         // Attempt refresh and retry
         return authService.refresh().pipe(
-          switchMap(newToken => {
-            console.log('[AuthInterceptor] Refresh successful, retrying request...');
-
+          // A domain/proof error from the retry is not a failed refresh.
+          catchError(expireSession),
+          switchMap((newToken) => {
             // Clone request with new token
             const retryReq = req.clone({
               setHeaders: {
-                Authorization: `Bearer ${newToken}`
-              }
+                Authorization: `Bearer ${newToken}`,
+              },
             });
 
-            // Retry exactly once
-            return next(retryReq);
+            // Retry once through the downstream proof interceptor, never auth again.
+            return next(retryReq).pipe(
+              catchError((retryError: HttpErrorResponse) =>
+                retryError.status === 401
+                  ? expireSession(retryError)
+                  : throwError(() => retryError),
+              ),
+            );
           }),
-          catchError(refreshError => {
-            console.error('[AuthInterceptor] Refresh failed, clearing session:', refreshError);
-
-            // Clear session and navigate to login
-            authService.setAccessToken(null);
-            router.navigate(['/auth/login'], {
-              queryParams: { returnUrl: router.url, reason: 'session-expired' }
-            });
-
-            return throwError(() => refreshError);
-          })
         );
       }
 
       // For all other errors, just propagate
       return throwError(() => error);
-    })
+    }),
   );
 };

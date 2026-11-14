@@ -8,6 +8,7 @@ import { MongoClient, MongoError } from 'mongodb';
 import { initializeBaseline } from '../../dist/src/database/baseline.js';
 import { MigrationRunner } from '../../dist/src/database/migration-runner.js';
 import { entry } from '../fixtures/migration-fixture.mjs';
+import { migrationErrorMessage } from '../../dist/src/database/migration-errors.js';
 
 test('transactional migration safety against a real isolated replica set', { timeout: 180000 }, async (t) => {
     assert.ok(process.env.TEST_MONGODB_URI, 'Explicit isolated database required');
@@ -87,6 +88,31 @@ test('transactional migration safety against a real isolated replica set', { tim
         assert.deepEqual(await documents(), original);
         await db.command({ collMod: '_tobu_migrations', validator: {} });
         await recover(r);
+    });
+    await t.test('S2 real Umzug/transaction error path never evaluates hostile error getters', async () => {
+        let getterReads = 0;
+        const hostile = new Error('private-secret-finance');
+        for (const key of ['message', 'name', 'code', 'codeName', 'cause'])
+            Object.defineProperty(hostile, key, {
+                get() {
+                    getterReads++;
+                    throw new Error('private-secret-finance');
+                }
+            });
+        const r = runner({
+            pause: async () => {
+                throw hostile;
+            }
+        });
+        await assert.rejects(execute(r), (error) => {
+            const message = migrationErrorMessage(error);
+            assert.match(message, /phase=up/);
+            assert.doesNotMatch(message, /private-secret-finance/);
+            return /recovery required/.test(message);
+        });
+        assert.equal(getterReads, 0);
+        assert.deepEqual(await documents(), original);
+        assert.equal((await recover(r)).outcome, 'not-committed');
     });
     await t.test('transient transaction failure retries the complete uncommitted migration', async () => {
         const migration = entry();

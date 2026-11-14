@@ -30,6 +30,7 @@ export type StructuralRun = {
     checksum: string;
     direction: 'up' | 'down';
     targetHash: string;
+    identityVersion?: 2;
     before: SchemaState;
     history: History[];
     stage: 'preparing' | 'backup-verified' | 'applying' | 'verifying' | 'succeeded' | 'restoring' | 'restored';

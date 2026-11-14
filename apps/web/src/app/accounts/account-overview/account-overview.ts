@@ -11,6 +11,8 @@ import { select, Store } from "@ngxs/store";
 import { AccountOverviewState } from "../state/account-overview.state";
 import { AccountMemberUi } from "@/accounts/domain/account-overview.ui-model";
 import { formatMonthValue } from "@/shared/utils/calendar-picker";
+import { RouterLink } from "@angular/router";
+import { formatActivityInstant } from "../activity/activity-presentation";
 
 @Component({
   selector: "tbf-account-overview",
@@ -24,11 +26,13 @@ import { formatMonthValue } from "@/shared/utils/calendar-picker";
     TooltipModule,
     TimelineModule,
     MessageModule,
+    RouterLink,
   ],
   templateUrl: "./account-overview.html",
   styleUrls: ["./account-overview.scss"],
 })
 export class AccountOverview {
+  protected readonly activityDate = formatActivityInstant;
   protected timelinePt = {
     eventOpposite: { class: "!p-0 !flex-none" },
     eventSeparator: { class: "items-center" },

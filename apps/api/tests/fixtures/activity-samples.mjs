@@ -1,0 +1,36 @@
+// Independent positive examples for every E01 code; not generated from the persisted validator.
+export function activitySamples({ account, transaction, other, category, member, rule, income, budget, carry, balance, recurrence }) {
+    return {
+        'transaction.created': ['transaction', transaction, { transactionId: transaction, type: 'expense', amountMinor: 1234, title: 'Rent', categoryId: category }],
+        'transaction.splitChildCreated': ['transaction', transaction, { transactionId: transaction, parentTransactionId: other, type: 'expense', amountMinor: 500 }],
+        'transaction.booked': ['transaction', transaction, { transactionId: transaction, type: 'income', amountMinor: 100000 }],
+        'transaction.statusChanged': ['transaction', transaction, { transactionId: transaction, from: 'pending', to: 'booked' }],
+        'transaction.updated': ['transaction', transaction, { transactionId: transaction, changedFields: ['amountMinor', 'notes'], amountMinor: { from: 100, to: 250 } }],
+        'transaction.deleted': ['transaction', transaction, { transactionId: transaction, type: 'expense', amountMinor: 1000, childCount: 2 }],
+        'transaction.splitChildDeleted': ['transaction', transaction, { transactionId: transaction, parentTransactionId: other }],
+        'category.created': ['category', category, { categoryId: category, name: 'Food' }],
+        'category.updated': ['category', category, { categoryId: category, changedFields: ['customSplit'] }],
+        'category.deleted': ['category', category, { categoryId: category, name: null }],
+        'account.created': ['account', account, { currency: 'EUR' }],
+        'account.settings.updated': ['account', account, { changedFields: ['settings'] }],
+        'account.member.added': ['member', member, { memberId: member, role: 'member' }],
+        'account.member.removed': ['member', member, { memberId: member }],
+        'account.member.roleChanged': ['member', member, { memberId: member, from: 'member', to: 'owner' }],
+        'memberIncome.added': ['memberIncome', income, { memberId: member, amountMinor: 250000 }],
+        'memberIncome.updated': ['memberIncome', income, { memberId: member, amountMinor: 260000 }],
+        'memberIncome.removed': ['memberIncome', income, { memberId: member }],
+        'contributionRule.added': ['contributionRule', rule, { ruleId: rule, ruleType: 'additional', amountMinor: 5000 }],
+        'contributionRule.updated': ['contributionRule', rule, { ruleId: rule, ruleType: 'topup', amountMinor: 6000 }],
+        'contributionRule.removed': ['contributionRule', rule, { ruleId: rule, ruleType: 'topup' }],
+        'categoryBudget.added': ['categoryBudget', budget, { categoryId: category, amountMinor: 40000 }],
+        'categoryBudget.updated': ['categoryBudget', budget, { categoryId: category, amountMinor: 41000 }],
+        'categoryBudget.removed': ['categoryBudget', budget, { categoryId: category }],
+        'carryOver.set': ['carryOver', carry, { memberId: member, month: '2026-04', amountMinor: -1500 }],
+        'carryOver.removed': ['carryOver', carry, { memberId: member, month: null }],
+        'accountBalance.set': ['accountBalance', balance, { month: '2026-04', closingBalanceMinor: -250 }],
+        'accountBalance.removed': ['accountBalance', balance, { month: '2026-04' }],
+        'legacyRecurrence.created': ['legacyRecurrence', recurrence, { title: 'Subscription' }],
+        'legacyRecurrence.updated': ['legacyRecurrence', recurrence, {}],
+        'legacyRecurrence.deleted': ['legacyRecurrence', recurrence, { title: 'Subscription' }]
+    };
+}

@@ -208,12 +208,10 @@ for (const timezoneId of ZONES) {
             r.url().endsWith("/api/transactions") &&
             r.request().method() === "POST",
         ),
-        // PrimeNG keeps the drawer mask in its enter-animation state under automation and it swallows pointer events,
-        // so the form is submitted programmatically.
         page
-          .locator("form")
-          .filter({ has: page.locator('button[type="submit"]') })
-          .evaluate((f) => (f as HTMLFormElement).requestSubmit()),
+          .locator(".p-drawer:visible")
+          .getByRole("button", { name: /Einzahlung buchen$/ })
+          .click(),
       ]);
       expect(posted!["bookDate"]).toBe(`${localDay}T00:00:00.000Z`);
       expect(posted!["month"]).toBeUndefined();
@@ -228,15 +226,37 @@ for (const timezoneId of ZONES) {
       await page.clock.setFixedTime(new Date("2026-10-31T23:30:00.000Z"));
       await mockMonthView(page, months);
 
-      await page.goto(`/accounts/${ACCOUNT_ID}/month`);
-      await expect.poll(() => months.at(-1)).toBe("2026-10");
-
-      const before = months.length;
-      await page.locator("button:has(.pi-chevron-right)").first().click();
-      await expect.poll(() => months.length).toBeGreaterThan(before);
-      expect(months.at(-1)).toBe("2026-11");
-      await page.locator("button:has(.pi-chevron-left)").first().click();
-      await expect.poll(() => months.at(-1)).toBe("2026-10");
+      // A recorded request precedes response consumption. Finish the exact body
+      // before another navigation can cancel it while the contract guard reads.
+      const responseFor = (month: string) =>
+        page
+          .waitForResponse((response) => {
+            const url = new URL(response.url());
+            return (
+              url.pathname === `/api/accounts/${ACCOUNT_ID}/month-view` &&
+              url.searchParams.get("month") === month
+            );
+          })
+          .then(async (response) => {
+            expect((await response.json()).account.monthIso).toBe(month);
+          });
+      const picker = page.locator(".month-nav-picker input");
+      await Promise.all([
+        responseFor("2026-10"),
+        page.goto(`/accounts/${ACCOUNT_ID}/month`),
+      ]);
+      await expect(picker).toHaveValue(/(?:Oct|Okt).*2026/);
+      await Promise.all([
+        responseFor("2026-11"),
+        page.locator("button:has(.pi-chevron-right)").first().click(),
+      ]);
+      await expect(picker).toHaveValue(/Nov.*2026/);
+      await Promise.all([
+        responseFor("2026-10"),
+        page.locator("button:has(.pi-chevron-left)").first().click(),
+      ]);
+      await expect(picker).toHaveValue(/(?:Oct|Okt).*2026/);
+      expect(months).toEqual(["2026-10", "2026-11", "2026-10"]);
     });
 
     test("account overview shows the stored month, not the previous one (CAL-21)", async ({

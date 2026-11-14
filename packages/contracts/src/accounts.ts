@@ -29,7 +29,7 @@ export const AddMemberToAccount = z.object({
 });
 export const CreateAccount = z.object({
     name: z.string().nullable().optional(),
-    currency: z.string().default('EUR').optional(),
+    currency: z.string().min(1).max(64).default('EUR').optional(),
     members: z.array(AccountMember).optional(),
     settings: AccountSettings.optional()
 });

@@ -5,6 +5,7 @@ import { seedDevelopment } from './seed.js';
 import { auditCalendarData } from './calendar-audit.js';
 import { MigrationRunner } from './migration-runner.js';
 import { ToolsBackup } from './migration-backup.js';
+import { MigrationDiagnosticError, migrationErrorMessage } from './migration-errors.js';
 
 async function initializeAndMigrateNewDatabase(uri: string) {
     const created = await initializeBaseline();
@@ -13,7 +14,7 @@ async function initializeAndMigrateNewDatabase(uri: string) {
         const db = mongoose.connection.db!;
         const root = process.env.TOBU_MIGRATION_BACKUP_DIR;
         const mode = process.env.TOBU_MIGRATION_BACKUP_MODE ?? 'native';
-        if (!['native', 'docker-local'].includes(mode)) throw new Error('Unknown backup mode');
+        if (!['native', 'docker-local'].includes(mode)) throw new MigrationDiagnosticError('Unknown backup mode');
         const runner = new MigrationRunner(client, db, uri, process.env.NODE_ENV ?? 'development', undefined, root ? { backup: new ToolsBackup(client, db, uri, root, mode as 'native' | 'docker-local') } : {});
         // Only a database created by this invocation can auto-advance through plans.
         for (;;) {
@@ -27,9 +28,9 @@ async function initializeAndMigrateNewDatabase(uri: string) {
 
 const command = process.argv[2];
 try {
-    if (process.env.NODE_ENV === 'production') throw new Error('Development database commands are disabled in production');
+    if (process.env.NODE_ENV === 'production') throw new MigrationDiagnosticError('Development database commands are disabled in production');
     const uri = process.env.MONGODB_URI;
-    if (!uri) throw new Error('Explicit MONGODB_URI required');
+    if (!uri) throw new MigrationDiagnosticError('Explicit MONGODB_URI required');
     await connectDB(uri);
     if (command === 'init') await initializeAndMigrateNewDatabase(uri);
     else if (command === 'setup') {
@@ -49,17 +50,17 @@ try {
     else if (command === 'reset') {
         const name = mongoose.connection.db!.databaseName;
         if (name !== 'tobu_finance_dev' || process.env.TOBU_RESET_CONFIRM !== name) {
-            throw new Error('Reset requires the dedicated tobu_finance_dev database and explicit --confirm=tobu_finance_dev');
+            throw new MigrationDiagnosticError('Reset requires the dedicated tobu_finance_dev database and explicit --confirm=tobu_finance_dev');
         }
         await verifyBaseline();
         await mongoose.connection.db!.dropDatabase();
         await initializeAndMigrateNewDatabase(uri);
         await seedDevelopment(process.env.SEED_MONTH);
-    } else throw new Error('Unknown database command');
+    } else throw new MigrationDiagnosticError('Unknown database command');
     // The audit keeps stdout as pure JSON.
     if (process.exitCode !== 2) (command === 'audit-calendar' ? console.error : console.log)(`Database ${command}: OK`);
 } catch (error) {
-    console.error(error instanceof Error ? error.message : error);
+    console.error(migrationErrorMessage(error));
     process.exitCode = 1;
 } finally {
     await mongoose.disconnect();

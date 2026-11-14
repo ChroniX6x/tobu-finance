@@ -1,5 +1,7 @@
 # Datum, Monat und Zeitpunkt: Semantik und Übergabe
 
+**Aktueller Abgleich13.11.2026:** H08 ist mit Ausnahmen abgenommen, E00–E09 A/Q PASS auf gemeinsamem Integrationsstand27c21d4. [Verbindliche Folgepflichten mit Fälligkeiten](../agents/date-event-followups.md). F-3 und der Wizard-Navigationsfehler sind behoben; umfassende P02-, Legacy-, Daten- und P04/TZ-Pflichten bleiben offen. Die ursprüngliche Fundstelleninventur unten ist als historische Basis kenntlich, nicht als aktueller vollständiger Defektkatalog.
+
 Fachliche Notiz zum Date/Month-Umbau (H01–H06). Die technische Referenz der Helfer steht in [contracts.md](contracts.md#datum-und-monat-calendarts), Befehle und Gates in [../development.md](../development.md). Diese Datei hält die Begriffe, die Pflichten für spätere Funktionen, den Status jeder Fundstelle und die Abgrenzung zum noch nicht umgesetzten Account-Zonen-Rollout fest. Sie ist eine Dokumentation, keine Freigabe: weder H08 noch ein Recurrence-/Bank-Schritt ist dadurch abgenommen.
 
 ## Die drei Zeitbegriffe
@@ -102,7 +104,7 @@ Status: **DONE** (umgesetzt und durch Test belegt), **TEILWEISE** (umgesetzt, ab
 | W01 | DONE | Monatsansicht startet mit dem UTC-Monat; XZ, RQ (CAL-08/23); Januar, Dezember, Jahreswechsel und Schaltjahr-Februar in vier Zonen: `calendar-month-navigation.spec.ts` (NAV) |
 | W02 | DONE | Anzeige über `formatBankDate`/`formatMonthValue`; PK, XZ (Monatsnavigation) |
 | W03 | DONE | MonthKey in State/Service/UI-Modell; XZ, RQ |
-| W04 | DONE | Drawer sendet Träger, kein `month`; XZ, RQ (CAL-24). Ein echter Mausklick auf „Speichern“ ist nicht belegt (F-3 offen: in `elementFromPoint` liegt `.p-drawer-mask` über dem Button, Test per `requestSubmit`; möglicher UI-Defekt, eigener Fix-Schritt) |
+| W04 | DONE | Drawer sendet Träger, kein `month`; F-3 seit E09 geschlossen: appendTo="body", native Klicks in vier Zonen, korrekter Actor/Zahler/BankDate, genau1Transaktion/+1Event/5000MinorUnits; alte XZ/RQ-Bypässe entfernt, finales Vollgate PASS. [Belege](../agents/runs/E09-prerequisites.md) |
 | W05 | DONE | `todayBankDate` aus lokalen Kalenderteilen; PK (nur eine Browserzone) |
 | W06 | DONE | Dock-Split sendet das Parent-`bookDate` unverändert; FL; Dock-Create (direkt und Queue) und Split-Kind mit echten Klicks gegen die echte API in vier Zonen: `calendar-dock.real.spec.ts` (DK). Pending Parent ohne `bookDate` bleibt Altverhalten (Server lehnt ab) |
 | W07 | DONE | Detail-Editor ohne Phantom-Diff und ohne PATCH beim Öffnen; XZ, RQ (CAL-25); Dock-Create und Editor-Edit (Titel-PATCH exakt `{title}`, Datums-PATCH mit Träger, Kind folgt, Cents unverändert) real in vier Zonen: DK |
@@ -128,9 +130,9 @@ Status: **DONE** (umgesetzt und durch Test belegt), **TEILWEISE** (umgesetzt, ab
 
 ## Bekannte Restpunkte (nicht verschwiegen)
 
-- Kalender-Routen prüfen seit H08-FIX-ACL die Account-Mitgliedschaft (404 für Nichtmitglied, unbekanntes Konto und Altkonto), seit H08-FIX-ACL2 auch `categories` und `recurrences` ([H08-FIX-ACL](../agents/runs/H08-FIX-ACL.md), [H08-FIX-ACL2](../agents/runs/H08-FIX-ACL2.md)). Owner-spezifische Rechte sind weiter offen (AUTH-001).
+- Kalender-Routen prüfen die Kontomitgliedschaft; Kontoeinstellungen/Mitglieder/Rollen sind seit E02 owner-only. E05 prüft Rechte und Fachwrites transaktional; E08/E09 belegen Actor/ACL/Rollback unabhängig. Individuelle Rechte/Einladungen und umfassende P02-/Altbestandsnachweise bleiben offen (AUTH-001), siehe [Folgepflichten](../agents/date-event-followups.md).
 - Echte Nutzerdaten sind nicht auditiert (H05). Kein Aufräum-/Zuordnungsweg für geblockte Altkonten.
-- Nach H08-NACHTRAG-TESTS (Tests `a7380e4`, [Bericht](../agents/runs/H08-NACHTRAG-TESTS.md)) sind CAL-06/08/09/22/25/26 und CAL-20/21 belegt bzw. begründet geschlossen. Weiter offen: echter Mausklick im Zahlungs-Drawer (F-3; `.p-drawer-mask` liegt laut `elementFromPoint` über dem Button, möglicher UI-Defekt), Monatswahl im PrimeNG-Picker nur per `dispatchEvent('click')` (Handler-, nicht Nutzerbeleg), Planungs-UI gegen die echte API, A17.
+- Nach H08-NACHTRAG-TESTS und E09 sind CAL-06/08/09/22/25/26, CAL-20/21 und der native Zahlungsdrawer-Klick belegt bzw. begründet geschlossen. Gesondert weiter zu prüfen: native Monatswahl im PrimeNG-Picker (bisher teilweise dispatchEvent, kein vollständiger Nutzerbeleg), zusätzliche Planungs-UI-Abnahme gegen echte API und A17. Nicht mit den bestandenen Drawer-/Wizard-/Dock-Realtests gleichsetzen.
 - Bestandsdaten können `bookDate`-Werte mit Uhrzeit (kein BankDate-Träger) enthalten (der aktuelle Seed erzeugt UTC-Mitternacht); sie bleiben lesbar und als Echo änderbar, ein neuer Wert muss ein Träger sein (A03). Eine Bereinigung solcher Altwerte ist eine eigene, freigabepflichtige Datenmaßnahme.
 - Bestehende Basisregeln wurden nicht neu erzeugt (A29); Konten mit zuvor erzeugten Basisregeln zeigen Vergangenheitsmonate erst nach der nächsten Budget-Änderung dieses Kontos monatsgenau.
 - Planungsseite, Drawer und Monatsansicht können bei Browserzone vor UTC über Monatsgrenzen auseinanderlaufen (siehe oben).

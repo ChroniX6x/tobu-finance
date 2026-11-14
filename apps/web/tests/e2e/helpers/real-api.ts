@@ -1,3 +1,4 @@
+import { creationPost } from "./creation-request";
 import { expect, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 
@@ -15,7 +16,7 @@ export async function registerRealUser(
   page: Page,
   label: string,
 ): Promise<RealUser> {
-  const response = await page.request.post("/api/auth/register", {
+  const response = await creationPost(page, "/api/auth/register", {
     data: {
       email: `${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${randomUUID()}@example.test`,
       password: "Real-stack-test-password-1",
@@ -37,7 +38,7 @@ export async function postJson<T = Record<string, unknown>>(
   data: unknown,
   expectedStatus = 201,
 ): Promise<T> {
-  const response = await page.request.post(path, {
+  const response = await creationPost(page, path, {
     headers: user.headers,
     data,
   });

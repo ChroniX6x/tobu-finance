@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { MongoServerError } from 'mongodb';
+import { MongoServerError, MongoNetworkError } from 'mongodb';
 import { maintenanceCheck } from '../../dist/src/database/maintenance.js';
-import { MigrationDiagnosticError, migrationErrorMessage } from '../../dist/src/database/migration-errors.js';
+import { MigrationDiagnosticError, migrationErrorMessage, withMigrationPhase, migrationRunError, protectMigrationFailure } from '../../dist/src/database/migration-errors.js';
+import { MigrationError } from 'umzug';
 import { findLocalMongoContainer } from '../../dist/src/database/migration-backup.js';
 
 test('maintenance coalesces reads but never caches an unlocked or failed result', async () => {
@@ -31,6 +32,86 @@ test('maintenance coalesces reads but never caches an unlocked or failed result'
     fail = false;
     assert.equal(await check(), false);
     assert.equal(reads, 4);
+});
+
+test('S2 distinguishes safe categories and phases without evaluating hostile error properties', async () => {
+    const secret = 'secret-password-finance';
+    const errors = [
+        [new assert.AssertionError({ message: secret }), 'assertion'],
+        [new MongoServerError({ message: secret, code: 121 }), 'document-validation'],
+        [new MongoNetworkError(secret), 'connection'],
+        [new Error(secret), 'unknown']
+    ];
+    for (const [error, category] of errors) {
+        for (const key of ['name', 'codeName', 'cause']) Object.defineProperty(error, key, { value: secret, configurable: true });
+        await assert.rejects(
+            withMigrationPhase('verifyUp', async () => {
+                throw error;
+            })
+        );
+        migrationRunError(error, '00000000-0000-4000-8000-000000000000');
+        const message = migrationErrorMessage(error);
+        assert.match(message, new RegExp(category));
+        assert.match(message, /phase=verifyUp/);
+        assert.match(message, /run=00000000/);
+        assert.doesNotMatch(message, /secret-password-finance/);
+    }
+    let getterReads = 0;
+    const hostile = {};
+    for (const key of ['message', 'name', 'codeName', 'code', 'cause'])
+        Object.defineProperty(hostile, key, {
+            get() {
+                getterReads++;
+                throw new Error(secret);
+            }
+        });
+    assert.match(migrationErrorMessage(hostile), /unknown/);
+    assert.equal(getterReads, 0);
+    assert.doesNotMatch(migrationErrorMessage({ code: secret, name: secret, cause: secret }), /secret-password-finance/);
+    const proxy = new Proxy(
+        {},
+        {
+            getPrototypeOf() {
+                throw new Error(secret);
+            },
+            getOwnPropertyDescriptor() {
+                throw new Error(secret);
+            }
+        }
+    );
+    assert.doesNotThrow(() => migrationErrorMessage(proxy));
+    const trusted = new MigrationDiagnosticError('Trusted');
+    Object.defineProperty(trusted, 'message', {
+        get() {
+            throw new Error(secret);
+        }
+    });
+    assert.equal(migrationErrorMessage(trusted), 'Trusted');
+    migrationRunError(trusted, '00000000-0000-4000-8000-000000000000');
+    assert.match(migrationErrorMessage(trusted), /run=00000000/);
+    let protectedError;
+    try {
+        await protectMigrationFailure(() =>
+            withMigrationPhase('up', async () => {
+                throw hostile;
+            })
+        );
+    } catch (error) {
+        protectedError = error;
+    }
+    assert.doesNotThrow(() => new MigrationError({ direction: 'up', name: 'test', path: 'test', context: {} }, protectedError));
+    assert.equal(getterReads, 0);
+    let primitive;
+    try {
+        await withMigrationPhase('verifyDown', async () => {
+            throw secret;
+        });
+    } catch (error) {
+        primitive = error;
+    }
+    const primitiveMessage = migrationErrorMessage(migrationRunError(primitive, '00000000-0000-4000-8000-000000000000'));
+    assert.match(primitiveMessage, /unknown.*phase=verifyDown.*run=/);
+    assert.doesNotMatch(primitiveMessage, /secret-password-finance/);
 });
 
 test('CLI diagnostics expose trusted messages but never driver data or spoofed names', () => {

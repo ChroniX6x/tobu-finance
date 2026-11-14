@@ -1,0 +1,197 @@
+<section class="activity card" aria-labelledby="activity-heading">
+  <header>
+    <div>
+      <h1 id="activity-heading">Kontoaktivitäten</h1>
+      <p>Wer hat was geändert? Gespeicherte Ereignisse dieses Kontos.</p>
+    </div>
+    <a [routerLink]="['/accounts', accountId()]">Zur Kontoübersicht</a>
+  </header>
+  <form
+    class="filters"
+    (ngSubmit)="applyFilters()"
+    aria-label="Aktivitäten filtern"
+  >
+    <label
+      >Ereignisart<select name="code" [(ngModel)]="form.code">
+        <option value="">Alle Ereignisarten</option>
+        @for (code of codes; track code) {
+          <option [value]="code">{{ codeNames[code] }}</option>
+        }
+        <option value="legacy.unknown">Unbekannte Ereignisart</option>
+      </select></label
+    >
+    <label
+      >Akteur<select name="actorKind" [(ngModel)]="form.actorKind">
+        <option value="">Alle Akteure</option>
+        <option value="user">Benutzer</option>
+        <option value="system">System</option>
+        <option value="unknown">Unbekannt (Altbestand)</option>
+      </select></label
+    >
+    <label
+      >Objektart<select name="subjectKind" [(ngModel)]="form.subjectKind">
+        <option value="">Alle Objektarten</option>
+        @for (kind of kinds; track kind) {
+          <option [value]="kind">{{ kindLabels[kind] }}</option>
+        }
+      </select></label
+    >
+    <label
+      >Objekt-ID<input
+        name="subjectId"
+        [(ngModel)]="form.subjectId"
+        maxlength="24"
+        pattern="[a-fA-F0-9]{24}"
+        autocomplete="off"
+        aria-describedby="subject-help"
+    /></label>
+    <label
+      >Von (einschließlich)<input
+        type="datetime-local"
+        step="0.001"
+        name="from"
+        [(ngModel)]="form.from"
+    /></label>
+    <label
+      >Bis (ausschließlich)<input
+        type="datetime-local"
+        step="0.001"
+        name="to"
+        [(ngModel)]="form.to"
+    /></label>
+    <label
+      >Ereignisse pro Seite<select name="limit" [(ngModel)]="form.limit">
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select></label
+    >
+    <div class="filter-actions">
+      <button type="submit" [disabled]="loading()">Filter anwenden</button
+      ><button type="button" (click)="resetFilters()">Zurücksetzen</button>
+    </div>
+  </form>
+  <p id="subject-help" class="muted">
+    Objektfilter verwenden nur Referenzen dieses Kontos. Zeitangaben in
+    {{ zone }}.
+  </p>
+  <p
+    #resultsStatus
+    class="result-status"
+    role="status"
+    aria-live="polite"
+    tabindex="-1"
+  >
+    {{
+      loading()
+        ? "Aktivitäten werden geladen …"
+        : items().length + " Ereignisse geladen"
+    }}{{ !loading() && nextCursor() ? " – weitere Seiten verfügbar" : "" }}
+  </p>
+  @if (error()) {
+    <div role="alert" class="error">
+      <p>{{ error() }}</p>
+      <button type="button" (click)="retry()" [disabled]="loading()">
+        Erneut versuchen
+      </button>
+    </div>
+  }
+  @if (!loading() && !error() && items().length === 0) {
+    <p>
+      {{
+        nextCursor()
+          ? "In diesem Abschnitt keine passenden Aktivitäten. Weitere Seiten können Treffer enthalten."
+          : "Keine passenden Aktivitäten vorhanden."
+      }}
+    </p>
+  }
+  <ol
+    class="activity-list"
+    aria-label="Geladene Kontoaktivitäten"
+    [attr.aria-busy]="loading()"
+  >
+    @for (group of groups(); track group.key) {
+      <li class="activity-group">
+        @if (group.grouped) {
+          <details>
+            <summary>
+              {{ group.events.length }} geladene Ereignisse einer Aktion
+            </summary>
+            <p class="group-notice">
+              Gezählt werden nur geladene Ereignisse. Weitere, übersprungene
+              oder fehlgeschlagene Teile der Aktion sind daraus nicht
+              bestimmbar. Dies ist keine Gesamterfolgsmeldung.
+            </p>
+            <ol>
+              @for (event of group.events; track event.id) {
+                <li [attr.data-event-id]="event.id">
+                  <ng-container
+                    [ngTemplateOutlet]="entry"
+                    [ngTemplateOutletContext]="{ $implicit: event }"
+                  />
+                </li>
+              }
+            </ol>
+          </details>
+        } @else {
+          <div [attr.data-event-id]="group.events[0]!.id">
+            <ng-container
+              [ngTemplateOutlet]="entry"
+              [ngTemplateOutletContext]="{ $implicit: group.events[0] }"
+            />
+          </div>
+        }
+      </li>
+    }
+  </ol>
+  <ng-template #entry let-event>
+    <div class="entry-heading">
+      <strong>{{ eventText(event) }}</strong
+      ><time [attr.datetime]="event.occurredAt">{{
+        dateText(event.occurredAt)
+      }}</time>
+    </div>
+    <p class="actor">
+      {{ actorText(event.actor) }} · {{ triggerText(event) }}
+      @if (event.trigger.initiatedBy?.displayName) {
+        <span>
+          · angestoßen von {{ event.trigger.initiatedBy.displayName }}</span
+        >
+      }
+    </p>
+    @if (event.subject) {
+      @if (event.subject.deleted) {
+        <span class="muted"
+          >{{ event.subject.label || kindLabels[event.subject.kind] }} (gelöscht
+          oder nicht mehr verfügbar)</span
+        >
+      } @else {
+        <a
+          [routerLink]="['/accounts', accountId(), 'activity']"
+          [queryParams]="{
+            subjectKind: event.subject.kind,
+            subjectId: event.subject.id,
+          }"
+          >Weitere Aktivitäten:
+          {{ event.subject.label || kindLabels[event.subject.kind] }}</a
+        >
+      }
+    } @else if (event.detailsUnavailable) {
+      <span class="muted">Objektdetails nicht verfügbar</span>
+    }
+  </ng-template>
+  <button
+    class="load-more"
+    type="button"
+    (click)="loadMore()"
+    [disabled]="loading() || !nextCursor()"
+  >
+    {{
+      loading()
+        ? "Wird geladen …"
+        : nextCursor()
+          ? "Weitere Aktivitäten laden"
+          : "Keine weitere Seite verfügbar"
+    }}
+  </button>
+</section>

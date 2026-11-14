@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import mongoose from 'mongoose';
 import { ObjectId } from 'mongodb';
 import { initializeBaseline, verifyBaseline } from '../../dist/src/database/baseline.js';
+import { MigrationRunner } from '../../dist/src/database/migration-runner.js';
+import { ToolsBackup } from '../../dist/src/database/migration-backup.js';
 import { seedDevelopment } from '../../dist/src/database/seed.js';
 import { auditCalendarData } from '../../dist/src/database/calendar-audit.js';
 
@@ -36,6 +38,12 @@ test('H05 calendar audit: fresh baseline plus seed and legacy fixtures on a real
         }
     });
     await initializeBaseline();
+    // Setup is outside the read-only audit assertions. The seed requires the current catalog schema.
+    assert.ok(process.env.TOBU_MIGRATION_BACKUP_DIR);
+    const client = mongoose.connection.getClient();
+    const runner = new MigrationRunner(client, db, uri.toString(), 'test', undefined, { backup: new ToolsBackup(client, db, uri.toString(), process.env.TOBU_MIGRATION_BACKUP_DIR, 'docker-local') });
+    // Structural changes are confirmed individually; never seed a partially upgraded catalog.
+    for (let plan = await runner.plan(); plan.migrations.length; plan = await runner.plan()) await runner.run('up', plan.confirmation, true);
     await seedDevelopment('2026-04');
     await verifyBaseline();
 

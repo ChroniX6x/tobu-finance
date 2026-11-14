@@ -68,6 +68,8 @@ const adapted = new Set([
     '.env.example',
     'src/auth/config.ts',
     'src/auth/routes.ts',
+    // E03: additive event envelope, validated with the shared Activity contract; baseline remains immutable.
+    'src/models/Event.ts',
     'src/db.ts',
     'src/server.ts',
     // Active build now checks immutable migration checksums before compiling.
@@ -86,6 +88,9 @@ const adapted = new Set([
     'src/routes/accounts.ts',
     'src/routes/accounts-summary.ts',
     'src/routes/account-overview.ts',
+    // E02: requireAuth rejects blocked/deleted users per request; refresh of a blocked user revokes its sessions
+    'src/auth/middleware.ts',
+    'src/auth/routes.ts',
     // H08-FIX-ACL2: account membership on categories and recurrences
     'src/routes/categories.ts',
     'src/routes/recurrences.ts',
@@ -94,6 +99,11 @@ const adapted = new Set([
     'src/routes/carryovers.ts',
     'src/routes/master-data.ts',
     'src/routes/members.ts',
+    // E05: optional trusted member provenance; renderer now delegates to the shared event catalog.
+    'src/models/Member.ts',
+    // E05 domain CAS revisions are additive; historical snapshots/import hashes stay frozen.
+    ...['Transaction', 'Category', 'MemberIncome', 'CategoryBudget', 'ContributionRule', 'CarryOver', 'AccountBalance', 'Recurrence'].map((name) => `src/models/${name}.ts`),
+    'src/utils/renderEvent.ts',
     'src/services/insights.ts',
     'src/services/contribution-rule-generator.ts',
     ...['account-balances', 'accounts-summary', 'accounts', 'carryovers', 'categories', 'category-budgets', 'common', 'contribution-rules', 'member-incomes', 'members', 'recurrences', 'transactions'].map((name) => `src/validation/${name}.ts`)

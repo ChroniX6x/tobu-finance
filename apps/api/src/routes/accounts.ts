@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { Types } from 'mongoose';
+import { Types, type ClientSession } from 'mongoose';
+import { createHash } from 'node:crypto';
 import Account from '../models/Account.js';
 import Category from '../models/Category.js';
 import Transaction from '../models/Transaction.js';
@@ -9,15 +10,18 @@ import CarryOver from '../models/CarryOver.js';
 import AccountBalance from '../models/AccountBalance.js';
 import CategoryBudget from '../models/CategoryBudget.js';
 import Recurrence from '../models/Recurrence.js';
+import { User } from '../auth/models.js';
 
 import { validateBody, validateQuery } from '../middleware/validate.js';
 import { QueryAccounts, CreateAccount, UpdateAccount, QueryAccountExpanded, AddMemberToAccount } from '../validation/accounts.js';
 import ContributionRule from '../models/ContributionRule.js';
 
-import { DateTime } from 'luxon';
 import { monthRangeFromISO } from '../lib/month.js';
-import Event from '../models/Event.js';
-import { accountMemberIdSet, callerAccountIds, callerMemberIds, membersAssignable, requireAccountAccess } from '../auth/account-access.js';
+import { activityRoute, creationReply, changedPatch, lockMemberRevision, reject } from '../services/activity-route.js';
+import { creationId } from '../services/creation-proof.js';
+import { lockActivityUser, type ActivityIntent } from '../services/activity-writer.js';
+import { callerAccountIds, requireAccountAccess } from '../auth/account-access.js';
+import { requireOwnerContext, resolveAccountContext, accountCreateContext } from '../auth/account-context.js';
 
 const r = Router();
 
@@ -145,158 +149,144 @@ r.get('/:id/expanded', validateQuery(QueryAccountExpanded), async (req, res) => 
     res.json(expanded);
 });
 
-/** POST /api/accounts { name, currency?, members?: [{memberId, role?}] } */
+/** Fail closed for legacy orphan members: only known provenance or fully accessible account membership permits assignment. */
+async function assertAssignable(req: Parameters<typeof resolveAccountContext>[0], ids: string[], session: ClientSession) {
+    for (const id of [...new Set(ids)].sort()) {
+        const member = await Member.findById(id).select('+createdByUserId').session(session);
+        if (!member) reject(422, 'MEMBER_NOT_ASSIGNABLE');
+        if (member.userId && String(member.userId) !== req.user!.sub) reject(422, 'MEMBER_NOT_ASSIGNABLE');
+        const accounts = await Account.find({ 'members.memberId': member._id }).session(session);
+        if (!member.userId && accounts.length === 0 && String(member.createdByUserId ?? '') !== req.user!.sub) reject(422, 'MEMBER_NOT_ASSIGNABLE');
+        for (const account of accounts) if (!(await resolveAccountContext(req, account._id, session))) reject(422, 'MEMBER_NOT_ASSIGNABLE');
+    }
+}
+async function blockers(accountId: unknown, memberId: unknown, session: ClientSession) {
+    if (await Transaction.exists({ accountId, paidByMemberId: memberId }).session(session)) reject(409, 'MEMBER_REFERENCED');
+    if (await Category.exists({ accountId, 'customSplit.memberId': memberId }).session(session)) reject(409, 'MEMBER_REFERENCED');
+    if (await ContributionRule.exists({ accountId, $or: [{ 'distribution.memberId': memberId }, { 'distribution.customSplit.memberId': memberId }] }).session(session)) reject(409, 'MEMBER_REFERENCED');
+    if (await MemberIncome.exists({ accountId, memberId }).session(session)) reject(409, 'MEMBER_REFERENCED');
+    if (await CarryOver.exists({ accountId, memberId }).session(session)) reject(409, 'MEMBER_REFERENCED');
+    if (await Recurrence.exists({ accountId, createdByMemberId: memberId }).session(session)) reject(409, 'MEMBER_REFERENCED');
+}
+
 r.post('/', validateBody(CreateAccount), async (req, res) => {
-    const b = (req as any).data;
-    const requested: Array<{ memberId: string; role?: string }> = Array.isArray(b.members) ? b.members : [];
-    if (
-        !(await membersAssignable(
-            req,
-            requested.map((m) => m.memberId)
-        ))
-    )
-        return res.status(422).json({ error: 'MEMBER_NOT_ASSIGNABLE' });
-
-    // The creator must be part of the account through a member linked to their login; that member becomes owner.
-    const own = new Set((await callerMemberIds(req)).map(String));
-    if (!requested.some((m) => own.has(String(m.memberId)))) return res.status(422).json({ error: 'CREATOR_MEMBER_REQUIRED' });
-
-    const members = requested.map((m) => ({
-        memberId: new Types.ObjectId(m.memberId),
-        role: own.has(String(m.memberId)) ? 'owner' : (m.role ?? 'member')
-    }));
-    const created = await Account.create({
-        name: b.name ?? null,
-        currency: b.currency ?? 'EUR',
-        members,
-        settings: b.settings ?? { monthGranularity: 'YYYY-MM' }
-    });
-    res.status(201).json(created);
+    const b = CreateAccount.parse(req.body);
+    const id = creationId(req, res, 'account', b);
+    if (!id) return;
+    return activityRoute(
+        req,
+        res,
+        async (session, emit) => {
+            if (await Account.exists({ _id: id }).session(session)) {
+                const existingContext = await resolveAccountContext(req, id, session);
+                if (!existingContext) reject(404, 'NOT_FOUND');
+                await emit(existingContext, `account:create:${id}`, [{ code: 'account.created', subject: { kind: 'account', id: String(id) }, params: { currency: b.currency ?? 'EUR' } }], async () => {
+                    reject(409, 'CREATION_ID_CONFLICT');
+                });
+                return creationReply(await Account.findById(id).session(session));
+            }
+            const requested = (b.members ?? []).map((m) => ({ ...m, memberId: m.memberId.toLowerCase() }));
+            if (new Set(requested.map((m) => m.memberId)).size !== requested.length) reject(422, 'DUPLICATE_MEMBER');
+            await assertAssignable(
+                req,
+                requested.map((m) => m.memberId),
+                session
+            );
+            const linked = await Member.find({ userId: req.user!.sub }).session(session);
+            const requestedOwn = requested.filter((m) => linked.some((own) => String(own._id) === m.memberId));
+            if (requestedOwn.length > 1) reject(422, 'AMBIGUOUS_SELF_MEMBER');
+            const self = requestedOwn.length ? linked.find((m) => String(m._id) === requestedOwn[0]!.memberId) : linked.length === 1 ? linked[0] : undefined;
+            if (!self && linked.length > 1) reject(422, 'AMBIGUOUS_SELF_MEMBER');
+            const selfId = self?._id ?? new Types.ObjectId(createHash('sha256').update(`self-member:${req.user!.sub}`).digest('hex').slice(0, 24));
+            const creator = await User.findById(req.user!.sub, { name: 1, email: 1 }).session(session);
+            // Preserve the requested display order; identity, never position, determines the self-owner.
+            const members = requested.map((m) => ({ memberId: m.memberId, role: m.memberId === String(selfId) ? 'owner' : (m.role ?? 'member') }));
+            if (!members.some((m) => m.memberId === String(selfId))) members.push({ memberId: String(selfId), role: 'owner' });
+            const context = accountCreateContext(req, String(id), String(selfId));
+            await emit(context, `account:create:${id}`, [{ code: 'account.created', subject: { kind: 'account', id: String(id) }, params: { currency: b.currency ?? 'EUR' } }], async () => {
+                if (!self) await Member.create([{ _id: selfId, userId: req.user!.sub, createdByUserId: req.user!.sub, name: creator?.name ?? creator?.email ?? null }], { session });
+                for (const memberId of [...new Set(members.map((m) => m.memberId))].sort()) await lockMemberRevision(memberId, session);
+                await Account.create([{ ...b, _id: id, members }], { session });
+                return true;
+            });
+            return creationReply(await Account.findById(id).session(session));
+        },
+        async (readSession) => creationReply(await Account.findById(id).session(readSession))
+    );
 });
 
-/** PATCH /api/accounts/:id */
-r.patch('/:id', validateBody(UpdateAccount), async (req, res) => {
-    const { id } = req.params;
-    if (!(await requireAccountAccess(req, res, id))) return;
-    const u: any = { ...(req as any).data };
-    if (Array.isArray(u.members)) {
-        // Only members already in the account or assignable to the caller may be listed, and the caller must stay in.
-        const current = await accountMemberIdSet(id);
-        const added = u.members.map((m: { memberId: string }) => String(m.memberId)).filter((m: string) => !current.has(m));
-        if (!(await membersAssignable(req, added))) return res.status(422).json({ error: 'MEMBER_NOT_ASSIGNABLE' });
-        const own = new Set((await callerMemberIds(req)).map(String));
-        if (!u.members.some((m: { memberId: string }) => own.has(String(m.memberId)))) return res.status(409).json({ error: 'CALLER_WOULD_LOSE_ACCESS' });
-        u.members = u.members.map((m: any) => ({
-            memberId: new Types.ObjectId(m.memberId),
-            role: m.role ?? 'member'
-        }));
-        // Guard: ensure at least one owner remains after the update
-        const ownerCount = u.members.filter((m: any) => m.role === 'owner').length;
-        if (ownerCount === 0) {
-            return res.status(409).json({ error: 'NO_OWNER', message: 'Das members-Array muss mindestens einen Owner enthalten.' });
+/** Derive membership activity in deterministic member-id order; do not overload added for a role change. */
+function membershipIntents(before: { memberId: unknown; role: string }[], after: { memberId: unknown; role: string }[]): ActivityIntent[] {
+    const intents: ActivityIntent[] = [];
+    const ids = [...new Set([...before, ...after].map((m) => String(m.memberId)))].sort();
+    for (const id of ids) {
+        const old = before.find((m) => String(m.memberId) === id);
+        const next = after.find((m) => String(m.memberId) === id);
+        const subject = { kind: 'member' as const, id };
+        if (!old && next) intents.push({ code: 'account.member.added', subject, params: { memberId: id, role: next.role as 'owner' | 'member' } });
+        else if (old && !next) intents.push({ code: 'account.member.removed', subject, params: { memberId: id } });
+        else if (old && next && old.role !== next.role) intents.push({ code: 'account.member.roleChanged', subject, params: { memberId: id, from: old.role as 'owner' | 'member', to: next.role as 'owner' | 'member' } });
+    }
+    return intents;
+}
+
+/** All three owner endpoints share the same guarded domain mutation, not a generic public command API. */
+async function changeAccount(req: Parameters<typeof resolveAccountContext>[0], res: Parameters<typeof requireOwnerContext>[1], mode: 'patch' | 'add' | 'remove') {
+    const context = await requireOwnerContext(req, res, req.params.id);
+    if (!context) return;
+    const patchInput = mode === 'patch' ? UpdateAccount.parse(req.body) : {};
+    const add = mode === 'add' ? AddMemberToAccount.parse(req.body) : null;
+    if (add) add.memberId = add.memberId.toLowerCase();
+    if (mode === 'remove' && !/^[a-f\d]{24}$/i.test(req.params.memberId ?? '')) return res.status(400).json({ error: 'INVALID_MEMBER_ID' });
+    return activityRoute(req, res, async (session, emit) => {
+        const prev = await Account.findById(context.account.accountId).session(session);
+        if (!prev) return { status: 404 };
+        const before = prev.members.map((m) => ({ memberId: String(m.memberId), role: m.role }));
+        let next = before;
+        if (patchInput.members) next = patchInput.members.map((m) => ({ memberId: m.memberId.toLowerCase(), role: m.role ?? 'member' }));
+        if (add) next = [...before.filter((m) => m.memberId !== add.memberId), { memberId: add.memberId, role: add.role }];
+        if (mode === 'remove') {
+            if (!before.some((m) => m.memberId === req.params.memberId?.toLowerCase())) reject(404, 'MEMBER_NOT_IN_ACCOUNT');
+            next = before.filter((m) => m.memberId !== req.params.memberId?.toLowerCase());
         }
-    }
-    const updated = await Account.findByIdAndUpdate(id, u, { new: true });
-    if (!updated) return res.sendStatus(404);
-    res.json(updated);
-});
-
-/** POST /api/accounts/:id/members  { memberId, role } -> add/update role */
-r.post('/:id/members', validateBody(AddMemberToAccount), async (req, res) => {
-    const { id } = req.params;
-    const { memberId, role } = (req as any).data as { memberId: string; role: string };
-    if (!(await requireAccountAccess(req, res, id))) return;
-
-    const mId = new Types.ObjectId(memberId);
-    const acc = await Account.findById(id);
-    if (!acc) return res.sendStatus(404);
-    const idx = acc.members.findIndex((x) => String(x.memberId) === String(mId));
-    if (idx < 0 && !(await membersAssignable(req, [memberId]))) return res.status(422).json({ error: 'MEMBER_NOT_ASSIGNABLE' });
-    const member = acc.members[idx];
-    if (idx >= 0 && member) member.role = (role ?? member.role ?? 'member') as 'owner' | 'member';
-    else acc.members.push({ memberId: mId, role: (role ?? 'member') as 'owner' | 'member' });
-    await acc.save();
-
-    await Event.create({
-        accountId: acc._id,
-        date: DateTime.utc().toJSDate(),
-        code: 'account.member.added',
-        params: { memberId: mId.toString() },
-        createdByMemberId: mId
+        if (new Set(next.map((m) => m.memberId)).size !== next.length) reject(422, 'DUPLICATE_MEMBER');
+        if (!next.some((m) => m.role === 'owner')) reject(409, mode === 'patch' ? 'NO_OWNER' : 'LAST_OWNER');
+        const linked = await Member.find({ userId: req.user!.sub }).session(session);
+        if (!next.some((m) => linked.some((own) => String(own._id) === m.memberId))) reject(409, 'CALLER_WOULD_LOSE_ACCESS');
+        const ownerMembers = await Member.find({ _id: { $in: next.filter((m) => m.role === 'owner').map((m) => m.memberId) }, userId: { $ne: null } }).session(session);
+        let verifiedOwner = false;
+        const verifiedUsers: string[] = [];
+        for (const owner of ownerMembers)
+            if (await User.exists({ _id: owner.userId, isActive: true }).session(session)) {
+                verifiedOwner = true;
+                verifiedUsers.push(String(owner.userId));
+            }
+        if (!verifiedOwner) reject(409, mode === 'patch' ? 'NO_OWNER' : 'LAST_OWNER');
+        await assertAssignable(
+            req,
+            next.filter((m) => !before.some((old) => old.memberId === m.memberId)).map((m) => m.memberId),
+            session
+        );
+        for (const gone of before.filter((m) => !next.some((n) => n.memberId === m.memberId))) await blockers(prev._id, gone.memberId, session);
+        const settings = { ...patchInput };
+        delete settings.members;
+        const normalized = new Account({ ...prev.toObject(), ...settings }).toObject() as unknown as Record<string, unknown>;
+        const patch = changedPatch(prev.toObject(), Object.fromEntries(Object.keys(settings).map((key) => [key, normalized[key]])));
+        const intents = membershipIntents(before, next);
+        if (Object.keys(patch).length) intents.unshift({ code: 'account.settings.updated', subject: { kind: 'account', id: String(prev._id) }, params: { changedFields: Object.keys(patch) as ('name' | 'currency' | 'settings')[] } });
+        if (!intents.length) return { status: 200, body: prev };
+        const version = Number(prev.get('__v') ?? 0);
+        if (!Number.isSafeInteger(version) || version < 0 || version === Number.MAX_SAFE_INTEGER) reject(409, 'ACCOUNT_REVISION_INVALID');
+        await emit(context, `account:change:${prev._id}:${prev.get('__v')}`, intents, async () => {
+            for (const userId of [...new Set(verifiedUsers)].sort()) await lockActivityUser(userId, session);
+            for (const intent of intents.filter((i) => i.subject.kind === 'member').sort((a, b) => a.subject.id.localeCompare(b.subject.id))) await lockMemberRevision(intent.subject.id, session);
+            await Account.updateOne({ _id: prev._id }, { $set: { ...patch, members: next, __v: version + 1 } }, { session });
+            return true;
+        });
+        return { status: 200, body: await Account.findById(prev._id).session(session) };
     });
-
-    res.json(acc);
-});
-
-/** DELETE /api/accounts/:id/members/:memberId */
-r.delete('/:id/members/:memberId', async (req, res) => {
-    const { id, memberId } = req.params;
-    if (!(await requireAccountAccess(req, res, id))) return;
-    if (!/^[a-f\d]{24}$/i.test(memberId ?? '')) return res.status(400).json({ error: 'INVALID_MEMBER_ID' });
-
-    const mId = new Types.ObjectId(memberId);
-    const accId = new Types.ObjectId(id);
-
-    // Guard: check the account exists and the member is in it
-    const acc = await Account.findById(accId).lean();
-    if (!acc) return res.sendStatus(404);
-
-    const accountMembers: any[] = (acc as any).members ?? [];
-    const memberEntry = accountMembers.find((m) => String(m.memberId) === String(mId));
-    if (!memberEntry) return res.status(404).json({ error: 'MEMBER_NOT_IN_ACCOUNT' });
-
-    // Guard: the caller must keep a member of their own in the account (otherwise nobody could reach it any more)
-    const callerMembers = new Set((await callerMemberIds(req)).map(String));
-    if (callerMembers.has(String(mId)) && !accountMembers.some((m) => String(m.memberId) !== String(mId) && callerMembers.has(String(m.memberId)))) {
-        return res.status(409).json({ error: 'CALLER_WOULD_LOSE_ACCESS' });
-    }
-
-    // Guard: last owner
-    const owners = accountMembers.filter((m) => m.role === 'owner');
-    if (memberEntry.role === 'owner' && owners.length === 1) {
-        return res.status(409).json({ error: 'LAST_OWNER', message: 'Der letzte Owner kann nicht entfernt werden.' });
-    }
-
-    // Guard: last member
-    if (accountMembers.length === 1) {
-        return res.status(409).json({ error: 'LAST_MEMBER', message: 'Das letzte Mitglied kann nicht entfernt werden.' });
-    }
-
-    // Guard: member still referenced
-    const [txRef, catRef, ruleRef, miRef, coRef] = await Promise.all([
-        Transaction.exists({ accountId: accId, paidByMemberId: mId }),
-        Category.exists({ accountId: accId, 'customSplit.memberId': mId }),
-        ContributionRule.exists({
-            accountId: accId,
-            $or: [{ 'distribution.memberId': mId }, { 'distribution.customSplit.memberId': mId }]
-        }),
-        MemberIncome.exists({ accountId: accId, memberId: mId }),
-        CarryOver.exists({ accountId: accId, memberId: mId })
-    ]);
-
-    const blockers: string[] = [];
-    if (txRef) blockers.push('Wird als Zahler in Buchungen verwendet');
-    if (catRef) blockers.push('Wird in einer Kategorieverteilung verwendet');
-    if (ruleRef) blockers.push('Wird in Beitragsregeln verwendet');
-    if (miRef) blockers.push('Hat Einkommensdaten');
-    if (coRef) blockers.push('Hat Übertragseinträge');
-
-    if (blockers.length > 0) {
-        return res.status(409).json({ error: 'MEMBER_REFERENCED', usageHints: blockers });
-    }
-
-    const updated = await Account.findByIdAndUpdate(id, { $pull: { members: { memberId: mId } } }, { new: true });
-    if (!updated) return res.sendStatus(404);
-
-    await Event.create({
-        accountId: updated._id,
-        date: DateTime.utc().toJSDate(),
-        code: 'account.member.removed',
-        params: { memberId: mId.toString() },
-        createdByMemberId: mId
-    });
-
-    res.json(updated);
-});
-
+}
+r.patch('/:id', validateBody(UpdateAccount), (req, res) => changeAccount(req, res, 'patch'));
+r.post('/:id/members', validateBody(AddMemberToAccount), (req, res) => changeAccount(req, res, 'add'));
+r.delete('/:id/members/:memberId', (req, res) => changeAccount(req, res, 'remove'));
 export default r;

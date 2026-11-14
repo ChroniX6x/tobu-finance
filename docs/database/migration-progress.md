@@ -1,5 +1,19 @@
 # Sichere Migrationen: Umsetzungsstand
 
+## E07: Event-Primitiven ohne Recurrence-Domain
+
+`20261108172127336-recurrence-activity-primitives` erweitert ausschließlich den Eventvalidator von 32 auf 44 Codes, ohne Backfill oder Indexänderung. Down blockiert bei erhaltenen neuen Events; historische Migrationen und Baseline bleiben unverändert. Isolierte Plattform-/Tools-Restore-/Resume-/Kill-Proben und Grenzen sind in [E07](../agents/runs/E07.md) dokumentiert. Keine Entwicklungs-/Bestands-/Produktionsanwendung, keine Recurrence-Domain oder Konto-Zonenroute.
+
+## E05: zusätzliche Validatoren, keine Bestandsanwendung
+
+`20261107163516618-member-activity` erweitert den eingefrorenen E03-Eventvalidator um `member.updated` und Member um optionale private `createdByUserId`, ohne Backfill/Indexänderung. Down verweigert erhaltene `member.updated`-Events. `20261107182346881-domain-writer-revisions` ergänzt optionale ganzzahlige `mutationVersion` bei acht bislang nicht Mongoose-versionierten Domainmodellen; kein Backfill/Indexumbau. Beide Quellen und Checksummen stehen im generierten Katalog; historische E03-Migration und Baseline unverändert.
+
+Reale isolierte Migrationstests prüfen BSON, effektive Collectionoptionen, sämtliche Indexdefinitionen, echte Tools-Archive und tatsächlichen Restore, Teilschritt-Resume/Ambiguität, unterbrochenen Restore und Prozesskill. Down bewahrt spätere Nutzerdaten statt ein historisches erfolgreiches Backup darüber zu restaurieren. Genaue Lauf-/A/Q-Belege und Grenzen: [E05](../agents/runs/E05.md), [Rollout-/Recoveryregeln](../architecture/activity-rollout.md). Keine Entwicklungs-/Bestands-/Produktionsdatenbank migriert; produktive S3–S7/S6b bleiben separat offen.
+
+## E03-Vorbereitung (05.11.2026)
+
+Erster Lauf: additive Event-Modellfelder und isolierte Vorbereitung, damals S1/S2 und aktiver Übergang offen. **Wiederaufnahme nach Nutzer-GO, Abschluss 06.11.2026: A-E03/Q-E03 PASS, quality:full 17/17, Integration 111/111.** S1/S2 implementiert, reguläre unveränderliche Migration `20261105221750028-event-envelope` mit generiertem Katalog erstellt. Tatsächliche Migration isoliert mit Legacy/Fresh, allen 31 Codes, echten Tools-Archiven, Down-Fehler, Resume/Restore und Prozesskill geprüft. Die historische Baseline bleibt unverändert. Vollständige Belege, unabhängige Reviews und Grenzen: [E03](../agents/runs/E03.md). Keine Bestandsanwendung oder Produktionsfreigabe.
+
 Stand: 25.10.2026. Architektur freigegeben. Branch: `feat/safe-database-migrations`. Abschnitte 1–3 sind implementiert; der Nutzer bestätigt die Tests aus Abschnitt 3 als erfolgreich. Abschnitt 4 ergänzt den Abschluss-Handover; GitHub-CI für den Abschluss-Commit ist separat zu bestätigen. Ältere Statusangaben unten dokumentieren den damaligen Stand.
 
 ## Abschnitt 1: feste Baseline und lokale Replica Sets
@@ -30,10 +44,10 @@ Erst nach erfolgreicher Docker-Prüfung das bestehende lokale Entwicklungsvolume
 1. Laufenden Dev-Stack mit `Ctrl+C` beenden und weitere DB-Writer schließen. Docker Desktop weiterlaufen lassen.
 2. Im Repository-Root ausführen (bei anderem `DEV_DB_NAME` den Bestätigungsnamen anpassen):
 
-   ```powershell
-   npm run db:replica:init -- --writers-stopped=tobu_finance_dev
-   npm run dev
-   ```
+    ```powershell
+    npm run db:replica:init -- --writers-stopped=tobu_finance_dev
+    npm run dev
+    ```
 
 3. Vorher manuell erstellte Daten prüfen, `Ctrl+C`, `npm run dev:down`, erneut `npm run dev`; Daten müssen erhalten bleiben.
 
@@ -111,6 +125,6 @@ Am 25.10.2026 meldet der Nutzer alle angeforderten Tests (`test:replica`, `test:
 
 Der [Abschluss-Handover](migration-handover.md) bündelt den Einstieg für Agents, reale Betriebsbefehle, Artefaktgrenzen, Recovery-Regeln, Nachweise und die separate GitHub-Einweisung. README, Entwickler-, Artefakt- und Copilot-Anleitung verweisen auf diesen Stand. Veraltete Aussagen über noch nicht implementierte Runner sind in den aktuellen Betriebsanleitungen korrigiert; die Architektur und frühere Nachträge bleiben als historischer Verlauf erhalten.
 
-Prüfung der vorhandenen Abläufe: Der API-Build prüft das unveränderliche Migrationsmanifest und kompiliert die aktiven Module. Die Release-Paketierung kopiert gebaute Module und explizit ausgewählte Runtime-Dateien; Backups, Secrets, Tests und Legacy-Archiv gehören nicht dazu. Der Artefakttest installiert nur Produktionsabhängigkeiten und prüft die kompilierte CLI mit Plan und bestätigtem No-op. Es gibt derzeit keine fachliche Katalogmigration. Der Linux-CI-Job führt das vollständige Gate einschließlich echter Backup-/Replica-Set-Tests aus; Windows-CI ergänzt die Prüfungen ohne Docker.
+Prüfung der damaligen Abläufe (25.10.2026): Der API-Build prüft das unveränderliche Migrationsmanifest und kompiliert die aktiven Module. Die Release-Paketierung kopiert gebaute Module und explizit ausgewählte Runtime-Dateien; Backups, Secrets, Tests und Legacy-Archiv gehören nicht dazu. Der Artefakttest installiert nur Produktionsabhängigkeiten und prüft die kompilierte CLI mit Plan und bestätigtem No-op. Damals gab es keine fachliche Katalogmigration; seit E03 ist der Event-Übergang enthalten und wird im isolierten Artefaktaufbau tatsächlich ausgeführt. Der Linux-CI-Job führt das vollständige Gate einschließlich echter Backup-/Replica-Set-Tests aus; Windows-CI ergänzt die Prüfungen ohne Docker.
 
 Abschnitt 4 verändert ausschließlich Dokumentation, keine Laufzeitlogik, Abhängigkeiten, Testbudgets oder CI-Prüfungen. Deshalb werden die bereits vom Nutzer bestätigten Laufzeittests nicht ohne neue technische Änderung wiederholt. Lokale Abschlusskontrolle: relative Dokumentlinks, Konsistenz der referenzierten Befehle/Workflow-Schritte und Whitespace-Prüfung. Noch offen bleibt der tatsächliche GitHub-Lauf für den Abschluss-Commit. Kein Push, Merge, Deployment oder Datenbankumbau durch diesen Abschnitt. Produktive Betriebsfreigabe und bestehende Fach-/Sicherheitsaufgaben bleiben separat.

@@ -16,7 +16,7 @@ async function freePort() {
     await new Promise((r) => s.close(r));
     return p;
 }
-let scratch, db, server;
+let scratch, db, server, backupRoot;
 async function removeScratch(path) {
     if (dirname(resolve(path)) !== resolve(tmpdir())) throw new Error('Invalid artifact scratch path');
     await rm(path, { recursive: true, force: true });
@@ -33,6 +33,7 @@ try {
     db = await temporaryDatabase(abort.signal);
     abort.signal.throwIfAborted();
     scratch = await mkdtemp(join(tmpdir(), 'tobu-release-'));
+    backupRoot = await mkdtemp(join(tmpdir(), 'tobu-artifact-backups-'));
     await cp(resolve(root, 'dist/release'), scratch, { recursive: true, filter: (path) => basename(path) !== 'node_modules' });
     const env = { ...process.env, NODE_ENV: 'production', MONGODB_URI: db.uri, PORT: String(await freePort()), WEB_PORT: String(await freePort()) };
     while (env.PORT === env.WEB_PORT) env.WEB_PORT = String(await freePort());
@@ -49,11 +50,14 @@ try {
         env[`JWT_${kind}_PUBLIC_KEY_PEM`] = keys.publicKey;
     }
     // Baseline/seed CLI is an explicit test setup step, never a production start side effect.
-    await run(process.execPath, ['apps/api/dist/src/database/cli.js', 'init'], { cwd: scratch, env: { ...env, NODE_ENV: 'test' } });
+    await run(process.execPath, ['apps/api/dist/src/database/cli.js', 'init'], { cwd: scratch, env: { ...env, NODE_ENV: 'test', TOBU_MIGRATION_BACKUP_DIR: backupRoot, TOBU_MIGRATION_BACKUP_MODE: 'docker-local' } });
     const plan = JSON.parse(await capture(process.execPath, ['apps/api/dist/src/database/migration-cli.js', 'plan'], { cwd: scratch, env }));
     assert.equal(plan.target.environment, 'production');
     assert.equal(plan.target.database, new URL(db.uri).pathname.slice(1));
     assert.deepEqual(plan.migrations, []);
+    const expectedMigrations = ['20261105221750028-event-envelope', '20261107163516618-member-activity', '20261107182346881-domain-writer-revisions', '20261108172127336-recurrence-activity-primitives'];
+    assert.deepEqual(plan.applied, expectedMigrations, 'compiled artifact must execute every actual catalog migration on its isolated fresh database');
+    for (const id of expectedMigrations) await access(resolve(scratch, `apps/api/dist/src/database/migrations/${id}.js`));
     await run(process.execPath, ['apps/api/dist/src/database/migration-cli.js', 'up', `--confirm=${plan.confirmation}`, `--writers-stopped=${plan.target.database}`], { cwd: scratch, env });
     abort.signal.throwIfAborted();
     server = start(process.execPath, ['scripts/serve-artifact.mjs'], { cwd: scratch, env, detached: process.platform !== 'win32' });
@@ -81,5 +85,6 @@ try {
         if (db) await db.stop();
     } finally {
         if (scratch) await removeScratch(scratch);
+        if (backupRoot) await removeScratch(backupRoot);
     }
 }

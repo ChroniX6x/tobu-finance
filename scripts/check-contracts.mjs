@@ -6,7 +6,7 @@ import { endpoints } from '@tobu/contracts/endpoints';
 import { root, webRequire } from './lib/config.mjs';
 import { implementedRoutes } from './lib/route-contracts.mjs';
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
-const mounts = { 'accounts-summary': 'accounts', 'account-overview': 'accounts', 'month-view': 'accounts', 'master-data': 'accounts', planning: 'accounts' };
+const mounts = { 'accounts-summary': 'accounts', 'account-overview': 'accounts', 'account-activity': 'accounts', 'month-view': 'accounts', 'master-data': 'accounts', planning: 'accounts' };
 const actual = [];
 for (const filename of readdirSync(resolve(root, 'apps/api/src/routes')).filter((f) => f.endsWith('.ts'))) {
     const name = filename.slice(0, -3);

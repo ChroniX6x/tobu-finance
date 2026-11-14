@@ -172,10 +172,12 @@ for (const timezoneId of ZONES) {
       await page.goto("/wizard/1");
       await navigateToStep4(page);
       await page.getByRole("button", { name: "Next" }).click();
+      await page.waitForURL(new RegExp("/accounts/" + ACCOUNT_ID + "(?:/|$)"));
       await expect.poll(() => balances.length).toBe(1);
       expect(balances[0]["month"]).toBe("2026-11");
-      await expect.poll(() => incomes.length).toBe(2);
+      await expect.poll(() => incomes.length).toBe(3);
       expect(incomes.map((i) => i["fromMonth"])).toEqual([
+        "2026-11-01T00:00:00.000Z",
         "2026-11-01T00:00:00.000Z",
         "2026-11-01T00:00:00.000Z",
       ]);

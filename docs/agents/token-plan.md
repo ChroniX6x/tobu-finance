@@ -2,7 +2,27 @@
 
 Stand: 03.11.2026. Arbeitsplan für den Nutzer; keine Feature-Implementierung und kein Schritt-GO. Die externen Dokumente wurden für diese Planung gezielt ausgewertet, nicht vollständig fachlich auditiert. Umsetzungsstatus muss am jeweiligen Code-SHA geprüft werden.
 
-## Aktueller Einstieg: Eventplattform E00
+## Aktueller Übergabestand: E09 abgeschlossen (13.11.2026)
+
+**Verbindliche Folgepflichten:** [Date-/Event-Restpunktliste mit Fälligkeiten und Abschlusskriterien](date-event-followups.md). Bereits behobene H08-Teilbefunde sind dort von den noch offenen P02-/P04-/Domain-/Betriebspflichten getrennt. Ältere Schrittangaben unten sind historische Berichtsstände.
+
+**A-E09 PASS / Q-E09 PASS**, unabhängig abschließend bestätigt. Maßgeblicher Einstieg: [E09-Bericht und Pflichtbelege](runs/E09.md). E08 ist auf `e031bf5` committed; H08-F-3 wurde im E09-GO tatsächlich behoben und unabhängig mit vierzonigen nativen Zahlungs-/Eventproben geschlossen. Clean Integrationscommit des tatsächlichen frischen17/17Vollgates: `27c21d40fd4a79f1758e087b27b54cf54d066402`,180/180Integration und30/30Realbrowser, zusätzlicher echter Tools-/KnownTrigger-/API-Neustart-Restore. Der erste Vollgatelauf bleibt rot dokumentiert; vollständiger Nachlauf mit optionaler Datei-Parallelitätssteuerung ohne Timeout-/Assertionlockerung PASS. Die vier Abschlussdokumente sind mit41a1558 committed; Gatequellen unverändert. **STOP, kein automatischer Folgeschritt.**
+
+EIT25–30-Domain/Ensure/FullDelete bleiben bis V08–V28 NOT-RUN/BLOCKED; EIT35/TZ gehören zu P04 vor D07. P01/P02-, Legacy-, AUTH-/API-, Security- und Betriebsrestpflichten stehen im E09-Bericht und [open-issues](../migration/open-issues.md). Kein automatisches Recurrence-Coding, keine Bestandsmigration, kein Push/Merge/Deploy.
+
+## Historischer Übergabestand: E08 abgeschlossen (13.11.2026)
+
+**A-E08 PASS / Q-E08 PASS**, unabhängiger Schlussreview abgeschlossen. [E08-Bericht mit tatsächlichen Belegen und Gatezuordnung](runs/E08.md), [sechs Änderungsdateien](runs/E08-changed-files.md), [offene Folgepflichten](../migration/open-issues.md). Unabhängige22/22-Negativ-/Writerproben und3/3-AX-Browsernachweise sowie quellgebundene unveränderte E07-Retention-/10k-Belege; am13.11 keine Tests wiederholt. Zwischenstand BLOCKED09.11 ist überholt. Basis2a6aa41, sechs Änderungen uncommittet.
+
+Frisches Release-Vollgate/freshci/EIT34 auf passendem clean HEAD bleibt ausdrücklich **E09 NOT-RUN**, kein behaupteter neuer Vollgate-PASS. E09 nur nach eigenem GO und seinen Voraussetzungen. H08-/P02-/Security-/Betriebsgrenzen sowie spätere Recurrence-Domain- und P04/TZ-Nachweise bleiben offen. Vor jedem Schritt tatsächlichen SHA/Dirty/Quellenstand und Belegbindung prüfen.
+
+## Historischer Übergabestand: E07 abgeschlossen (08.11.2026)
+
+**E07 A/Q PASS**, einschließlich unabhängigem Abschlussreview. Verbindlicher Einstieg für folgende Agents: [E07-Bericht mit Plattform-/Domain-Testmatrix und offenen Grenzen](runs/E07.md), [vollständige Änderungsdateiliste](runs/E07-changed-files.md) und [zentrale offene Punkte](../migration/open-issues.md). Die älteren Einstiegsangaben unten sind historisch. Tatsächlichen Branch/HEAD/Dirty-Status und Quellenänderungen erneut prüfen.
+
+Als Nächstes ist E08 vorgesehen, ausschließlich nach eigenem GO; danach E09 mit seinen vollständigen Voraussetzungen. EIT25–30 sind nur auf E07-Plattformebene PASS; echte Recurrence-Domain-/HTTP-/Ensure-/FullDelete-Nachweise bleiben bis V08–V28 separat NOT-RUN/BLOCKED. EIT35/TZ gehören zu P04 vor D07. H08-/ACL-/AUTH-/API-, Dependency-, CI- und Betriebsrestpunkte mit ihren dokumentierten Fälligkeiten übernehmen, nicht durch E07 als erledigt behandeln. Keine automatische Folgeimplementierung, Bestandsmigration oder Deploymentfreigabe.
+
+## Historischer Einstieg: Eventplattform E00 (03.11.2026)
 
 Laut Nutzer am 03.11.2026 ist **Date/Month abgeschlossen; als Nächstes folgt E00 der Eventplattform**. P00 bleibt abgeschlossen. Keine H-Schritte für die Einführung dieses Sparplans neu starten. [H08-Abschluss](runs/H08-ABSCHLUSS.md) dokumentiert Q-PASS und A-PASS mit ausdrücklich freigegebenen Ausnahmen, keine uneingeschränkte Freigabe aller Folgegates. [H09](runs/H09.md) und [Schnittstellen-Handover](../architecture/recurrence-handover.md) liefern Navigation. Vor E00 tatsächlichen Code-/Quellenstand und Belege abgleichen; die lokale Dokumentation belegt keinen neuen CI-Lauf. H08-Ausnahmen mit ihren Fälligkeiten übernehmen, insbesondere offene Vor-E09-Punkte. E00–E09 jeweils nur nach eigenem GO ausführen.
 

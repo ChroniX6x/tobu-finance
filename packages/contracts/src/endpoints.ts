@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CreationProofRequiredSchema, MutationProofRequiredSchema } from './creation-proof.js';
 import * as accounts from './accounts.js';
 import * as members from './members.js';
 import * as categories from './categories.js';
@@ -14,6 +15,7 @@ import * as resources from './resources.js';
 import * as views from './views.js';
 import { AccountPlanningResponseSchema } from './planning.js';
 import { AccountMasterDataResponseSchema } from './master-data.js';
+import { ActivityPageSchema, ActivityQuerySchema } from './activity.js';
 import { QueryAccountsSummary } from './accounts-summary.js';
 import { QueryMonthView, QueryPlanning, QueryMemberIncomes, QueryCategoryBudgets, QueryContributionRules } from './read-queries.js';
 export interface Endpoint {
@@ -25,13 +27,25 @@ export interface Endpoint {
     response?: z.ZodType;
     status: number;
 }
-const endpoint = (method: string, path: string, response: z.ZodType | undefined, body?: z.ZodType, query?: z.ZodType, status = 200): Endpoint => ({ method, path, auth: 'bearer', status, ...(response ? { response } : {}), ...(body ? { body } : {}), ...(query ? { query } : {}) });
+const endpoint = (method: string, path: string, response: z.ZodType | undefined, body?: z.ZodType, query?: z.ZodType, status = 200): Endpoint => ({
+    method,
+    path,
+    auth: 'bearer',
+    status,
+    ...(response ? { response } : {}),
+    ...(body ? { body } : {}),
+    ...(query ? { query } : {})
+});
 const crud = (path: string, response: z.ZodType, create: z.ZodType, patch: z.ZodType, query?: z.ZodType): Endpoint[] => [
-    endpoint('get', path, z.array(response), undefined, query), endpoint('post', path, response, create, undefined, 201), endpoint('patch', path + '/:id', response, patch), endpoint('delete', path + '/:id', undefined, undefined, undefined, 204),
+    endpoint('get', path, z.array(response), undefined, query),
+    endpoint('post', path, response, create, undefined, 201),
+    endpoint('patch', path + '/:id', response, patch),
+    endpoint('delete', path + '/:id', undefined, undefined, undefined, 204)
 ];
 export const endpoints: Endpoint[] = [
     endpoint('get', '/api/accounts/summary', z.array(views.ApiAccountsSummaryItemSchema), undefined, QueryAccountsSummary),
     endpoint('get', '/api/accounts/:id/overview', views.ApiAccountOverviewSchema),
+    endpoint('get', '/api/accounts/:accountId/activity', ActivityPageSchema, undefined, ActivityQuerySchema),
     endpoint('get', '/api/accounts/:id/month-view', views.ApiMonthViewSchema, undefined, QueryMonthView),
     endpoint('get', '/api/accounts/:accountId/master-data', AccountMasterDataResponseSchema),
     endpoint('get', '/api/accounts/:accountId/planning', AccountPlanningResponseSchema, undefined, QueryPlanning),
@@ -61,24 +75,24 @@ export const endpoints: Endpoint[] = [
     { ...endpoint('post', '/api/auth/register', auth.AuthResponseSchema, auth.registerSchema, undefined, 201), auth: 'public' },
     { ...endpoint('post', '/api/auth/login', auth.AuthResponseSchema, auth.loginSchema), auth: 'public' },
     { ...endpoint('post', '/api/auth/refresh', auth.RefreshResponseSchema), auth: 'public' },
-    { ...endpoint('post', '/api/auth/logout', undefined, undefined, undefined, 204), auth: 'public' },
+    { ...endpoint('post', '/api/auth/logout', undefined, undefined, undefined, 204), auth: 'public' }
 ];
 export function findEndpoint(method: string, path: string): Endpoint | undefined {
-    return endpoints.find(e => e.method === method.toLowerCase() && new RegExp('^' + e.path.replace(/:[^/]+/g, '[^/]+') + '/?$').test(path));
+    return endpoints.find((e) => e.method === method.toLowerCase() && new RegExp('^' + e.path.replace(/:[^/]+/g, '[^/]+') + '/?$').test(path));
 }
 /** Inspect the serialized value. Never strip metadata or coerce server responses. */
 export function assertResponse(method: string, path: string, status: number, value: unknown): void {
     const e = findEndpoint(method, path);
-    if (!e)
-        throw new Error(`Undocumented endpoint: ${method} ${path}`);
+    if (!e) throw new Error(`Undocumented endpoint: ${method} ${path}`);
     if (status >= 400) {
+        if (status === 428) {
+            CreationProofRequiredSchema.or(MutationProofRequiredSchema).parse(value);
+            return;
+        }
         resources.ErrorResponse.parse(value);
         return;
     }
-    if (status !== e.status)
-        throw new Error(`Unexpected status ${status} for ${method} ${path}; expected ${e.status}`);
-    if (e.response)
-        e.response.parse(value);
-    else if (value !== undefined && value !== null && value !== '')
-        throw new Error('Expected empty response');
+    if (status !== e.status) throw new Error(`Unexpected status ${status} for ${method} ${path}; expected ${e.status}`);
+    if (e.response) e.response.parse(value);
+    else if (value !== undefined && value !== null && value !== '') throw new Error('Expected empty response');
 }

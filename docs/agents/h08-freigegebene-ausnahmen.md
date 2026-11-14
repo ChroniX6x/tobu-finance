@@ -1,5 +1,9 @@
 # H08: ausdrücklich freigegebene Ausnahmen (Nachtrag-Pflicht)
 
+**Aktueller Nachtrag 13.11.2026:** F-3 ist durch den eng begrenzten E09-Drawer-Fix und echte Klick-/API-/Mongo-Proben in vier Browserzonen geschlossen; [Nachweis](runs/E09-prerequisites.md). Die früheren F-3-offen-Zeilen unten sind historische Befunde. Übrige Ausnahmen/Fälligkeiten bleiben bestehen; keine pauschale E09-Freigabe.
+
+**Verbindlicher aktueller Status:** [Folgepflichten mit Fälligkeiten und Abschlusskriterien](date-event-followups.md). E09 ist eigenständig A/Q PASS. Wizard-Navigation, Parent-Paralleltest ohne500 und F8-Teilbefunde wurden ebenfalls korrigiert; die umfassenden F5/F7/F8-/P02-Pakete bleiben offen. Alle Tabellen ab „Freigabe durch den Eigentümer“ bewahren den damaligen Befund/Freigabestand einschließlich03.11; sie dürfen nicht als heutiger Implementierungsstand gelesen werden.
+
 Freigabe durch den Eigentümer am 02.11.2026 (Chat-Anweisung an den Agenten): Die folgenden Punkte dürfen die Abnahme A-H08 nicht blockieren, **müssen aber später nachgetragen werden**. Die Freigabe gilt nur für H08. Sie ist kein Nachweis, dass die Punkte erledigt oder getestet sind, und keine Freigabe für Prod-Migration, Deploy oder Recurrence-/Activity-Arbeit.
 
 Plan-Kriterium A-H08 verlangt „CAL-01–28 reproduziert“ und „keine Critical/High finance/zone defects“. Die Ausnahmen weichen davon ab und stehen deshalb hier offen, nicht als stilles PASS.

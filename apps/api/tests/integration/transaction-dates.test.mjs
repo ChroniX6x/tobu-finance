@@ -1,3 +1,4 @@
+import { creationFetch as fetch } from '../fixtures/creation-fetch.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { spawn } from 'node:child_process';
@@ -259,17 +260,18 @@ test('transaction dates: BankDate/month rules and atomic parent/child/event writ
     };
     const bookedEvents = (id) => events.countDocuments({ code: 'transaction.booked', 'params.transactionId': id });
     const body = { status: 'booked', bookDate: '2026-12-02T00:00:00.000Z' };
-    for (const [label, commands] of [
-        ['after nothing was written yet (parent write fails)', ['findAndModify']],
-        ['after the parent write (child cascade fails)', ['update']],
-        ['after parent and children (event write fails)', ['insert']],
-        ['right before commit', ['commitTransaction']]
+    for (const [label, commands, skip] of [
+        ['after nothing was written yet (parent write fails)', ['update'], 0],
+        ['after the parent write (child cascade fails)', ['update'], 1],
+        ['after parent and children (event write fails)', ['insert'], 0],
+        ['right before commit', ['commitTransaction'], 0]
     ]) {
         await t.test(`CAL-12 failpoint ${label}: 0 partial changes, retry succeeds consistently`, async () => {
             const [parentId, childId] = await makePair();
             const before = await snapshot();
-            await failpoint(commands);
+            const configured = await failpoint(commands, skip);
             const failed = await request('PATCH', `/api/transactions/${parentId}`, body);
+            await client.db('admin').command({ waitForFailPoint: 'failCommand', timesEntered: configured.count + 1, maxTimeMS: 5000 });
             await failpointOff();
             assert.ok(failed.status >= 500, `expected a server error, got ${failed.status}`);
             assert.deepEqual(await snapshot(), before, 'parent, child and events are exactly as before');
@@ -354,10 +356,15 @@ test('transaction dates: BankDate/month rules and atomic parent/child/event writ
     await t.test('CAL-12 concurrent date changes never leave parent and children apart', async () => {
         const [parentId, childId] = await makePair();
         const dates = ['2027-01-05T00:00:00.000Z', '2027-02-05T00:00:00.000Z', '2027-03-05T00:00:00.000Z'];
+        const beforeEvents = await events.countDocuments({ 'subject.id': parentId, code: 'transaction.updated' });
         const results = await Promise.all(dates.map((bookDate) => request('PATCH', `/api/transactions/${parentId}`, { bookDate })));
         const winners = results.filter((r) => r.status === 200);
         assert.ok(winners.length >= 1, `at least one change wins: ${results.map((r) => r.status)}`);
-        for (const r of results) assert.ok([200, 500].includes(r.status));
+        for (const r of results) {
+            assert.ok([200, 409].includes(r.status), `no hidden server failure: ${r.status}`);
+            if (r.status === 409) assert.equal(r.json.error, 'MUTATION_REVISION_STALE');
+        }
+        assert.equal(await events.countDocuments({ 'subject.id': parentId, code: 'transaction.updated' }), beforeEvents + winners.length);
         const [parent, child] = [await row(parentId), await row(childId)];
         assert.deepEqual([iso(child.bookDate), iso(child.month)], [iso(parent.bookDate), iso(parent.month)]);
         assert.ok(dates.includes(iso(parent.bookDate)), 'the final value is one that was actually requested');
@@ -370,12 +377,22 @@ test('transaction dates: BankDate/month rules and atomic parent/child/event writ
                 request('PATCH', `/api/transactions/${parent.json._id}`, { bookDate: '2027-04-05T00:00:00.000Z' }),
                 create({ title: 'Late child', amountMinor: 100, month: '2026-11', parentTransactionId: parent.json._id })
             ]);
-            assert.equal(results[0].status, 200);
+            assert.ok([200, 409].includes(results[0].status));
+            if (results[0].status === 409) {
+                assert.equal(results[0].json.error, 'MUTATION_REVISION_STALE');
+                assert.equal(iso((await row(parent.json._id)).month), NOV, 'conflicted date change did not overwrite the parent');
+            }
             const children = await tx.find({ parentTransactionId: new ObjectId(parent.json._id) }).toArray();
             const stored = await row(parent.json._id);
             for (const child of children) assert.deepEqual([iso(child.bookDate), iso(child.month)], [iso(stored.bookDate), iso(stored.month)], `round ${round}: child ${child._id} differs from its parent`);
             // The child either saw the old parent (and was then moved by the cascade) or the new one (and was rejected as stale).
             assert.ok([201, 422].includes(results[1].status), `child status ${results[1].status}`);
+            if (results[0].status === 409) {
+                // After inspecting the conflict, explicitly start a new intent against the current parent revision.
+                assert.equal((await request('PATCH', `/api/transactions/${parent.json._id}`, { bookDate: '2027-04-05T00:00:00.000Z' })).status, 200);
+                const refreshed = await row(parent.json._id);
+                for (const child of await tx.find({ parentTransactionId: refreshed._id }).toArray()) assert.deepEqual([iso(child.bookDate), iso(child.month)], [iso(refreshed.bookDate), iso(refreshed.month)]);
+            }
         }
     });
 

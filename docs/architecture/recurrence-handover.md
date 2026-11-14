@@ -1,6 +1,8 @@
 # Recurrence-Handover (H09): Schnittstellen und Readiness
 
-Stand: Repository-HEAD `781c290` (nach H08), 03.11.2026. Reine Dokumentation und Verweissammlung, **kein** Recurrence-Coding-GO, keine Abnahme von E00–E09 oder des Account-Zonen-Rollouts. Quellen: Date/Month-Plan H09 und §§11–19, Eventplan E09 und §§9, 22–24, Buchungsvorlagenplan D04, D05, V14, §§57.2, 59–61 (lokaler Quellenordner, Hashes in [source-index.md](../agents/source-index.md)).
+**Aktueller signierter Nachtrag E09 (13.11.2026): A-E09 PASS / Q-E09 PASS.** [Release-/Pre-Recurrence-Bericht mit A/Q, SHA, Unterschriften und Belegen](../agents/runs/E09.md) ist der aktuelle Einstieg. E00–E09-Plattform-A/Q sind PASS; F-3 ist mit echten vierzonigen Zahlungs-/Eventproben geschlossen. Vollständiges frisches17/17Gate auf clean `27c21d4`,180/180Integration/30/30Realbrowser und zusätzlicher echter Tools-/KnownTrigger-/API-Neustart-Restore unabhängig abschließend bestätigt. Der ursprüngliche H09-Lauf ist historisch; operative Tabellen und Anker unten wurden auf den belegten E09-Stand aktualisiert. Recurrence-Domain-/HTTP-/Ensure-/FullDelete-EIT25–30, P01/P02 und technischer Account-Zonen-Rollout P04/EIT35/TZ bleiben eigenständige Folgegates. Kein Recurrence-Coding-, Push-/Merge-/Deploy- oder Bestandsmigrations-GO. **STOP nach E09.**
+
+Ursprünglicher H09-Stand: Repository-HEAD `781c290`,03.11.2026; operative Tabellen/Anker unten aktualisiert nach E09 auf27c21d4, Dokumentationsabschluss41a1558. Reine Dokumentation und Verweissammlung: referenziert die tatsächliche E09-Abnahme, führt selbst keine neuen Tests aus und erteilt kein Recurrence-Coding-/Account-Zonen-GO. Quellen: Date/Month-Plan H09 und §§11–19, Eventplan E09 und §§9, 22–24, Buchungsvorlagenplan D04, D05, V14, §§57.2, 59–61 (lokaler Quellenordner, Hashes in [source-index.md](../agents/source-index.md)).
 
 ## Abhängigkeit
 
@@ -8,10 +10,10 @@ Der Recurrence-Plan (D04/D05/D07, V08–V28, P04) ist von folgenden Gates abhän
 
 | # | Voraussetzung | Stand |
 | --- | --- | --- |
-| 1 | H08 A/Q | PASS mit ausdrücklich freigegebenen Ausnahmen ([H08-ABSCHLUSS](../agents/runs/H08-ABSCHLUSS.md), [Ausnahmen](../agents/h08-freigegebene-ausnahmen.md)); EX-07/A17 und F-3/F-5–F-8 sind je dem späteren Schritt zugeordnet |
-| 2 | Eventplattform E00–E09 A/Q | **nicht umgesetzt** (kein Bericht, siehe unten) |
+| 1 | H08 A/Q | PASS mit ausdrücklich freigegebenen Ausnahmen; F3 geschlossen. [Verbindliche Folgepflichten](../agents/date-event-followups.md) bleiben ihrem Folgeschritt zugeordnet. |
+| 2 | Eventplattform E00–E09 A/Q | **PASS**, unabhängiger Review,17/17Gruppen; [E09](../agents/runs/E09.md). |
 | 3 | Account-Zonen-Rollout (P04, TZ-01–15, EIT-35) | **nicht umgesetzt**; fachlich beschlossen (DEC-0041/0042/0051) |
-| 4 | Gemeinsamer Integrations-SHA aus H08 und E09 (Plan §60.4) | nicht vorhanden |
+| 4 | Gemeinsamer Integrations-SHA aus H08 und E09 | **belegt:27c21d40fd4a79f1758e087b27b54cf54d066402**, clean Fresh-Gate; spätere reine Dokumentationsänderungen ändern keine Gatequellen. |
 | 5 | Separate Recurrence-Coding-Freigabe | nicht erteilt; DEC-0055 gilt nur bedingt unter 1–4 |
 
 P03 (Architektur/Spezifikation) ist durch DEC-0052 bestätigt; das ist keine Code-, Schema- oder Migrationsfreigabe.
@@ -42,8 +44,8 @@ Alle Helfer liegen in [calendar.ts](../../packages/contracts/src/calendar.ts) (`
 
 - **Finanzwahrheit:** Transaction/Parent/Child/Status und BankDate; `RecurrenceRevision` ist Konfigurationssnapshot; Activity beschreibt nur die Ausführung (Eventplan §5.3). Keine Finanzmonate aus Eventzeit berechnen.
 - **`occurredAt`:** echter UTC-Instant, bestehende Event-Collection mit persistiertem `date`, API-Projektion `occurredAt` (Eventplan §22.2); nie Midnight-Träger, nie MonthKey.
-- **Iststand Events (HEAD):** [Event.ts](../../apps/api/src/models/Event.ts) hat nur `accountId`, `date`, `code`, `params`, `createdByMemberId`, `timestamps`. Es gibt keinen Actor/Trigger/Subject, keine `schemaVersion`, keinen zentralen Writer und keine Route `GET /api/accounts/:accountId/activity`. 15 direkte `Event.create`-Aufrufe in `transactions` (4), `accounts` (2), `contribution-rules` (3), `member-incomes` (3), `category-budgets` (3) laufen außerhalb eines gemeinsamen Writers. Das ist der Stand vor E00; er ist keine Plattform.
-- **Pflichten laut Plan für später (nicht umgesetzt):** Fachmutation und Events in einer Mongo-Transaktion; kein Event bei GET, No-op, Fehler oder Rollback; Retry über commandId/Readback; nach zulässigem FullDelete bleiben Events erhalten, genau ein atomarer `recurrence.deleted` (DEC-0050); Config-Revision nur bei echten Edits, Statuswechsel als Activity (DEC-0040); Zonenänderung als Activity genau einmal (DEC-0042/0051).
+- **Aktueller Plattformstand:** [Event.ts](../../apps/api/src/models/Event.ts) unterstützt verifizierte Actor/Trigger/Subject und schemaVersion; gemeinsamer atomarer Writer, sichere Activity-GET-/20erVorschau,44Codes und Desktop/Mobile/AX sind E00–E09 abgenommen. Historische Events bleiben Legacy-Unknown; kein neuer Recurrence-Ensure-Service oder Domain-/Zonencommand. [Writer](activity-writer.md), [Read](activity-read.md), [E09](../agents/runs/E09.md).
+- **Bereits belegte Plattformgarantien:** Fachmutation/Events atomar, keine Events bei GET/No-op/Rollback, sichere Retry-/Readback-/Restart-/CommitUnknown-Fälle und generische Delete/Eventerhalt-Proben. **Spätere Domainpflichten:** tatsächliche Recurrence-Ensure-/Revision-/FullDelete-EIT25–30 in V08–V28; Konto-Zonenänderung samt Activity in P04/EIT35. Keine Gleichsetzung generischer Fixtures mit implementierter Domain.
 
 ## Kontozone
 
@@ -51,7 +53,7 @@ Beschlossen, nicht implementiert: im Code gibt es kein `timeZone` an Account, Co
 
 ## Geschlossene und offene Übergabepunkte aus H08
 
-Vor dem jeweiligen Schritt zu schließen (Details in [h08-freigegebene-ausnahmen.md](../agents/h08-freigegebene-ausnahmen.md)): EX-07/A17 (`activeFrom` fällt bei fehlendem Wert auf `new Date()` statt Monatsanker, vor jeder Nutzung des Legacy-Moduls, P02), F-5/F-7/F-8 (P02/AUTH-001), F-3 (UI-Fix vor E09), F-6 (P04), F-1 (Bestandskorrektur nur nach eigener Freigabe). §61.3/§61.4 (Owner-Self-Member, Category-Create) sind entschieden, ihre Umsetzung steht aus.
+Verbindlich vor dem jeweiligen Folgeschritt zu schließen: [zentrale Folgepflichten](../agents/date-event-followups.md), insbesondere EX07/A17 vor Legacy-Nutzung/P02, F5/F7/F8-/AUTH-/API-Restpakete vor P02, F6/P04 sowie F1/Bestandskorrektur nur nach eigener Freigabe. F3, Wizard-Navigation und Owner-Self-/Category-Create im E05-Umfang sind umgesetzt und geprüft; keine erneute offene Fachentscheidung daraus ableiten.
 
 ## Grenzen
 

@@ -1,3 +1,4 @@
+import { creationPost } from "./helpers/creation-request";
 import { test, expect } from "./helpers/test-fixture";
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -6,7 +7,7 @@ test("real account, views and transaction create/edit/delete through the UI", as
   page,
 }) => {
   test.setTimeout(90000);
-  const login = await page.request.post("/api/auth/login", {
+  const login = await creationPost(page, "/api/auth/login", {
     data: {
       email: process.env["E2E_EMAIL"],
       password: process.env["E2E_PASSWORD"],
@@ -15,13 +16,13 @@ test("real account, views and transaction create/edit/delete through the UI", as
   expect(login.status()).toBe(200);
   const auth = await login.json();
   const headers = { authorization: `Bearer ${auth.accessToken}` };
-  const memberResponse = await page.request.post("/api/members", {
+  const memberResponse = await creationPost(page, "/api/members", {
     headers,
     data: { name: "Browser owner", userId: auth.user.id },
   });
   expect(memberResponse.status()).toBe(201);
   const member = await memberResponse.json();
-  const accountResponse = await page.request.post("/api/accounts", {
+  const accountResponse = await creationPost(page, "/api/accounts", {
     headers,
     data: {
       name: "Browser account",
@@ -56,6 +57,7 @@ test("real account, views and transaction create/edit/delete through the UI", as
   const createdResponse = page.waitForResponse(
     (r) =>
       r.request().method() === "POST" &&
+      r.status() !== 428 &&
       new URL(r.url()).pathname === "/api/transactions",
   );
   await page.getByRole("button", { name: /Anlegen/ }).click();
@@ -69,6 +71,7 @@ test("real account, views and transaction create/edit/delete through the UI", as
   const patched = page.waitForResponse(
     (r) =>
       r.request().method() === "PATCH" &&
+      r.status() !== 428 &&
       r.url().endsWith("/api/transactions/" + transaction._id),
   );
   await page.getByRole("button", { name: /Speichern/ }).click();
@@ -79,6 +82,7 @@ test("real account, views and transaction create/edit/delete through the UI", as
   const deleted = page.waitForResponse(
     (r) =>
       r.request().method() === "DELETE" &&
+      r.status() !== 428 &&
       r.url().endsWith("/api/transactions/" + transaction._id),
   );
   await row.locator("button:has(.pi-trash)").click();

@@ -13,6 +13,16 @@ Stand: 25.10.2026. Transaktionaler und kontrollierter struktureller Modus sind i
 
 ## Bestehende Datenbank migrieren
 
+### Zielidentität und sichere Diagnostik (E03)
+
+Neue Läufe verwenden Identitätsversion 2: Umgebung, Datenbankname/-ID, kanonisierte Verbindungsendpunkte und die vom Server gelesene Replica-Set-ID bzw. Sharding-Cluster-ID. Zugangsdaten, Tokens, private Schlüssel und Passphrases fließen nicht in Hashes ein. Passwortrotation oder ein anderes Wartungskonto ändern diese Zielidentität nicht. Andere Ports/Zugangspfade werden konservativ als anderes Ziel behandelt; es gibt keine automatische Alias- oder Klonübernahme. Die Planbestätigung bindet zusätzlich effektive Verbindungsoptionen und die öffentlichen CA-Vertrauensanker. Dafür muss der Administrator auf Replica Sets `replSetGetConfig` bzw. auf Sharded Clustern `config.version` lesen dürfen; ohne diese Rechte gibt es keinen schwächeren Ersatz und keinen Schreibbeginn.
+
+Bei bekannten alten Baselines ohne Datenbank-ID wird die ID atomar zusammen mit der bestätigten Sperre vergeben, bei strukturellen Läufen auch mit dem Journal. Sie gehört anschließend zum gesicherten Ausgangsstand und bleibt auch nach einem fehlgeschlagenen Lauf erhalten. Fachliche Daten werden dabei nicht geändert. Recovery prüft einen vorhandenen Schema-Marker stets gegen das Journal; ein fehlender Marker ist nur während `restoring` zulässig.
+
+**Alte URI-gebundene Journale/Backups:** Der neue Runner lehnt Journale ohne Identitätsversion 2 ohne Änderung ab. Writer und Wartung bleiben gestoppt. Recovery muss mit dem ursprünglichen verifizierten Runner samt zugehörigem Katalog, Prüfsummen, Backup und ursprünglicher Ziel-/Verbindungskonfiguration abgeschlossen werden. Ist das nicht möglich, ist ein eigener geprüfter Übergangsplan erforderlich. Keine Locks löschen, Hashes umetikettieren oder alte Archive mit neuen Besitzerdateien versehen. Historische erfolgreiche Migrationen werden niemals per altem Backup zurückgesetzt. Dies ist ein versionsgebundener Betriebsweg, keine automatisch ausgeführte Rückwärtsmigration.
+
+CLI-Fehler nennen eine feste Kategorie (Assertion, Dokumentvalidierung, Verbindung, Berechtigung, Duplicate Key oder unbekannt) und bei bekanntem Kontext Phase/Run-ID. Rohe Treibermeldungen, Stacks, Dokumente und ungeprüfte Fehlerfelder bleiben unterdrückt. Der Fehler beendet die Wartung nicht. Das gilt auch für Migrationen beim expliziten Setup einer neuen Datenbank.
+
 DB muss laufen und eine bekannte Baseline enthalten. Vor Schreibbefehlen API/Web sowie sämtliche externen Writer/Jobs stoppen; alle laufenden Schreibvorgänge müssen abgeschlossen sein. Die Root-Befehle prüfen zusätzlich freie API-/Web-Ports. Sie starten keine Datenbank und seeden nichts. Vorher einmal Setup/Build ausführen, damit das gemeinsame Vertragspaket gebaut ist.
 
 ```powershell

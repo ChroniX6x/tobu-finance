@@ -1,17 +1,29 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Store } from '@ngxs/store';
-import { ButtonModule } from 'primeng/button';
-import { DataViewModule } from 'primeng/dataview';
-import { InputTextModule } from 'primeng/inputtext';
-import { RippleModule } from 'primeng/ripple';
-import { NextStepAction, SetMembers } from '../state/wizard.actions';
-import { WizardMemberModel } from '../domain/wizard-member.model';
-import { email, form, FormField, FormRoot, required } from '@angular/forms/signals';
+import { WizardDataService } from "../state/wizard-data.service";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from "@angular/core";
+import { Store } from "@ngxs/store";
+import { ButtonModule } from "primeng/button";
+import { DataViewModule } from "primeng/dataview";
+import { InputTextModule } from "primeng/inputtext";
+import { RippleModule } from "primeng/ripple";
+import { NextStepAction, SetMembers } from "../state/wizard.actions";
+import { WizardMemberModel } from "../domain/wizard-member.model";
+import {
+  email,
+  form,
+  FormField,
+  FormRoot,
+  required,
+} from "@angular/forms/signals";
 
 @Component({
-  selector: 'app-member-information',
-  templateUrl: './member-information.html',
-  styleUrls: ['./member-information.scss'],
+  selector: "app-member-information",
+  templateUrl: "./member-information.html",
+  styleUrls: ["./member-information.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DataViewModule,
@@ -24,16 +36,28 @@ import { email, form, FormField, FormRoot, required } from '@angular/forms/signa
 })
 export class MemberInformation {
   private readonly store = inject(Store);
+  protected readonly self = inject(WizardDataService).signedInUser();
 
-  protected readonly members = signal<WizardMemberModel[]>([]);
+  protected readonly members = signal<WizardMemberModel[]>(
+    this.self
+      ? [
+          {
+            tempId: "__creator__",
+            userId: this.self.id,
+            name: this.self.name || this.self.email,
+            email: this.self.email,
+          },
+        ]
+      : [],
+  );
 
-  protected readonly memberInput = signal({ name: '', email: '' });
+  protected readonly memberInput = signal({ name: "", email: "" });
 
   protected readonly memberForm = form(
     this.memberInput,
     (p) => {
-      required(p.name, { message: 'Name ist erforderlich' });
-      email(p.email, {message: 'Keine gültige E-Mail'});
+      required(p.name, { message: "Name ist erforderlich" });
+      email(p.email, { message: "Keine gültige E-Mail" });
     },
     {
       submission: {
@@ -44,15 +68,17 @@ export class MemberInformation {
 
   protected addMember(): void {
     const { name, email } = this.memberInput();
-    this.members.update(list => [
+    this.members.update((list) => [
       ...list,
       { tempId: String(list.length), name, email: email || undefined },
     ]);
-    this.memberInput.set({ name: '', email: '' });
+    this.memberInput.set({ name: "", email: "" });
   }
 
   protected removeMember(index: number): void {
-    this.members.update(list => list.filter((_, i) => i !== index));
+    this.members.update((list) =>
+      list.filter((member, i) => i !== index || !!member.userId),
+    );
   }
 
   protected nextStep(): void {
