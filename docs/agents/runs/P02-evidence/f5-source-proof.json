@@ -1,0 +1,22 @@
+{
+  "revision": "bf03e38053632017ff855ef869c53c3d24d8685a",
+  "fix": "1296f3bee3ac3fe92178b45211b48538be42c0cd",
+  "harness": "Current auth/bootstrap/models, three unmodified historical route bodies; import URLs rebound and TS transpiled only. Not the entire historical runtime.",
+  "routes": [
+    {
+      "path": "apps/api/src/routes/categories.ts",
+      "blob": "fa8f76d5c9b277120ad1c83d889a509478d2c084",
+      "sha256": "abd0dc4b48846711a458b08a3823cca63fdfd15700e5f2cad5a9b1fc2c6a5f29"
+    },
+    {
+      "path": "apps/api/src/routes/recurrences.ts",
+      "blob": "fab1e50dbb7157d78bd5dba79bc6214a538f88b6",
+      "sha256": "4a202262938a9201e25378b74385a02becdebfcd7d45ce814053a84a3c14bcc4"
+    },
+    {
+      "path": "apps/api/src/routes/category-budgets.ts",
+      "blob": "2c932f5a6e2fba1fb7f111bd0b0c14a362a08ff5",
+      "sha256": "6e9a3f0c9846da6c2c41399f3fcadbc4ed2410a2991b603540cd193065f00e13"
+    }
+  ]
+}

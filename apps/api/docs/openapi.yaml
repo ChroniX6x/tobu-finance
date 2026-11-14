@@ -11662,6 +11662,11 @@ paths:
                         type: string
                       memberCount:
                         type: number
+                      callerRole:
+                        type: string
+                        enum:
+                          - owner
+                          - member
                       settings:
                         type: object
                         properties:
@@ -11702,6 +11707,7 @@ paths:
                       - name
                       - currency
                       - memberCount
+                      - callerRole
                       - settings
                   members:
                     type: array
@@ -14874,17 +14880,13 @@ paths:
                     - type: string
                       pattern: ^[a-f\d]{24}$
                     - type: "null"
-                recurrenceId:
-                  anyOf:
-                    - type: string
-                      pattern: ^[a-f\d]{24}$
-                    - type: "null"
               required:
                 - accountId
                 - title
                 - type
                 - amountMinor
                 - isFromSharedAccount
+              additionalProperties: false
       responses:
         "201":
           description: Success
@@ -15087,11 +15089,7 @@ paths:
                     - type: string
                       pattern: ^[a-f\d]{24}$
                     - type: "null"
-                recurrenceId:
-                  anyOf:
-                    - type: string
-                      pattern: ^[a-f\d]{24}$
-                    - type: "null"
+              additionalProperties: false
       responses:
         "200":
           description: Success
@@ -16799,7 +16797,62 @@ paths:
                   type: integer
                   exclusiveMinimum: 0
                   maximum: 9007199254740991
-                distribution: {}
+                distribution:
+                  anyOf:
+                    - type: object
+                      properties:
+                        mode:
+                          type: string
+                          const: perMember
+                        memberId:
+                          type: string
+                          pattern: ^[a-f\d]{24}$
+                        customSplit:
+                          type: "null"
+                      required:
+                        - mode
+                        - memberId
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        mode:
+                          type: string
+                          const: customSplit
+                        memberId:
+                          type: "null"
+                        customSplit:
+                          minItems: 1
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              memberId:
+                                type: string
+                                pattern: ^[a-f\d]{24}$
+                              split:
+                                type: number
+                                minimum: 0
+                                maximum: 100
+                            required:
+                              - memberId
+                              - split
+                            additionalProperties: false
+                      required:
+                        - mode
+                        - customSplit
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        mode:
+                          type: string
+                          const: proRataIncome
+                        memberId:
+                          type: "null"
+                        customSplit:
+                          type: "null"
+                      required:
+                        - mode
+                      additionalProperties: false
                 fromMonth:
                   anyOf:
                     - type: string
@@ -16982,7 +17035,62 @@ paths:
                   type: integer
                   exclusiveMinimum: 0
                   maximum: 9007199254740991
-                distribution: {}
+                distribution:
+                  anyOf:
+                    - type: object
+                      properties:
+                        mode:
+                          type: string
+                          const: perMember
+                        memberId:
+                          type: string
+                          pattern: ^[a-f\d]{24}$
+                        customSplit:
+                          type: "null"
+                      required:
+                        - mode
+                        - memberId
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        mode:
+                          type: string
+                          const: customSplit
+                        memberId:
+                          type: "null"
+                        customSplit:
+                          minItems: 1
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              memberId:
+                                type: string
+                                pattern: ^[a-f\d]{24}$
+                              split:
+                                type: number
+                                minimum: 0
+                                maximum: 100
+                            required:
+                              - memberId
+                              - split
+                            additionalProperties: false
+                      required:
+                        - mode
+                        - customSplit
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        mode:
+                          type: string
+                          const: proRataIncome
+                        memberId:
+                          type: "null"
+                        customSplit:
+                          type: "null"
+                      required:
+                        - mode
+                      additionalProperties: false
                 fromMonth:
                   anyOf:
                     - type: string

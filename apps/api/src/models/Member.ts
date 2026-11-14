@@ -10,6 +10,7 @@ const MemberSchema = new Schema(
     },
     { timestamps: true }
 );
+MemberSchema.index({ userId: 1 }, { name: 'userId_1' });
 
 export type MemberDoc = InferSchemaType<typeof MemberSchema>;
 export default (mongoose.models['Member'] as Model<MemberDoc> | undefined) ?? model<MemberDoc>('Member', MemberSchema);

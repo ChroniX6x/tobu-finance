@@ -40,28 +40,29 @@ const CreateTxBase = z
         status: TxStatus.default('pending'),
         isFromSharedAccount: z.boolean(),
         paidByMemberId: ObjId.nullish(),
-        parentTransactionId: ObjId.nullish(),
-        recurrenceId: ObjId.nullish()
+        parentTransactionId: ObjId.nullish()
     })
+    .strict()
     .refine((d) => !(d.status === 'booked' && !d.bookDate), { message: 'bookDate is required when status is booked', path: ['bookDate'] })
     .refine((d) => !(d.isFromSharedAccount === false && !d.paidByMemberId), { message: 'paidByMemberId is required when isFromSharedAccount is false', path: ['paidByMemberId'] })
     .refine((d) => !!(d.bookDate || d.month), { message: 'Either bookDate or month must be provided', path: ['month'] });
 export const CreateTx = CreateTxBase;
 // ─── Patch ────────────────────────────────────────────────────────────────────
 // All fields optional; cross-field rules are applied against the MERGED (next) state in the route handler.
-export const PatchTx = z.object({
-    categoryId: ObjId.nullish(),
-    title: TxTitle.optional(),
-    notes: TxNotes,
-    type: TxType.optional(),
-    amountMinor: MoneyMinor.optional(),
-    month: Month.optional(),
-    bookDate: BookDateWriteSchema.nullish(),
-    status: TxStatus.optional(),
-    isFromSharedAccount: z.boolean().optional(),
-    paidByMemberId: ObjId.nullish(),
-    recurrenceId: ObjId.nullish()
-});
+export const PatchTx = z
+    .object({
+        categoryId: ObjId.nullish(),
+        title: TxTitle.optional(),
+        notes: TxNotes,
+        type: TxType.optional(),
+        amountMinor: MoneyMinor.optional(),
+        month: Month.optional(),
+        bookDate: BookDateWriteSchema.nullish(),
+        status: TxStatus.optional(),
+        isFromSharedAccount: z.boolean().optional(),
+        paidByMemberId: ObjId.nullish()
+    })
+    .strict();
 // ─── Query ────────────────────────────────────────────────────────────────────
 const QueryTxBase = z.object({
     accountId: ObjId,

@@ -9,6 +9,7 @@ import { requireAccountContext } from '../auth/account-context.js';
 import { activityRoute, creationReply, changedPatch, validateReferences, reject } from '../services/activity-route.js';
 import { creationId } from '../services/creation-proof.js';
 import type { ActivityIntent } from '../services/activity-writer.js';
+import { ContributionDistributionSchema } from '@tobu/contracts/contribution-rules';
 const r = Router();
 r.get('/', validateQuery(QueryContributionRules), async (req, res) => {
     const { accountId } = (req.query ?? {}) as { accountId?: string };
@@ -22,7 +23,7 @@ function distributionIds(value: unknown): unknown[] {
     const d = value as { memberId?: unknown; customSplit?: { memberId?: unknown }[] } | null;
     return [d?.memberId, ...(Array.isArray(d?.customSplit) ? d.customSplit.map((s) => s?.memberId) : [])];
 }
-r.post('/', validateBody(CreateContributionRule), async (req, res) => {
+r.post('/', validateBody(CreateContributionRule, 422), async (req, res) => {
     const b = CreateContributionRule.parse(req.body);
     const context = await requireAccountContext(req, res, b.accountId);
     if (!context) return;
@@ -59,7 +60,7 @@ r.post('/', validateBody(CreateContributionRule), async (req, res) => {
         async (readSession) => creationReply(await ContributionRule.findById(id).session(readSession))
     );
 });
-r.patch('/:id', validateBody(UpdateContributionRule), async (req, res) => {
+r.patch('/:id', validateBody(UpdateContributionRule, 422), async (req, res) => {
     const b = UpdateContributionRule.parse(req.body);
     const existing = isObjectId(req.params.id) ? await ContributionRule.findById(req.params.id).lean() : null;
     if (!existing) return res.sendStatus(404);
@@ -69,6 +70,8 @@ r.patch('/:id', validateBody(UpdateContributionRule), async (req, res) => {
         const prev = await ContributionRule.findById(existing._id).session(session);
         if (!prev) return { status: 404 };
         if (prev.type === 'base') reject(403, 'BASE_RULE_IMMUTABLE');
+        const distribution = ContributionDistributionSchema.safeParse(b.distribution ?? JSON.parse(JSON.stringify(prev.toObject().distribution)));
+        if (!distribution.success) reject(422, 'INVALID_DISTRIBUTION');
         await validateReferences(prev.accountId, session, { memberIds: [b.createdByMemberId, ...distributionIds(b.distribution !== undefined ? b.distribution : prev.distribution)] });
         const values: Record<string, unknown> = { ...b };
         if (b.fromMonth !== undefined) values.fromMonth = b.fromMonth ? toMonthDate(b.fromMonth) : null;

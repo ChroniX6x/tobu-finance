@@ -1,0 +1,34 @@
+# P02 – unabhängiger Nachweis- und Restpunktreview
+
+Reviewer `/root/p00_independent_review`, Fortsetzung auf Basis65dd4f3 und laufendem dirty P02-Diff. Nur Quellen-/Loglektüre, keine eigenen Tests oder Implementierung. Kein Schluss-PASS; Fullgate und finaler Quellstand stehen aus.
+
+## Korrekturen der Zwischenfindings
+
+R1 statisch korrigiert: LoadMasterData verwirft VM/editor vor dem Laden und ist cancelUncompleted; canManageAccount verlangt nicht-loading, passende VM-/currentAccount-ID und owner. Owneraktionen verwenden diesen Guard, Sidebar berücksichtigt Capability und das Accountformular rendert bei member nicht weiter. Neue echte NGXS-Unit sowie zwei Mockbrowserproben prüfen offene Ownereditoren vor anschließendem Memberreload. Die neue Realbrowserprobe prüft initiale Owner-/Memberrollen und tatsächliche403/200/201, keine echte parallele Rollenänderung. Ausführung dieser Browserproben ist gesondert im finalen Gate zu prüfen.
+
+R2 korrigiert: Legacy-Distributionfixture verwendet nun BSON-/Validator-legales perMember ohne memberId. Zielguard wird so tatsächlich erreicht. Gelesener target-integration-after.log endet15/15PASS,0fail/skip/cancel; umfasst Indexsuite, drei aktuelle F5-Unterfälle, P02-API und drei zonen-/monatsgrenzenspezifische Kalenderproben. Das ist kein Vollgate.
+
+## Historischer F5-Nachweis
+
+p02-historical-server.mjs lädt drei originale Routentexte mittels git show1296f3b^, transpiliert sie und bindet sie in gegenwärtigen Auth-/Bootstrap-/Modelkontext einer isolierten Testdatenbank ein. p02-historical-regression.test.mjs verwendet dieselben drei Assertions für historisch und aktuell. f5-before.log zeigt die zwei unerlaubten200 statt404 sowie die unerlaubte Account.updatedAt-Änderung beim409-BudgetPOST; der heutige Gegenlauf ist grün.
+
+Das ist ein methodisch nachvollziehbarer begrenzter Replay echter historischer Kategorien-/LegacyRecurrence-/Budgetrouten und für exakt diese drei Fehler aussagekräftig. Es ist kein kompletter historischer Runtime-/Commitlauf und kein Nachweis der gesamten alten ACL- oder Schreibmatrix. Historischer RecurrenceGET benutzt eine leere Liste: Nachweis fehlender Accountautorisierung, kein beobachteter konkreter Recurrence-Datenabfluss. Kategorien enthalten dagegen ein echtes privates Fixture.
+
+Noch dokumentarisch zu binden: vollständig aufgelöster historischer Commit, drei Originalquell-/Gitblobhashes, aktuelle Replay-/Test-/Helperquellen und exakte Befehle/Exits. Child-console.log-Quellhashes werden bei erfolgreichem activityStack-Start nach gelesener Helperlogik intern gepuffert; sie stehen dadurch nicht automatisch im sichtbaren Negativlog. Ein gesondertes deterministisches Git-Quellmanifest kann die Provenienz belegen, ohne allein für zusätzliche Logausgabe erneut Tests zu starten.
+
+## Spezifisches Restpunktmapping
+
+| Paket | Wiederverwendbare vorhandene Probe | Tatsächlich verbleibende Nachweislücke am gelesenen Stand |
+| --- | --- | --- |
+| F5/Accountorakel | account-access.test.mjs43-Routenmatrix: foreign/unknown/legacy, gleiche Antworten, Admin,401 und0Writes; aktuelle Budget409/404/422/400 ohne updatedAt/Eventänderung. Historischer enger Dreierlauf wie oben. | Historisches Replay eng bezeichnen und Quellprovenienz persistieren; keine komplette Vor-Fix-Runtime behaupten. |
+| F7/Members | account-access Members-Nested481ff: fremde IDs, verbotene userId-Claims, linkedDelete409, sichtbare CoMemberpflege, fremder/eigener Provenance-OrphanDelete. | Globale Members fehlen in der43-Routenmatrix. GET-Liste/POST/PATCH/DELETE mit anonymem und ungültigem Token; fremde/unknown/historisch unprovenanced IDs für PATCH/DELETE und passende Liste dürfen keine Existenz-/PII-Unterschiede oder Writes erzeugen. Kein nicht existentes GET/:id erfinden. |
+| F8/Altbestand/Self | actor-context139ff: mehrere Member desselben Users, owner gewinnt, andere Accountzuordnung verleiht/entzieht Zugriff;517ff ownerloses Altkonto und fremder Creator fail-closed. account-access447ff: Creator stets Owner, fremde Member verweigert. | Mehrere historische Self-Member: AccountCreate ohne eindeutige eigene Auswahl muss explizit422+0Writes zeigen, ausdrücklich verifizierte eigene Auswahl darf sicher genau einen SelfOwner ergeben. Historischer Orphan ohne Provenance darf weder übernommen noch nach Name/E-Mail geraten werden; identische Fehler/Listenprojektion explizit testen. Aktuelle eindeutige Self-/Wizard-Implementierung nicht neu als Defekt darstellen. |
+| AUTH001/002 | actor-context Owner-/Member-/Outsider-/Adminmatrix, Owner-only Membership/Rollen mit0Writes; echte Member-KategorieCRUD erlaubt. Neue callerRole-/UIproben. | UIreload-/Ownerpositiv-/Member403-Ausführung final belegen; historische Selffälle wie oben. Einladungen/individuelle Memberrechte und produktiver Aufräumweg bleiben eigene spätere Pakete. |
+| AUTH004 | activity-rollout EIT18/32: GlobalMemberPATCH gegen neue unzugängliche Accountzuordnung, Commitreihenfolge per Oplog; OrphanDELETE gegen Assignment, kein danglingMember. EIT31 Writerretry/LostReply und Eventinsert-Rollback quer über Update/Delete/Membership. | Diese vorhandenen Proben wiederverwenden. Konkrete Autoritätsentziehung gegen einen schon laufenden realen Fachwrite ist daraus nicht unmittelbar bewiesen; zielgerichteter gemeinsamer Account-/User-Konfliktpunkt mit realer Entziehung und anschließend0unberechtigten Writes erforderlich, sofern nicht in weiterem Nachweis enthalten. Keine pauschale Aussage, alle fachlichen Category-/Recurrence-/Budgetraces seien durch generische Retrytests geprüft. |
+| AUTH005 | provenance-/alle-betroffenen-Accounts-Guards plus oben genannte Members-Assignment-/Delete-Races; neue nichtunique Indexmigration. | Unbekannte/historische Orphanorakel und Mehrdeutigkeit ausdrücklich binden, keine automatische Altdatenreparatur. Index-Up/Down/Restore im finalen Gate differenziert darstellen: Tools real, LostReply-Zweig MemoryBackup. |
+
+Die alten KalenderParentParallelproben sind bereits streng200/409 mit MUTATION_REVISION_STALE und Parent-/Child-/Eventinvarianten. Den alten500-Defekt nicht erneut erfinden. activity-security-review belegt JWT-/Admin-/Query-/Actor-/PII-/Cursor-/Maintenance-/TTL-Grenzen, ersetzt jedoch die spezifischen globalen Members-/Altbestandsfälle nicht.
+
+Zusätzlicher statischer Testhinweis: master-data-access.real.spec.ts Owner-Save wartet aktuell auf beliebigen PATCH der Account-ID; erwartete428-Proof-Negotiation sollte im Responseprädikat ausgeschlossen werden, damit die200-Assertion den abgeschlossenen Retry betrachtet. Das ist Synchronisation, keine Lockerung der fachlichen Assertion und kein bestätigter Produktfehler.
+
+A-P02/Q-P02 bleiben bis finalem Diff, tatsächlich ausgeführten Pflichtgates und unabhängiger Schlussprüfung offen. Keine Sicherheitsgesamtschließung für individuelle Rechte, Einladungen, Betrieb oder Dependencies. Signiert `/root/p00_independent_review`.

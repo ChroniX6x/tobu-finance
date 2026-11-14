@@ -80,6 +80,12 @@ test('baseline, indexes, resumability, seeds and manual edits', { timeout: 12000
             ['20261108172127336-recurrence-activity-primitives']
         );
         await runner.run('up', recurrenceActivityPlan.confirmation, true);
+        const memberLookupPlan = await runner.plan();
+        assert.deepEqual(
+            memberLookupPlan.migrations.map((entry) => entry.id),
+            ['20261114221747317-member-user-lookup-index']
+        );
+        await runner.run('up', memberLookupPlan.confirmation, true);
         await verifyBaseline();
         assert.equal((await schemaStatus()).ready, true);
         assert.equal(await initializeBaseline(), false);

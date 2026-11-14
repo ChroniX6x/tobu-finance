@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { Types } from 'mongoose';
 import Account from '../models/Account.js';
-import { requireAccountAccess } from '../auth/account-access.js';
+import { requireAccountContext } from '../auth/account-context.js';
 import Member from '../models/Member.js';
 import Category from '../models/Category.js';
 import Transaction from '../models/Transaction.js';
@@ -18,7 +18,8 @@ r.get('/:accountId/master-data', async (req, res) => {
     const { accountId } = req.params;
     if (!/^[a-f\d]{24}$/i.test(accountId)) return res.status(400).json({ error: 'INVALID_ID' });
 
-    if (!(await requireAccountAccess(req, res, accountId))) return;
+    const context = await requireAccountContext(req, res, accountId);
+    if (!context) return;
     const accId = new Types.ObjectId(accountId);
     const acc = await Account.findById(accId).lean();
     if (!acc) return res.sendStatus(404);
@@ -172,6 +173,7 @@ r.get('/:accountId/master-data', async (req, res) => {
         name: (acc as any).name ?? null,
         currency: (acc as any).currency ?? 'EUR',
         memberCount,
+        callerRole: context.account.role,
         settings: {
             dashboard: {
                 historyMonths: dashboard.historyMonths ?? 6,

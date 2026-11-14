@@ -46,7 +46,7 @@ test('E07 additive event-validator migration, retained history, actual Tools res
     };
     const current = migrations.find((entry) => entry.id === '20261108172127336-recurrence-activity-primitives');
     assert.ok(current);
-    const base = migrations.filter((entry) => entry.id !== current.id);
+    const base = migrations.filter((entry) => entry.id < current.id);
     assert.equal(base.at(-1).id, current.migration.predecessor);
     const tools = () => new ToolsBackup(client, db, uri, scratch, 'docker-local');
     const runner = (entry = current, backup = new MemoryBackup(db)) => new MigrationRunner(client, db, uri, 'test', [...base, entry], { backup });

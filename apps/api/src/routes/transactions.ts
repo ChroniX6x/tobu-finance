@@ -185,7 +185,7 @@ r.post('/', validateBody(CreateTx), async (req, res) => {
         const { status, body } = monthRuleStatus(dates.error);
         return res.status(status).json(body);
     }
-    if (!(await referencesBelongToAccount(res, b.accountId, { categoryId: b.categoryId, paidByMemberId: b.paidByMemberId, recurrenceId: b.recurrenceId }))) return;
+    if (!(await referencesBelongToAccount(res, b.accountId, { categoryId: b.categoryId, paidByMemberId: b.paidByMemberId }))) return;
 
     const domainId = creationId(req, res, 'transaction', b);
     if (!domainId) return;
@@ -193,7 +193,7 @@ r.post('/', validateBody(CreateTx), async (req, res) => {
         req,
         res,
         async (session, emit) => {
-            await validateReferences(b.accountId, session, { categoryId: b.categoryId, memberIds: [b.paidByMemberId], recurrenceId: b.recurrenceId });
+            await validateReferences(b.accountId, session, { categoryId: b.categoryId, memberIds: [b.paidByMemberId] });
             let parentDoc: InstanceType<typeof Transaction> | null = null;
 
             if (isChild) {
@@ -227,7 +227,8 @@ r.post('/', validateBody(CreateTx), async (req, res) => {
                 isFromSharedAccount: isChild ? parentDoc!.isFromSharedAccount : b.isFromSharedAccount,
                 paidByMemberId: isChild ? parentDoc!.paidByMemberId : b.paidByMemberId ? new Types.ObjectId(b.paidByMemberId) : null,
                 parentTransactionId: isChild ? new Types.ObjectId(b.parentTransactionId) : null,
-                recurrenceId: b.recurrenceId ? new Types.ObjectId(b.recurrenceId) : null,
+                // Only a future explicit domain command may create an occurrence link.
+                recurrenceId: null,
                 // type: always from parent for children
                 type: isChild ? parentDoc!.type : b.type
             };
@@ -265,7 +266,7 @@ r.patch('/:id', validateBody(PatchTx), async (req, res) => {
 
     const target = await loadAuthorizedTransaction(req, res, id);
     if (!target) return;
-    if (!(await referencesBelongToAccount(res, target.accountId, { categoryId: b.categoryId, paidByMemberId: b.paidByMemberId, recurrenceId: b.recurrenceId }))) return;
+    if (!(await referencesBelongToAccount(res, target.accountId, { categoryId: b.categoryId, paidByMemberId: b.paidByMemberId }))) return;
 
     const context = await requireAccountContext(req, res, target.accountId);
     if (!context) return;
@@ -275,7 +276,7 @@ r.patch('/:id', validateBody(PatchTx), async (req, res) => {
         await validateReferences(prev.accountId, session, {
             categoryId: b.categoryId !== undefined ? b.categoryId : prev.categoryId,
             memberIds: [b.paidByMemberId !== undefined ? b.paidByMemberId : prev.paidByMemberId],
-            recurrenceId: b.recurrenceId !== undefined ? b.recurrenceId : prev.recurrenceId
+            recurrenceId: prev.recurrenceId
         });
 
         const isChild = !!prev.parentTransactionId;
@@ -335,7 +336,6 @@ r.patch('/:id', validateBody(PatchTx), async (req, res) => {
         if (b.status !== undefined) patch.status = b.status;
         if (b.isFromSharedAccount !== undefined) patch.isFromSharedAccount = b.isFromSharedAccount;
         if (b.paidByMemberId !== undefined) patch.paidByMemberId = b.paidByMemberId ? new Types.ObjectId(b.paidByMemberId) : null;
-        if (b.recurrenceId !== undefined) patch.recurrenceId = b.recurrenceId ? new Types.ObjectId(b.recurrenceId) : null;
         if (dates.value.bookDate !== undefined) patch.bookDate = dates.value.bookDate;
         if (dates.value.month !== undefined) patch.month = dates.value.month;
 

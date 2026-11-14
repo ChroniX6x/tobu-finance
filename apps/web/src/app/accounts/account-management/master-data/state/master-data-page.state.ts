@@ -83,6 +83,16 @@ export class MasterDataPageState {
   }
 
   @Selector()
+  static canManageAccount(s: MasterDataPageStateModel | undefined) {
+    return (
+      !!s &&
+      !s.loading &&
+      s.vm?.account._id === s.currentAccountId &&
+      s.vm?.account.callerRole === 'owner'
+    );
+  }
+
+  @Selector()
   static accountSaveError(s: MasterDataPageStateModel | undefined) {
     return s?.accountSaveError ?? null;
   }
@@ -99,13 +109,25 @@ export class MasterDataPageState {
 
   // ---- Read ----
 
-  @Action(LoadMasterData)
-  load(ctx: StateContext<MasterDataPageStateModel>, { accountId }: LoadMasterData) {
-    ctx.patchState({ loading: true, error: null, currentAccountId: accountId });
+  @Action(LoadMasterData, { cancelUncompleted: true })
+  load(
+    ctx: StateContext<MasterDataPageStateModel>,
+    { accountId }: LoadMasterData,
+  ) {
+    ctx.patchState({
+      vm: null,
+      editor: null,
+      loading: true,
+      error: null,
+      currentAccountId: accountId,
+    });
     return this.api.getMasterData(accountId).pipe(
-      tap(vm => ctx.patchState({ vm, loading: false })),
-      catchError(err => {
-        ctx.patchState({ error: err?.message ?? 'Laden fehlgeschlagen', loading: false });
+      tap((vm) => ctx.patchState({ vm, loading: false })),
+      catchError((err) => {
+        ctx.patchState({
+          error: err?.message ?? 'Laden fehlgeschlagen',
+          loading: false,
+        });
         return of(null);
       }),
     );
@@ -125,6 +147,7 @@ export class MasterDataPageState {
     ctx: StateContext<MasterDataPageStateModel>,
     { mode, memberId }: OpenMemberSidebar,
   ) {
+    if (!MasterDataPageState.canManageAccount(ctx.getState())) return;
     ctx.patchState({ editor: { kind: 'member', mode, memberId } });
   }
 
@@ -148,17 +171,26 @@ export class MasterDataPageState {
     ctx: StateContext<MasterDataPageStateModel>,
     { payload }: SaveAccountMasterData,
   ) {
+    if (!MasterDataPageState.canManageAccount(ctx.getState())) return of(null);
     const { currentAccountId } = ctx.getState();
     if (!currentAccountId) return of(null);
     return this.api.patchAccount(currentAccountId, payload).pipe(
       tap(() => {
         ctx.patchState({ accountSaveError: null });
-        this.toast.add({ severity: 'success', summary: 'Account gespeichert', life: 3000 });
-        ctx.dispatch([new ReloadMasterData(), new LoadAccountOverview(currentAccountId)]);
+        this.toast.add({
+          severity: 'success',
+          summary: 'Account gespeichert',
+          life: 3000,
+        });
+        ctx.dispatch([
+          new ReloadMasterData(),
+          new LoadAccountOverview(currentAccountId),
+        ]);
       }),
-      catchError(err => {
+      catchError((err) => {
         ctx.patchState({
-          accountSaveError: err?.error?.message ?? err?.message ?? 'Speichern fehlgeschlagen.',
+          accountSaveError:
+            err?.error?.message ?? err?.message ?? 'Speichern fehlgeschlagen.',
         });
         return of(null);
       }),
@@ -172,10 +204,11 @@ export class MasterDataPageState {
     ctx: StateContext<MasterDataPageStateModel>,
     { payload }: CreateMemberForAccount,
   ) {
+    if (!MasterDataPageState.canManageAccount(ctx.getState())) return of(null);
     const { currentAccountId } = ctx.getState();
     if (!currentAccountId) return of(null);
     return this.api.createMember(payload).pipe(
-      switchMap(newMember =>
+      switchMap((newMember) =>
         this.api.addMemberToAccount(currentAccountId, {
           memberId: newMember._id,
           role: payload.role,
@@ -183,10 +216,14 @@ export class MasterDataPageState {
       ),
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
-        this.toast.add({ severity: 'success', summary: 'Mitglied hinzugefügt', life: 3000 });
+        this.toast.add({
+          severity: 'success',
+          summary: 'Mitglied hinzugefügt',
+          life: 3000,
+        });
         ctx.dispatch(new ReloadMasterData());
       }),
-      catchError(err => {
+      catchError((err) => {
         this.toast.add({
           severity: 'error',
           summary: 'Fehler',
@@ -203,6 +240,7 @@ export class MasterDataPageState {
     ctx: StateContext<MasterDataPageStateModel>,
     { memberId, payload }: UpdateMemberForAccount,
   ) {
+    if (!MasterDataPageState.canManageAccount(ctx.getState())) return of(null);
     const { currentAccountId } = ctx.getState();
     if (!currentAccountId) return of(null);
 
@@ -220,10 +258,14 @@ export class MasterDataPageState {
       switchMap(() => patchRole$),
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
-        this.toast.add({ severity: 'success', summary: 'Mitglied gespeichert', life: 3000 });
+        this.toast.add({
+          severity: 'success',
+          summary: 'Mitglied gespeichert',
+          life: 3000,
+        });
         ctx.dispatch(new ReloadMasterData());
       }),
-      catchError(err => {
+      catchError((err) => {
         this.toast.add({
           severity: 'error',
           summary: 'Fehler',
@@ -240,15 +282,20 @@ export class MasterDataPageState {
     ctx: StateContext<MasterDataPageStateModel>,
     { memberId }: RemoveMemberFromAccount,
   ) {
+    if (!MasterDataPageState.canManageAccount(ctx.getState())) return of(null);
     const { currentAccountId } = ctx.getState();
     if (!currentAccountId) return of(null);
     return this.api.removeMemberFromAccount(currentAccountId, memberId).pipe(
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
-        this.toast.add({ severity: 'success', summary: 'Mitglied entfernt', life: 3000 });
+        this.toast.add({
+          severity: 'success',
+          summary: 'Mitglied entfernt',
+          life: 3000,
+        });
         ctx.dispatch(new ReloadMasterData());
       }),
-      catchError(err => {
+      catchError((err) => {
         this.toast.add({
           severity: 'error',
           summary: 'Fehler',
@@ -272,10 +319,14 @@ export class MasterDataPageState {
     return this.api.createCategory(currentAccountId, payload).pipe(
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
-        this.toast.add({ severity: 'success', summary: 'Kategorie hinzugefügt', life: 3000 });
+        this.toast.add({
+          severity: 'success',
+          summary: 'Kategorie hinzugefügt',
+          life: 3000,
+        });
         ctx.dispatch(new ReloadMasterData());
       }),
-      catchError(err => {
+      catchError((err) => {
         this.toast.add({
           severity: 'error',
           summary: 'Fehler',
@@ -295,10 +346,14 @@ export class MasterDataPageState {
     return this.api.patchCategory(categoryId, payload).pipe(
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
-        this.toast.add({ severity: 'success', summary: 'Kategorie gespeichert', life: 3000 });
+        this.toast.add({
+          severity: 'success',
+          summary: 'Kategorie gespeichert',
+          life: 3000,
+        });
         ctx.dispatch(new ReloadMasterData());
       }),
-      catchError(err => {
+      catchError((err) => {
         this.toast.add({
           severity: 'error',
           summary: 'Fehler',
@@ -317,10 +372,14 @@ export class MasterDataPageState {
   ) {
     return this.api.deleteCategory(categoryId).pipe(
       tap(() => {
-        this.toast.add({ severity: 'success', summary: 'Kategorie gelöscht', life: 3000 });
+        this.toast.add({
+          severity: 'success',
+          summary: 'Kategorie gelöscht',
+          life: 3000,
+        });
         ctx.dispatch(new ReloadMasterData());
       }),
-      catchError(err => {
+      catchError((err) => {
         this.toast.add({
           severity: 'error',
           summary: 'Fehler',

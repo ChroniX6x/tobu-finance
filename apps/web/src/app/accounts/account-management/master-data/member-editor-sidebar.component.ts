@@ -7,7 +7,14 @@ import {
   signal,
 } from '@angular/core';
 import { Store, select } from '@ngxs/store';
-import { form, FormField, required, minLength, maxLength, validate } from '@angular/forms/signals';
+import {
+  form,
+  FormField,
+  required,
+  minLength,
+  maxLength,
+  validate,
+} from '@angular/forms/signals';
 import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -20,7 +27,10 @@ import {
   CreateMemberForAccount,
   UpdateMemberForAccount,
 } from './state/master-data-page.actions';
-import { CreateMemberPayload, UpdateMemberPayload } from './account-master-data.models';
+import {
+  CreateMemberPayload,
+  UpdateMemberPayload,
+} from './account-master-data.models';
 
 interface MemberFormModel {
   name: string;
@@ -46,49 +56,65 @@ interface MemberFormModel {
       [header]="isCreate() ? 'Mitglied hinzufügen' : 'Mitglied bearbeiten'"
       position="right"
       styleClass="!w-full md:!w-[480px]"
-      (onHide)="close()">
-
+      (onHide)="close()"
+    >
       <form (ngSubmit)="save()" class="flex flex-col gap-5 h-full">
-
         @if (saveError()) {
-          <p-message severity="error" [text]="saveError()!" styleClass="w-full" />
+          <p-message
+            severity="error"
+            [text]="saveError()!"
+            styleClass="w-full"
+          />
         }
 
         <p-fluid>
           <div class="flex flex-col gap-4">
-
             <!-- Name -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="mem-name">Name *</label>
+              <label class="text-sm font-medium text-color" for="mem-name"
+                >Name *</label
+              >
               <input
                 id="mem-name"
                 pInputText
                 [formField]="memberForm.name"
                 placeholder="Vollständiger Name"
-                class="w-full" />
+                class="w-full"
+              />
               @if (memberForm.name().touched() && memberForm.name().invalid()) {
-                <span class="text-xs text-red-500">{{ memberForm.name().errors()[0]?.message }}</span>
+                <span class="text-xs text-red-500">{{
+                  memberForm.name().errors()[0]?.message
+                }}</span>
               }
             </div>
 
             <!-- Email -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="mem-email">E-Mail (optional)</label>
+              <label class="text-sm font-medium text-color" for="mem-email"
+                >E-Mail (optional)</label
+              >
               <input
                 id="mem-email"
                 pInputText
                 type="email"
                 [formField]="memberForm.email"
                 placeholder="name@beispiel.de"
-                class="w-full" />
-              @if (memberForm.email().touched() && memberForm.email().invalid()) {
-                <span class="text-xs text-red-500">{{ memberForm.email().errors()[0]?.message }}</span>
+                class="w-full"
+              />
+              @if (
+                memberForm.email().touched() && memberForm.email().invalid()
+              ) {
+                <span class="text-xs text-red-500">{{
+                  memberForm.email().errors()[0]?.message
+                }}</span>
               }
             </div>
 
             <!-- Role -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-color" for="mem-role">Rolle *</label>
+              <label class="text-sm font-medium text-color" for="mem-role"
+                >Rolle *</label
+              >
               @if (canChangeRole()) {
                 <p-select
                   inputId="mem-role"
@@ -96,11 +122,14 @@ interface MemberFormModel {
                   [options]="roleOptions"
                   optionLabel="label"
                   optionValue="value"
-                  styleClass="w-full" />
+                  styleClass="w-full"
+                />
               } @else {
                 <div class="text-sm text-color pl-1 py-2">
                   {{ currentMember()?.role === 'owner' ? 'Owner' : 'Member' }}
-                  <span class="text-xs text-muted-color ml-2">(Letzter Owner kann nicht herabgestuft werden)</span>
+                  <span class="text-xs text-muted-color ml-2"
+                    >(Letzter Owner kann nicht herabgestuft werden)</span
+                  >
                 </div>
               }
             </div>
@@ -108,31 +137,39 @@ interface MemberFormModel {
             <!-- App-Zugang (read-only, edit mode only) -->
             @if (!isCreate() && currentMember()) {
               <div class="flex flex-col gap-1">
-                <span class="text-sm font-medium text-muted-color">App-Zugang</span>
+                <span class="text-sm font-medium text-muted-color"
+                  >App-Zugang</span
+                >
                 <span class="text-sm text-color">
-                  {{ currentMember()!.hasUserAccount ? 'Mit App-Zugang' : 'Ohne App-Zugang' }}
+                  {{
+                    currentMember()!.hasUserAccount
+                      ? 'Mit App-Zugang'
+                      : 'Ohne App-Zugang'
+                  }}
                 </span>
               </div>
             }
-
           </div>
         </p-fluid>
 
-        <div class="mt-auto flex gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <div
+          class="mt-auto flex gap-3 pt-4 border-t border-surface-200 dark:border-surface-700"
+        >
           <p-button
             type="submit"
             [label]="isCreate() ? 'Hinzufügen' : 'Speichern'"
             icon="pi pi-check"
             [disabled]="memberForm().invalid()"
-            [loading]="saving()" />
+            [loading]="saving()"
+          />
           <p-button
             type="button"
             label="Abbrechen"
             severity="secondary"
             [text]="true"
-            (onClick)="close()" />
+            (onClick)="close()"
+          />
         </div>
-
       </form>
     </p-drawer>
   `,
@@ -145,12 +182,17 @@ export class MemberEditorSidebarComponent {
   protected readonly saving = signal(false);
   protected readonly saveError = signal<string | null>(null);
 
-  protected readonly isOpen = computed(() => this.editor()?.kind === 'member');
-  protected readonly isCreate = computed(() => this.editor()?.kind === 'member' && this.editor()!.mode === 'create');
+  private readonly canManage = select(MasterDataPageState.canManageAccount);
+  protected readonly isOpen = computed(
+    () => this.canManage() && this.editor()?.kind === 'member',
+  );
+  protected readonly isCreate = computed(
+    () => this.editor()?.kind === 'member' && this.editor()!.mode === 'create',
+  );
   protected readonly currentMember = computed(() => {
     const ed = this.editor();
     if (ed?.kind !== 'member' || !ed.memberId) return null;
-    return this.members().find(m => m.memberId === ed.memberId) ?? null;
+    return this.members().find((m) => m.memberId === ed.memberId) ?? null;
   });
   protected readonly canChangeRole = computed(() => {
     const m = this.currentMember();
@@ -212,7 +254,11 @@ export class MemberEditorSidebarComponent {
     const emailVal = v.email.trim() || null;
 
     if (this.isCreate()) {
-      const payload: CreateMemberPayload = { name: v.name, email: emailVal, role: v.role };
+      const payload: CreateMemberPayload = {
+        name: v.name,
+        email: emailVal,
+        role: v.role,
+      };
       this.store.dispatch(new CreateMemberForAccount(payload)).subscribe({
         error: (err: unknown) => {
           this.saving.set(false);
@@ -222,17 +268,29 @@ export class MemberEditorSidebarComponent {
         complete: () => this.saving.set(false),
       });
     } else {
-      const memberId = (this.editor() as { kind: 'member'; mode: 'create' | 'edit'; memberId?: string }).memberId!;
-      const payload: UpdateMemberPayload = { name: v.name, email: emailVal, role: v.role };
-      this.store.dispatch(new UpdateMemberForAccount(memberId, payload)).subscribe({
-        error: (err: unknown) => {
-          this.saving.set(false);
-          const msg = (err as { error?: { message?: string } })?.error?.message;
-          this.saveError.set(msg ?? 'Fehler beim Speichern des Mitglieds');
-        },
-        complete: () => this.saving.set(false),
-      });
+      const memberId = (
+        this.editor() as {
+          kind: 'member';
+          mode: 'create' | 'edit';
+          memberId?: string;
+        }
+      ).memberId!;
+      const payload: UpdateMemberPayload = {
+        name: v.name,
+        email: emailVal,
+        role: v.role,
+      };
+      this.store
+        .dispatch(new UpdateMemberForAccount(memberId, payload))
+        .subscribe({
+          error: (err: unknown) => {
+            this.saving.set(false);
+            const msg = (err as { error?: { message?: string } })?.error
+              ?.message;
+            this.saveError.set(msg ?? 'Fehler beim Speichern des Mitglieds');
+          },
+          complete: () => this.saving.set(false),
+        });
     }
   }
 }
-

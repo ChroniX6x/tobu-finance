@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { Types } from 'mongoose';
 import Recurrence from '../models/Recurrence.js';
-import { toMonthDate } from '../lib/month.js';
+import { toMonthDate, currentMonthKeyUtc } from '../lib/month.js';
+import { now } from '../lib/clock.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
 import { QueryRecurrences, CreateRecurrence, UpdateRecurrence } from '../validation/recurrences.js';
 import { accountScope, foreignReference, isObjectId } from '../auth/account-access.js';
@@ -46,7 +47,7 @@ r.post('/', validateBody(CreateRecurrence), async (req, res) => {
             freq: b.schedule?.freq ?? 'monthly',
             dayOfMonth: b.schedule?.dayOfMonth ?? 1
         },
-        activeFrom: b.activeFrom ? toMonthDate(b.activeFrom) : new Date(),
+        activeFrom: toMonthDate(b.activeFrom ?? currentMonthKeyUtc(now())),
         activeUntil: b.activeUntil ? toMonthDate(b.activeUntil) : null,
         createdByMemberId: b.createdByMemberId ? new Types.ObjectId(b.createdByMemberId) : null,
         nextPlanned: b.nextPlanned ? new Date(b.nextPlanned) : null,

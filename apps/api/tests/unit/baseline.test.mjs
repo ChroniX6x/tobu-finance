@@ -12,7 +12,10 @@ test('frozen baseline plus explicit additive E03/E05/E07 changes represents curr
     const expected = structuredClone(snapshot.filter((item) => item.name !== 'events'));
     for (const item of expected) {
         if (revisions.includes(item.name)) item.validator.$jsonSchema.properties.mutationVersion = { bsonType: ['number', 'null'] };
-        if (item.name === 'members') item.validator.$jsonSchema.properties.createdByUserId = { bsonType: ['objectId', 'null'] };
+        if (item.name === 'members') {
+            item.validator.$jsonSchema.properties.createdByUserId = { bsonType: ['objectId', 'null'] };
+            item.indexes.push({ key: { userId: 1 }, name: 'userId_1', background: true });
+        }
     }
     assert.deepEqual(JSON.parse(JSON.stringify(current.filter((item) => item.name !== 'events'))), expected);
     // Mongo's frozen migration validators are intentionally stricter than optional Mongoose paths.

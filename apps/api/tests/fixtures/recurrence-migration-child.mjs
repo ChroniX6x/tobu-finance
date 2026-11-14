@@ -6,7 +6,7 @@ const uri = process.env.TEST_MONGODB_URI;
 if (process.env.NODE_ENV !== 'test' || !uri || !new URL(uri).pathname.startsWith('/tobu_test_e07_migration_') || !['localhost', '127.0.0.1'].includes(new URL(uri).hostname)) throw new Error('Isolated E07 migration target required');
 const client = await new MongoClient(uri).connect();
 const db = client.db();
-const entries = migrations.map((entry) => ({ ...entry, migration: { ...entry.migration, up: entry.migration.up.map((step) => ({ ...step })) } }));
+const entries = migrations.filter((entry) => entry.id <= '20261108172127336-recurrence-activity-primitives').map((entry) => ({ ...entry, migration: { ...entry.migration, up: entry.migration.up.map((step) => ({ ...step })) } }));
 const last = entries.at(-1),
     apply = last.migration.up[0].apply;
 last.migration.up[0].apply = async (context) => {

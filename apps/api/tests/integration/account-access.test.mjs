@@ -383,9 +383,9 @@ test('account membership: two real users on a real replica set, 404 for everythi
         const tx = { accountId: A.acc, title: 'xx', type: 'expense', amountMinor: 10, isFromSharedAccount: true, month: '2026-11' };
         await rejected('foreign categoryId', 'POST', '/api/transactions', { ...tx, categoryId: B.category }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
         await rejected('foreign paidByMemberId', 'POST', '/api/transactions', { ...tx, paidByMemberId: B.member }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
-        await rejected('foreign recurrenceId', 'POST', '/api/transactions', { ...tx, recurrenceId: B.rec }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
-        await rejected('unknown recurrenceId', 'POST', '/api/transactions', { ...tx, recurrenceId: String(new ObjectId()) }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
-        await rejected('patch with foreign recurrence', 'PATCH', `/api/transactions/${A.tx}`, { recurrenceId: B.rec }, 422, 'REFERENCE_NOT_IN_ACCOUNT');
+        await rejected('foreign recurrenceId', 'POST', '/api/transactions', { ...tx, recurrenceId: B.rec }, 400, 'VALIDATION_ERROR');
+        await rejected('unknown recurrenceId', 'POST', '/api/transactions', { ...tx, recurrenceId: String(new ObjectId()) }, 400, 'VALIDATION_ERROR');
+        await rejected('patch with foreign recurrence', 'PATCH', `/api/transactions/${A.tx}`, { recurrenceId: B.rec }, 400, 'VALIDATION_ERROR');
         // categories and recurrences: nothing can be moved between accounts or point at foreign objects
         await rejected('category: delete a category that is still referenced', 'DELETE', `/api/categories/${A.category}`, undefined, 409, 'CATEGORY_REFERENCED');
         await rejected('category: take over a foreign category by accountId', 'PATCH', `/api/categories/${B.category}`, { accountId: A.acc }, 404);

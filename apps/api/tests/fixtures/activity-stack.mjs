@@ -28,7 +28,7 @@ const stop = async (child) => {
     await exited;
 };
 
-export async function activityStack(t) {
+export async function activityStack(t, { instant, zone, apiEntry } = {}) {
     const isolated = await temporaryDatabase();
     let release = async () => {};
     t.after(async () => {
@@ -73,12 +73,14 @@ export async function activityStack(t) {
     });
     assert.equal((await once(init, 'exit'))[0], 0, 'Baseline initialization');
     const env = { ...process.env, NODE_ENV: 'test', MONGODB_URI: uri, PORT: String(await freePort()), CORS_ORIGIN: 'http://localhost:4200' };
+    if (instant) env.TOBU_TEST_NOW = instant;
+    if (zone) env.TZ = zone;
     for (const kind of ['ACCESS', 'REFRESH']) {
         const keys = generateKeyPairSync('rsa', { modulusLength: 2048, publicKeyEncoding: { type: 'spki', format: 'pem' }, privateKeyEncoding: { type: 'pkcs8', format: 'pem' } });
         env[`JWT_${kind}_PRIVATE_KEY_PEM`] = keys.privateKey;
         env[`JWT_${kind}_PUBLIC_KEY_PEM`] = keys.publicKey;
     }
-    api = spawn(process.execPath, [join(root, 'dist/src/server.js')], { cwd: scratch, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    api = spawn(process.execPath, [apiEntry ?? join(root, 'dist/src/server.js')], { cwd: scratch, env, windowsHide: true, stdio: apiEntry ? ['ignore', 'pipe', 'pipe', 'ipc'] : ['ignore', 'pipe', 'pipe'] });
     api.stdout.on('data', (data) => (apiOutput += data));
     api.stderr.on('data', (data) => (apiOutput += data));
     const base = `http://127.0.0.1:${env.PORT}`;
@@ -132,5 +134,5 @@ export async function activityStack(t) {
         assert.equal(result.status, status, method + ' ' + path + ': ' + result.text);
         return result.json;
     };
-    return { db, call, register, snapshot, expectCall };
+    return { db, call, register, snapshot, expectCall, apiProcess: api, base };
 }
