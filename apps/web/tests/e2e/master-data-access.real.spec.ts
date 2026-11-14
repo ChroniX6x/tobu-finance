@@ -39,18 +39,23 @@ for (const role of ["owner", "member"] as const) {
         } finally {
           await ownerPage.close();
         }
-        await db.collection("accounts").updateOne(
-          { _id: new ObjectId(account._id) },
-          {
-            $set: { "members.0.role": "member" },
-            $push: {
-              members: {
-                memberId: new ObjectId(ownerMember._id),
-                role: "owner",
+        await db
+          .collection<{
+            _id: ObjectId;
+            members: { memberId: ObjectId; role: "owner" | "member" }[];
+          }>("accounts")
+          .updateOne(
+            { _id: new ObjectId(account._id) },
+            {
+              $set: { "members.0.role": "member" },
+              $push: {
+                members: {
+                  memberId: new ObjectId(ownerMember._id),
+                  role: "owner",
+                },
               },
             },
-          },
-        );
+          );
       }
       const master = page.waitForResponse(
         (response) => response.url().endsWith("/master-data") && response.ok(),
