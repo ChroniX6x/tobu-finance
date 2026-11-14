@@ -1,0 +1,18 @@
+{
+  "commit": "5a8337735877149c9b3c35aa94a51eeba2d300ac",
+  "dirty": false,
+  "node": "v24.13.1",
+  "full": true,
+  "started": "2026-11-14T23:05:50.470Z",
+  "checks": [
+    {
+      "command": "npm run check:workspace",
+      "status": "passed"
+    },
+    {
+      "command": "npm run format:check",
+      "status": "failed"
+    }
+  ],
+  "finished": "2026-11-14T23:05:58.177Z"
+}

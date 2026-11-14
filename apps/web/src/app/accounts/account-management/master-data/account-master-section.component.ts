@@ -6,9 +6,9 @@ import {
   inject,
   input,
   signal,
-} from '@angular/core';
-import { DecimalPipe } from '@angular/common';
-import { Store, select } from '@ngxs/store';
+} from "@angular/core";
+import { DecimalPipe } from "@angular/common";
+import { Store, select } from "@ngxs/store";
 import {
   form,
   FormField,
@@ -18,19 +18,19 @@ import {
   min,
   max,
   validate,
-} from '@angular/forms/signals';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { MessageModule } from 'primeng/message';
-import { FluidModule } from 'primeng/fluid';
-import { IftaLabelModule } from 'primeng/iftalabel';
+} from "@angular/forms/signals";
+import { ButtonModule } from "primeng/button";
+import { InputTextModule } from "primeng/inputtext";
+import { InputNumberModule } from "primeng/inputnumber";
+import { MessageModule } from "primeng/message";
+import { FluidModule } from "primeng/fluid";
+import { IftaLabelModule } from "primeng/iftalabel";
 import {
   AccountMasterVm,
   SaveAccountMasterDataPayload,
-} from './account-master-data.models';
-import { MasterDataPageState } from './state/master-data-page.state';
-import { SaveAccountMasterData } from './state/master-data-page.actions';
+} from "./account-master-data.models";
+import { MasterDataPageState } from "./state/master-data-page.state";
+import { SaveAccountMasterData } from "./state/master-data-page.actions";
 
 interface AccountEditFormModel {
   name: string;
@@ -43,7 +43,7 @@ interface AccountEditFormModel {
 }
 
 @Component({
-  selector: 'tbf-account-master-section',
+  selector: "tbf-account-master-section",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DecimalPipe,
@@ -63,7 +63,7 @@ interface AccountEditFormModel {
           Account-Name und accountweite Einstellungen.
         </p>
       </div>
-      @if (!editing() && accountVm().callerRole === 'owner') {
+      @if (!editing() && accountVm().callerRole === "owner") {
         <p-button
           label="Bearbeiten"
           icon="pi pi-pencil"
@@ -75,7 +75,7 @@ interface AccountEditFormModel {
       }
     </header>
 
-    @if (!editing() || accountVm().callerRole !== 'owner') {
+    @if (!editing() || accountVm().callerRole !== "owner") {
       <!-- ── View mode ────────────────────────────────────────── -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Card 1: Account -->
@@ -91,7 +91,7 @@ interface AccountEditFormModel {
             <div class="flex justify-between gap-2">
               <dt class="text-muted-color">Name</dt>
               <dd class="font-medium text-color text-right">
-                {{ vm().name ?? 'Unbenannter Account' }}
+                {{ vm().name ?? "Unbenannter Account" }}
               </dd>
             </div>
             <div class="flex justify-between gap-2">
@@ -133,7 +133,7 @@ interface AccountEditFormModel {
                 @if (vm().settings.alerts.lowBalanceForecastMinor !== null) {
                   {{
                     vm().settings.alerts.lowBalanceForecastMinor! / 100
-                      | number: '1.2-2'
+                      | number: "1.2-2"
                   }}
                   €
                 } @else {
@@ -147,7 +147,7 @@ interface AccountEditFormModel {
                 @if (vm().settings.alerts.carryoverLargeMinor !== null) {
                   {{
                     vm().settings.alerts.carryoverLargeMinor! / 100
-                      | number: '1.2-2'
+                      | number: "1.2-2"
                   }}
                   €
                 } @else {
@@ -394,7 +394,7 @@ export class AccountMasterSectionComponent {
 
   // ---- Signal Form ----
   private readonly formModel = signal<AccountEditFormModel>({
-    name: '',
+    name: "",
     historyMonths: 6,
     topKCategories: 5,
     lowBalanceForecastEur: null,
@@ -403,39 +403,39 @@ export class AccountMasterSectionComponent {
   });
 
   protected readonly accountForm = form(this.formModel, (p) => {
-    required(p.name, { message: 'Name ist erforderlich' });
-    minLength(p.name, 2, { message: 'Mind. 2 Zeichen' });
-    maxLength(p.name, 64, { message: 'Max. 64 Zeichen' });
-    min(p.historyMonths, 3, { message: 'Min. 3 Monate' });
-    max(p.historyMonths, 24, { message: 'Max. 24 Monate' });
-    min(p.topKCategories, 1, { message: 'Min. 1 Kategorie' });
-    max(p.topKCategories, 10, { message: 'Max. 10 Kategorien' });
+    required(p.name, { message: "Name ist erforderlich" });
+    minLength(p.name, 2, { message: "Mind. 2 Zeichen" });
+    maxLength(p.name, 64, { message: "Max. 64 Zeichen" });
+    min(p.historyMonths, 3, { message: "Min. 3 Monate" });
+    max(p.historyMonths, 24, { message: "Max. 24 Monate" });
+    min(p.topKCategories, 1, { message: "Min. 1 Kategorie" });
+    max(p.topKCategories, 10, { message: "Max. 10 Kategorien" });
     validate(p.lowBalanceForecastEur, ({ value }) => {
       const v = value();
       if (v !== null && v < 0)
-        return { kind: 'nonNeg', message: 'Muss ≥ 0 sein' };
+        return { kind: "nonNeg", message: "Muss ≥ 0 sein" };
       return null;
     });
     validate(p.carryoverLargeEur, ({ value }) => {
       const v = value();
       if (v !== null && v < 0)
-        return { kind: 'nonNeg', message: 'Muss ≥ 0 sein' };
+        return { kind: "nonNeg", message: "Muss ≥ 0 sein" };
       return null;
     });
     validate(p.stalenessDays, ({ value }) => {
       const v = value();
       if (v !== null && v < 1)
-        return { kind: 'posInt', message: 'Muss > 0 sein' };
+        return { kind: "posInt", message: "Muss > 0 sein" };
       return null;
     });
   });
 
   protected startEdit(): void {
-    if (this.accountVm().callerRole !== 'owner') return;
+    if (this.accountVm().callerRole !== "owner") return;
     const vm = this.accountVm();
     const alerts = vm.settings.alerts;
     this.formModel.set({
-      name: vm.name ?? '',
+      name: vm.name ?? "",
       historyMonths: vm.settings.dashboard.historyMonths,
       topKCategories: vm.settings.dashboard.topKCategories,
       lowBalanceForecastEur:
@@ -456,7 +456,7 @@ export class AccountMasterSectionComponent {
   }
 
   protected saveEdit(): void {
-    if (this.accountVm().callerRole !== 'owner') return;
+    if (this.accountVm().callerRole !== "owner") return;
     if (this.accountForm().invalid()) return;
     const v = this.formModel();
     const payload: SaveAccountMasterDataPayload = {

@@ -3,28 +3,28 @@ import {
   Component,
   inject,
   input,
-} from '@angular/core';
-import { Store } from '@ngxs/store';
-import { select } from '@ngxs/store';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { MessageModule } from 'primeng/message';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
+} from "@angular/core";
+import { Store } from "@ngxs/store";
+import { select } from "@ngxs/store";
+import { ButtonModule } from "primeng/button";
+import { TagModule } from "primeng/tag";
+import { TooltipModule } from "primeng/tooltip";
+import { MessageModule } from "primeng/message";
+import { ConfirmDialogModule } from "primeng/confirmdialog";
+import { ConfirmationService } from "primeng/api";
 import {
   MemberMasterItemVm,
   AccountMasterVm,
-} from './account-master-data.models';
-import { MasterDataPageState } from './state/master-data-page.state';
+} from "./account-master-data.models";
+import { MasterDataPageState } from "./state/master-data-page.state";
 import {
   OpenMemberSidebar,
   RemoveMemberFromAccount,
-} from './state/master-data-page.actions';
-import { MemberEditorSidebarComponent } from './member-editor-sidebar.component';
+} from "./state/master-data-page.actions";
+import { MemberEditorSidebarComponent } from "./member-editor-sidebar.component";
 
 @Component({
-  selector: 'tbf-member-master-section',
+  selector: "tbf-member-master-section",
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ConfirmationService],
   imports: [
@@ -45,7 +45,7 @@ import { MemberEditorSidebarComponent } from './member-editor-sidebar.component'
           Personen, die diesem Account zugeordnet sind.
         </p>
       </div>
-      @if (accountVm().callerRole === 'owner') {
+      @if (accountVm().callerRole === "owner") {
         <p-button
           label="Mitglied hinzufügen"
           icon="pi pi-user-plus"
@@ -86,7 +86,7 @@ import { MemberEditorSidebarComponent } from './member-editor-sidebar.component'
             <div class="flex flex-col gap-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-medium text-color truncate">
-                  {{ member.name ?? 'Unbenanntes Mitglied' }}
+                  {{ member.name ?? "Unbenanntes Mitglied" }}
                 </span>
                 <p-tag
                   [value]="member.role === 'owner' ? 'Owner' : 'Member'"
@@ -98,7 +98,7 @@ import { MemberEditorSidebarComponent } from './member-editor-sidebar.component'
               }
               <span class="text-xs text-muted-color">
                 {{
-                  member.hasUserAccount ? 'Mit App-Zugang' : 'Ohne App-Zugang'
+                  member.hasUserAccount ? "Mit App-Zugang" : "Ohne App-Zugang"
                 }}
               </span>
               <!-- Usage hints when blocked -->
@@ -116,7 +116,7 @@ import { MemberEditorSidebarComponent } from './member-editor-sidebar.component'
             </div>
 
             <!-- Right: actions -->
-            @if (accountVm().callerRole === 'owner') {
+            @if (accountVm().callerRole === "owner") {
               <div class="flex items-center gap-2 shrink-0">
                 <p-button
                   icon="pi pi-pencil"
@@ -161,25 +161,25 @@ export class MemberMasterSectionComponent {
   protected readonly members = select(MasterDataPageState.members);
 
   protected openCreate(): void {
-    if (this.accountVm().callerRole !== 'owner') return;
-    this.store.dispatch(new OpenMemberSidebar('create'));
+    if (this.accountVm().callerRole !== "owner") return;
+    this.store.dispatch(new OpenMemberSidebar("create"));
   }
 
   protected openEdit(memberId: string): void {
-    if (this.accountVm().callerRole !== 'owner') return;
-    this.store.dispatch(new OpenMemberSidebar('edit', memberId));
+    if (this.accountVm().callerRole !== "owner") return;
+    this.store.dispatch(new OpenMemberSidebar("edit", memberId));
   }
 
   protected confirmRemove(member: MemberMasterItemVm): void {
-    if (this.accountVm().callerRole !== 'owner') return;
+    if (this.accountVm().callerRole !== "owner") return;
     this.confirmationService.confirm({
-      header: 'Mitglied entfernen',
-      message: `„${member.name ?? 'Unbenanntes Mitglied'}" wirklich aus dem Account entfernen?`,
+      header: "Mitglied entfernen",
+      message: `„${member.name ?? "Unbenanntes Mitglied"}" wirklich aus dem Account entfernen?`,
       accept: () =>
         this.store.dispatch(new RemoveMemberFromAccount(member.memberId)),
-      acceptLabel: 'Entfernen',
-      rejectLabel: 'Abbrechen',
-      acceptButtonProps: { severity: 'danger' },
+      acceptLabel: "Entfernen",
+      rejectLabel: "Abbrechen",
+      acceptButtonProps: { severity: "danger" },
     });
   }
 }

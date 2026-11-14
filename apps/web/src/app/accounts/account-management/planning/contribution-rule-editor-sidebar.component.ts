@@ -5,47 +5,47 @@ import {
   effect,
   inject,
   signal,
-} from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { ContributionDistributionSchema } from '@tobu/contracts/contribution-rules';
-import { Store, select } from '@ngxs/store';
+} from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { ContributionDistributionSchema } from "@tobu/contracts/contribution-rules";
+import { Store, select } from "@ngxs/store";
 import {
   currentUtcMonthKey,
   monthKeyFromPickerDate,
   pickerDateFromMonthKey,
   toMonthKey,
-} from '@/shared/utils/calendar-picker';
-import { DrawerModule } from 'primeng/drawer';
-import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { MessageModule } from 'primeng/message';
-import { FluidModule } from 'primeng/fluid';
-import { DatePickerModule } from 'primeng/datepicker';
-import { TooltipModule } from 'primeng/tooltip';
-import { PlanningPageSelectors } from './state/planning.selectors';
+} from "@/shared/utils/calendar-picker";
+import { DrawerModule } from "primeng/drawer";
+import { ButtonModule } from "primeng/button";
+import { InputNumberModule } from "primeng/inputnumber";
+import { InputTextModule } from "primeng/inputtext";
+import { SelectButtonModule } from "primeng/selectbutton";
+import { ToggleSwitchModule } from "primeng/toggleswitch";
+import { MessageModule } from "primeng/message";
+import { FluidModule } from "primeng/fluid";
+import { DatePickerModule } from "primeng/datepicker";
+import { TooltipModule } from "primeng/tooltip";
+import { PlanningPageSelectors } from "./state/planning.selectors";
 import {
   ClosePlanningSidebar,
   CreateContributionRule,
   DeleteContributionRule,
   UpdateContributionRule,
-} from './state/planning.actions';
+} from "./state/planning.actions";
 import {
   ContributionBlockVm,
   CreateContributionRulePayload,
   UpdateContributionRulePayload,
-} from './planning.models';
+} from "./planning.models";
 import {
   DistributionEditorComponent,
   DistributionMemberOption,
-} from './distribution-editor.component';
+} from "./distribution-editor.component";
 
-type Distribution = ContributionBlockVm['distribution'];
+type Distribution = ContributionBlockVm["distribution"];
 
 @Component({
-  selector: 'tbf-contribution-rule-editor-sidebar',
+  selector: "tbf-contribution-rule-editor-sidebar",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
@@ -113,7 +113,7 @@ type Distribution = ContributionBlockVm['distribution'];
                 />
               } @else {
                 <span class="text-sm text-color py-2 pl-1">
-                  {{ ruleType() === 'additional' ? 'Zusatzbeitrag' : 'TopUp' }}
+                  {{ ruleType() === "additional" ? "Zusatzbeitrag" : "TopUp" }}
                 </span>
               }
             </div>
@@ -321,8 +321,8 @@ export class ContributionRuleEditorSidebarComponent {
   protected readonly showDeleteConfirm = signal(false);
 
   // Form fields
-  protected readonly ruleType = signal<'additional' | 'topup'>('additional');
-  protected readonly description = signal('');
+  protected readonly ruleType = signal<"additional" | "topup">("additional");
+  protected readonly description = signal("");
   protected readonly amountEur = signal<number | null>(null);
   protected readonly recurring = signal(true);
   protected readonly fromMonthDate = signal<Date>(
@@ -330,22 +330,22 @@ export class ContributionRuleEditorSidebarComponent {
   );
   protected readonly toMonthDate = signal<Date | null>(null);
   protected readonly currentDistribution = signal<Distribution>({
-    mode: 'proRataIncome',
+    mode: "proRataIncome",
   });
 
   protected readonly typeOptions = [
-    { label: 'Zusatzbeitrag', value: 'additional' },
-    { label: 'TopUp', value: 'topup' },
+    { label: "Zusatzbeitrag", value: "additional" },
+    { label: "TopUp", value: "topup" },
   ];
 
-  protected readonly isOpen = computed(() => this.editor()?.kind === 'rule');
+  protected readonly isOpen = computed(() => this.editor()?.kind === "rule");
   protected readonly isCreate = computed(
-    () => this.editor()?.kind === 'rule' && this.editor()!.mode === 'create',
+    () => this.editor()?.kind === "rule" && this.editor()!.mode === "create",
   );
 
   protected readonly currentRule = computed(() => {
     const ed = this.editor();
-    if (ed?.kind !== 'rule' || !ed.ruleId) return null;
+    if (ed?.kind !== "rule" || !ed.ruleId) return null;
     const v = this.vm();
     if (!v) return null;
     return (
@@ -382,7 +382,7 @@ export class ContributionRuleEditorSidebarComponent {
   });
 
   protected readonly proRataIncomplete = computed(() => {
-    if (this.currentDistribution().mode !== 'proRataIncome') return false;
+    if (this.currentDistribution().mode !== "proRataIncome") return false;
     return this.allIncomes().some((m) => m.missingForProRata);
   });
 
@@ -394,8 +394,8 @@ export class ContributionRuleEditorSidebarComponent {
     if (to && to < this.fromMonthLabel()) return true;
     if (this.proRataIncomplete()) return true;
     const dist = this.currentDistribution();
-    if (dist.mode === 'perMember' && !dist.memberId) return true;
-    if (dist.mode === 'customSplit') {
+    if (dist.mode === "perMember" && !dist.memberId) return true;
+    if (dist.mode === "customSplit") {
       const sum = (dist.customSplit ?? []).reduce((s, r) => s + r.split, 0);
       if (sum !== 100) return true;
     }
@@ -405,16 +405,16 @@ export class ContributionRuleEditorSidebarComponent {
   constructor() {
     effect(() => {
       const ed = this.editor();
-      if (ed?.kind !== 'rule') return;
+      if (ed?.kind !== "rule") return;
 
       this.saveError.set(null);
       this.showDeleteConfirm.set(false);
 
-      if (ed.mode === 'edit') {
+      if (ed.mode === "edit") {
         const rule = this.currentRule();
         if (!rule) return;
-        this.ruleType.set(rule.type as 'additional' | 'topup');
-        this.description.set(rule.description ?? '');
+        this.ruleType.set(rule.type as "additional" | "topup");
+        this.description.set(rule.description ?? "");
         this.amountEur.set(rule.amountMinor / 100);
         this.recurring.set(rule.recurring);
         const fromLabel = rule.fromMonth ?? currentUtcMonthKey();
@@ -428,18 +428,18 @@ export class ContributionRuleEditorSidebarComponent {
       } else {
         const presetType = (
           ed as {
-            kind: 'rule';
-            mode: 'create';
-            ruleType?: 'additional' | 'topup';
+            kind: "rule";
+            mode: "create";
+            ruleType?: "additional" | "topup";
           }
         ).ruleType;
-        this.ruleType.set(presetType ?? 'additional');
-        this.description.set('');
+        this.ruleType.set(presetType ?? "additional");
+        this.description.set("");
         this.amountEur.set(null);
         this.recurring.set(true);
         this.fromMonthDate.set(pickerDateFromMonthKey(currentUtcMonthKey()));
         this.toMonthDate.set(null);
-        this.currentDistribution.set({ mode: 'proRataIncome' });
+        this.currentDistribution.set({ mode: "proRataIncome" });
       }
     });
   }
@@ -467,7 +467,7 @@ export class ContributionRuleEditorSidebarComponent {
     );
     if (!parsedDistribution.success) {
       this.saveError.set(
-        'Bitte eine gültige Verteilung mit insgesamt 100 % wählen.',
+        "Bitte eine gültige Verteilung mit insgesamt 100 % wählen.",
       );
       return;
     }
@@ -482,7 +482,7 @@ export class ContributionRuleEditorSidebarComponent {
 
     if (this.isCreate()) {
       const payload: CreateContributionRulePayload = {
-        accountId: this.vm()?.accountId ?? '',
+        accountId: this.vm()?.accountId ?? "",
         title: desc,
         description: desc,
         amountMinor,
@@ -497,14 +497,14 @@ export class ContributionRuleEditorSidebarComponent {
           this.saving.set(false);
           const msg = (err as { error?: { message?: string } })?.error?.message;
           this.saveError.set(
-            msg ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.',
+            msg ?? "Speichern fehlgeschlagen – bitte erneut versuchen.",
           );
         },
         complete: () => this.saving.set(false),
       });
     } else {
       const ed = this.editor();
-      const ruleId = (ed as { kind: 'rule'; mode: 'edit'; ruleId?: string })
+      const ruleId = (ed as { kind: "rule"; mode: "edit"; ruleId?: string })
         .ruleId!;
       const payload: UpdateContributionRulePayload = {
         title: desc,
@@ -523,7 +523,7 @@ export class ContributionRuleEditorSidebarComponent {
             const msg = (err as { error?: { message?: string } })?.error
               ?.message;
             this.saveError.set(
-              msg ?? 'Speichern fehlgeschlagen – bitte erneut versuchen.',
+              msg ?? "Speichern fehlgeschlagen – bitte erneut versuchen.",
             );
           },
           complete: () => this.saving.set(false),
@@ -533,7 +533,7 @@ export class ContributionRuleEditorSidebarComponent {
 
   protected deleteRule(): void {
     const ed = this.editor();
-    const ruleId = (ed as { kind: 'rule'; mode: 'edit'; ruleId?: string })
+    const ruleId = (ed as { kind: "rule"; mode: "edit"; ruleId?: string })
       .ruleId;
     if (!ruleId) return;
     this.saving.set(true);
@@ -542,7 +542,7 @@ export class ContributionRuleEditorSidebarComponent {
         this.saving.set(false);
         const msg = (err as { error?: { message?: string } })?.error?.message;
         this.saveError.set(
-          msg ?? 'Löschen fehlgeschlagen – bitte erneut versuchen.',
+          msg ?? "Löschen fehlgeschlagen – bitte erneut versuchen.",
         );
         this.showDeleteConfirm.set(false);
       },

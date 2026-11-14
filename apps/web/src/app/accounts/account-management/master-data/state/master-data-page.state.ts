@@ -1,11 +1,11 @@
-import { Injectable, inject } from '@angular/core';
-import { State, Action, StateContext, Selector } from '@ngxs/store';
-import { tap, catchError, switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
-import { MessageService } from 'primeng/api';
-import { AccountMasterDataResponse } from '../account-master-data.models';
-import { MasterDataApiService } from '../services/master-data-api.service';
-import { LoadAccountOverview } from '../../../state/account-overview.actions';
+import { Injectable, inject } from "@angular/core";
+import { State, Action, StateContext, Selector } from "@ngxs/store";
+import { tap, catchError, switchMap } from "rxjs/operators";
+import { of } from "rxjs";
+import { MessageService } from "primeng/api";
+import { AccountMasterDataResponse } from "../account-master-data.models";
+import { MasterDataApiService } from "../services/master-data-api.service";
+import { LoadAccountOverview } from "../../../state/account-overview.actions";
 import {
   LoadMasterData,
   ReloadMasterData,
@@ -19,18 +19,18 @@ import {
   CreateCategory,
   UpdateCategory,
   DeleteCategory,
-} from './master-data-page.actions';
+} from "./master-data-page.actions";
 
 export type MasterDataEditor =
-  | { kind: 'member'; mode: 'create' | 'edit'; memberId?: string }
-  | { kind: 'category'; mode: 'create' | 'edit'; categoryId?: string }
+  | { kind: "member"; mode: "create" | "edit"; memberId?: string }
+  | { kind: "category"; mode: "create" | "edit"; categoryId?: string }
   | null;
 
 export interface MasterDataPageStateModel {
   vm: AccountMasterDataResponse | null;
   loading: boolean;
   error: string | null;
-  activeSection: 'account' | 'members' | 'categories';
+  activeSection: "account" | "members" | "categories";
   editor: MasterDataEditor;
   currentAccountId: string | null;
   accountSaveError: string | null;
@@ -40,14 +40,14 @@ const defaults: MasterDataPageStateModel = {
   vm: null,
   loading: false,
   error: null,
-  activeSection: 'account',
+  activeSection: "account",
   editor: null,
   currentAccountId: null,
   accountSaveError: null,
 };
 
 @State<MasterDataPageStateModel>({
-  name: 'masterDataPage',
+  name: "masterDataPage",
   defaults,
 })
 @Injectable()
@@ -74,7 +74,7 @@ export class MasterDataPageState {
 
   @Selector()
   static activeSection(s: MasterDataPageStateModel | undefined) {
-    return s?.activeSection ?? 'account';
+    return s?.activeSection ?? "account";
   }
 
   @Selector()
@@ -88,7 +88,7 @@ export class MasterDataPageState {
       !!s &&
       !s.loading &&
       s.vm?.account._id === s.currentAccountId &&
-      s.vm?.account.callerRole === 'owner'
+      s.vm?.account.callerRole === "owner"
     );
   }
 
@@ -125,7 +125,7 @@ export class MasterDataPageState {
       tap((vm) => ctx.patchState({ vm, loading: false })),
       catchError((err) => {
         ctx.patchState({
-          error: err?.message ?? 'Laden fehlgeschlagen',
+          error: err?.message ?? "Laden fehlgeschlagen",
           loading: false,
         });
         return of(null);
@@ -148,7 +148,7 @@ export class MasterDataPageState {
     { mode, memberId }: OpenMemberSidebar,
   ) {
     if (!MasterDataPageState.canManageAccount(ctx.getState())) return;
-    ctx.patchState({ editor: { kind: 'member', mode, memberId } });
+    ctx.patchState({ editor: { kind: "member", mode, memberId } });
   }
 
   @Action(OpenCategorySidebar)
@@ -156,7 +156,7 @@ export class MasterDataPageState {
     ctx: StateContext<MasterDataPageStateModel>,
     { mode, categoryId }: OpenCategorySidebar,
   ) {
-    ctx.patchState({ editor: { kind: 'category', mode, categoryId } });
+    ctx.patchState({ editor: { kind: "category", mode, categoryId } });
   }
 
   @Action(CloseMasterDataSidebar)
@@ -178,8 +178,8 @@ export class MasterDataPageState {
       tap(() => {
         ctx.patchState({ accountSaveError: null });
         this.toast.add({
-          severity: 'success',
-          summary: 'Account gespeichert',
+          severity: "success",
+          summary: "Account gespeichert",
           life: 3000,
         });
         ctx.dispatch([
@@ -190,7 +190,7 @@ export class MasterDataPageState {
       catchError((err) => {
         ctx.patchState({
           accountSaveError:
-            err?.error?.message ?? err?.message ?? 'Speichern fehlgeschlagen.',
+            err?.error?.message ?? err?.message ?? "Speichern fehlgeschlagen.",
         });
         return of(null);
       }),
@@ -217,16 +217,16 @@ export class MasterDataPageState {
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
         this.toast.add({
-          severity: 'success',
-          summary: 'Mitglied hinzugefügt',
+          severity: "success",
+          summary: "Mitglied hinzugefügt",
           life: 3000,
         });
         ctx.dispatch(new ReloadMasterData());
       }),
       catchError((err) => {
         this.toast.add({
-          severity: 'error',
-          summary: 'Fehler',
+          severity: "error",
+          summary: "Fehler",
           detail: err?.error?.message ?? err?.message,
           life: 5000,
         });
@@ -259,16 +259,16 @@ export class MasterDataPageState {
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
         this.toast.add({
-          severity: 'success',
-          summary: 'Mitglied gespeichert',
+          severity: "success",
+          summary: "Mitglied gespeichert",
           life: 3000,
         });
         ctx.dispatch(new ReloadMasterData());
       }),
       catchError((err) => {
         this.toast.add({
-          severity: 'error',
-          summary: 'Fehler',
+          severity: "error",
+          summary: "Fehler",
           detail: err?.error?.message ?? err?.message,
           life: 5000,
         });
@@ -289,16 +289,16 @@ export class MasterDataPageState {
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
         this.toast.add({
-          severity: 'success',
-          summary: 'Mitglied entfernt',
+          severity: "success",
+          summary: "Mitglied entfernt",
           life: 3000,
         });
         ctx.dispatch(new ReloadMasterData());
       }),
       catchError((err) => {
         this.toast.add({
-          severity: 'error',
-          summary: 'Fehler',
+          severity: "error",
+          summary: "Fehler",
           detail: err?.error?.message ?? err?.message,
           life: 5000,
         });
@@ -320,16 +320,16 @@ export class MasterDataPageState {
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
         this.toast.add({
-          severity: 'success',
-          summary: 'Kategorie hinzugefügt',
+          severity: "success",
+          summary: "Kategorie hinzugefügt",
           life: 3000,
         });
         ctx.dispatch(new ReloadMasterData());
       }),
       catchError((err) => {
         this.toast.add({
-          severity: 'error',
-          summary: 'Fehler',
+          severity: "error",
+          summary: "Fehler",
           detail: err?.error?.message ?? err?.message,
           life: 5000,
         });
@@ -347,16 +347,16 @@ export class MasterDataPageState {
       tap(() => {
         ctx.dispatch(new CloseMasterDataSidebar());
         this.toast.add({
-          severity: 'success',
-          summary: 'Kategorie gespeichert',
+          severity: "success",
+          summary: "Kategorie gespeichert",
           life: 3000,
         });
         ctx.dispatch(new ReloadMasterData());
       }),
       catchError((err) => {
         this.toast.add({
-          severity: 'error',
-          summary: 'Fehler',
+          severity: "error",
+          summary: "Fehler",
           detail: err?.error?.message ?? err?.message,
           life: 5000,
         });
@@ -373,16 +373,16 @@ export class MasterDataPageState {
     return this.api.deleteCategory(categoryId).pipe(
       tap(() => {
         this.toast.add({
-          severity: 'success',
-          summary: 'Kategorie gelöscht',
+          severity: "success",
+          summary: "Kategorie gelöscht",
           life: 3000,
         });
         ctx.dispatch(new ReloadMasterData());
       }),
       catchError((err) => {
         this.toast.add({
-          severity: 'error',
-          summary: 'Fehler',
+          severity: "error",
+          summary: "Fehler",
           detail: err?.error?.message ?? err?.message,
           life: 5000,
         });

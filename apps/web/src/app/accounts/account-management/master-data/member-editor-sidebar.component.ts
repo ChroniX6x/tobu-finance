@@ -5,8 +5,8 @@ import {
   effect,
   inject,
   signal,
-} from '@angular/core';
-import { Store, select } from '@ngxs/store';
+} from "@angular/core";
+import { Store, select } from "@ngxs/store";
 import {
   form,
   FormField,
@@ -14,32 +14,32 @@ import {
   minLength,
   maxLength,
   validate,
-} from '@angular/forms/signals';
-import { DrawerModule } from 'primeng/drawer';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { MessageModule } from 'primeng/message';
-import { FluidModule } from 'primeng/fluid';
-import { MasterDataPageState } from './state/master-data-page.state';
+} from "@angular/forms/signals";
+import { DrawerModule } from "primeng/drawer";
+import { ButtonModule } from "primeng/button";
+import { InputTextModule } from "primeng/inputtext";
+import { SelectModule } from "primeng/select";
+import { MessageModule } from "primeng/message";
+import { FluidModule } from "primeng/fluid";
+import { MasterDataPageState } from "./state/master-data-page.state";
 import {
   CloseMasterDataSidebar,
   CreateMemberForAccount,
   UpdateMemberForAccount,
-} from './state/master-data-page.actions';
+} from "./state/master-data-page.actions";
 import {
   CreateMemberPayload,
   UpdateMemberPayload,
-} from './account-master-data.models';
+} from "./account-master-data.models";
 
 interface MemberFormModel {
   name: string;
   email: string;
-  role: 'owner' | 'member';
+  role: "owner" | "member";
 }
 
 @Component({
-  selector: 'tbf-member-editor-sidebar',
+  selector: "tbf-member-editor-sidebar",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DrawerModule,
@@ -126,7 +126,7 @@ interface MemberFormModel {
                 />
               } @else {
                 <div class="text-sm text-color pl-1 py-2">
-                  {{ currentMember()?.role === 'owner' ? 'Owner' : 'Member' }}
+                  {{ currentMember()?.role === "owner" ? "Owner" : "Member" }}
                   <span class="text-xs text-muted-color ml-2"
                     >(Letzter Owner kann nicht herabgestuft werden)</span
                   >
@@ -143,8 +143,8 @@ interface MemberFormModel {
                 <span class="text-sm text-color">
                   {{
                     currentMember()!.hasUserAccount
-                      ? 'Mit App-Zugang'
-                      : 'Ohne App-Zugang'
+                      ? "Mit App-Zugang"
+                      : "Ohne App-Zugang"
                   }}
                 </span>
               </div>
@@ -184,14 +184,14 @@ export class MemberEditorSidebarComponent {
 
   private readonly canManage = select(MasterDataPageState.canManageAccount);
   protected readonly isOpen = computed(
-    () => this.canManage() && this.editor()?.kind === 'member',
+    () => this.canManage() && this.editor()?.kind === "member",
   );
   protected readonly isCreate = computed(
-    () => this.editor()?.kind === 'member' && this.editor()!.mode === 'create',
+    () => this.editor()?.kind === "member" && this.editor()!.mode === "create",
   );
   protected readonly currentMember = computed(() => {
     const ed = this.editor();
-    if (ed?.kind !== 'member' || !ed.memberId) return null;
+    if (ed?.kind !== "member" || !ed.memberId) return null;
     return this.members().find((m) => m.memberId === ed.memberId) ?? null;
   });
   protected readonly canChangeRole = computed(() => {
@@ -201,26 +201,26 @@ export class MemberEditorSidebarComponent {
   });
 
   protected readonly roleOptions = [
-    { label: 'Member', value: 'member' },
-    { label: 'Owner', value: 'owner' },
+    { label: "Member", value: "member" },
+    { label: "Owner", value: "owner" },
   ];
 
   private readonly formModel = signal<MemberFormModel>({
-    name: '',
-    email: '',
-    role: 'member',
+    name: "",
+    email: "",
+    role: "member",
   });
 
   protected readonly memberForm = form(this.formModel, (p) => {
-    required(p.name, { message: 'Name ist erforderlich' });
-    minLength(p.name, 2, { message: 'Mind. 2 Zeichen' });
-    maxLength(p.name, 64, { message: 'Max. 64 Zeichen' });
+    required(p.name, { message: "Name ist erforderlich" });
+    minLength(p.name, 2, { message: "Mind. 2 Zeichen" });
+    maxLength(p.name, 64, { message: "Max. 64 Zeichen" });
     validate(p.email, ({ value }) => {
       const v = value().trim();
       if (!v) return null;
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
         ? null
-        : { kind: 'email', message: 'Ungültige E-Mail-Adresse' };
+        : { kind: "email", message: "Ungültige E-Mail-Adresse" };
     });
   });
 
@@ -230,13 +230,13 @@ export class MemberEditorSidebarComponent {
       const member = this.currentMember();
       if (member) {
         this.formModel.set({
-          name: member.name ?? '',
-          email: member.email ?? '',
+          name: member.name ?? "",
+          email: member.email ?? "",
           role: member.role,
         });
         this.saveError.set(null);
       } else if (this.isCreate()) {
-        this.formModel.set({ name: '', email: '', role: 'member' });
+        this.formModel.set({ name: "", email: "", role: "member" });
         this.saveError.set(null);
       }
     });
@@ -263,15 +263,15 @@ export class MemberEditorSidebarComponent {
         error: (err: unknown) => {
           this.saving.set(false);
           const msg = (err as { error?: { message?: string } })?.error?.message;
-          this.saveError.set(msg ?? 'Fehler beim Hinzufügen des Mitglieds');
+          this.saveError.set(msg ?? "Fehler beim Hinzufügen des Mitglieds");
         },
         complete: () => this.saving.set(false),
       });
     } else {
       const memberId = (
         this.editor() as {
-          kind: 'member';
-          mode: 'create' | 'edit';
+          kind: "member";
+          mode: "create" | "edit";
           memberId?: string;
         }
       ).memberId!;
@@ -287,7 +287,7 @@ export class MemberEditorSidebarComponent {
             this.saving.set(false);
             const msg = (err as { error?: { message?: string } })?.error
               ?.message;
-            this.saveError.set(msg ?? 'Fehler beim Speichern des Mitglieds');
+            this.saveError.set(msg ?? "Fehler beim Speichern des Mitglieds");
           },
           complete: () => this.saving.set(false),
         });
