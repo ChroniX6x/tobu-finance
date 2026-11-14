@@ -1,6 +1,92 @@
 import { test, expect } from "./helpers/test-fixture";
 import { ACCOUNT_ID, mockAccountOverviewRoutes } from "./helpers/mocks";
 import { ActivityItemSchema } from "@tobu/contracts/activity";
+import type { Locator } from "@playwright/test";
+
+test("activity controls follow semantic light/dark colors and interactive states", async ({
+  page,
+  useMocks,
+}) => {
+  await mockAccountOverviewRoutes(page, useMocks);
+  await page.route(`**/api/accounts/${ACCOUNT_ID}/activity?**`, (route) =>
+    route.fulfill({ json: { items: [], nextCursor: null } }),
+  );
+  await page.goto(`/accounts/${ACCOUNT_ID}/activity`);
+  const input = page.getByLabel("Objekt-ID", { exact: true });
+  const select = page.getByRole("combobox", { name: "Akteur", exact: true });
+  const button = page.getByRole("button", {
+    name: "Filter anwenden",
+    exact: true,
+  });
+  const disabled = page.getByRole("button", {
+    name: "Keine weitere Seite verfügbar",
+    exact: true,
+  });
+  await expect(disabled).toBeDisabled();
+  const matchesToken = async (
+    locator: Locator,
+    property: string,
+    token: string,
+  ) => {
+    const colors = await locator.evaluate(
+      (element, { property, token }) => {
+        const probe = document.createElement("span");
+        probe.style.setProperty(property, `var(${token})`);
+        element.parentElement!.append(probe);
+        const expected = getComputedStyle(probe).getPropertyValue(property);
+        probe.remove();
+        return {
+          actual: getComputedStyle(element).getPropertyValue(property),
+          expected,
+          defined:
+            getComputedStyle(element).getPropertyValue(token).trim() !== "",
+        };
+      },
+      { property, token },
+    );
+    expect(colors.defined, token).toBe(true);
+    expect(colors.actual, property + " uses " + token).toBe(colors.expected);
+  };
+  const backgrounds: string[] = [];
+  for (const dark of [false, true]) {
+    await page.evaluate(
+      (dark) => document.documentElement.classList.toggle("app-dark", dark),
+      dark,
+    );
+    await page.mouse.move(0, 0);
+    await matchesToken(input, "background-color", "--p-form-field-background");
+    await matchesToken(input, "color", "--p-form-field-color");
+    await matchesToken(select, "background-color", "--p-form-field-background");
+    await matchesToken(button, "background-color", "--p-primary-color");
+    await matchesToken(button, "color", "--p-primary-contrast-color");
+    backgrounds.push(
+      await input.evaluate((el) => getComputedStyle(el).backgroundColor),
+    );
+    await input.hover();
+    await matchesToken(
+      input,
+      "border-top-color",
+      "--p-form-field-hover-border-color",
+    );
+    await input.focus();
+    await matchesToken(
+      input,
+      "border-top-color",
+      "--p-form-field-focus-border-color",
+    );
+    await page
+      .getByRole("combobox", { name: "Ereignisse pro Seite", exact: true })
+      .focus();
+    await page.keyboard.press("Tab");
+    await expect(button).toBeFocused();
+    await matchesToken(button, "outline-color", "--p-focus-ring-color");
+    await button.hover();
+    await matchesToken(button, "background-color", "--p-primary-hover-color");
+    await matchesToken(disabled, "background-color", "--p-primary-color");
+    await matchesToken(disabled, "opacity", "--p-disabled-opacity");
+  }
+  expect(backgrounds[0]).not.toBe(backgrounds[1]);
+});
 
 const event = (n: number) =>
   ActivityItemSchema.parse({

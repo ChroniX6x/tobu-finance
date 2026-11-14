@@ -55,15 +55,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         isApiEndpoint(req.url) &&
         !isAuthEndpoint(req.url)
       ) {
-        console.log("[AuthInterceptor] 401 detected, attempting refresh...");
+        const expireSession = (authError: unknown) => {
+          authService.setAccessToken(null);
+          void router.navigate(["/auth/login"], {
+            queryParams: { returnUrl: router.url, reason: "session-expired" },
+          });
+          return throwError(() => authError);
+        };
 
         // Attempt refresh and retry
         return authService.refresh().pipe(
+          // A domain/proof error from the retry is not a failed refresh.
+          catchError(expireSession),
           switchMap((newToken) => {
-            console.log(
-              "[AuthInterceptor] Refresh successful, retrying request...",
-            );
-
             // Clone request with new token
             const retryReq = req.clone({
               setHeaders: {
@@ -71,22 +75,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               },
             });
 
-            // Retry exactly once
-            return next(retryReq);
-          }),
-          catchError((refreshError) => {
-            console.error(
-              "[AuthInterceptor] Refresh failed, clearing session:",
-              refreshError,
+            // Retry once through the downstream proof interceptor, never auth again.
+            return next(retryReq).pipe(
+              catchError((retryError: HttpErrorResponse) =>
+                retryError.status === 401
+                  ? expireSession(retryError)
+                  : throwError(() => retryError),
+              ),
             );
-
-            // Clear session and navigate to login
-            authService.setAccessToken(null);
-            router.navigate(["/auth/login"], {
-              queryParams: { returnUrl: router.url, reason: "session-expired" },
-            });
-
-            return throwError(() => refreshError);
           }),
         );
       }

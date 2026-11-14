@@ -1,5 +1,7 @@
 # Offene Punkte der Transformation
 
+**Reviewnachtrag14.11.2026:** Refresh-/Proof-Koordination und Activity-Theme-Tokens korrigiert; [Änderungen und aktuelle Belege](../agents/runs/E09-review-fixes.md).29/29Angular- und5/5gezielte Mockbrowsertests PASS; zusätzlicher Real-API-Nachlauf wegen fehlendem Docker/Compose vor Teststart BLOCKED und vor entsprechender Integrations-/Releaseabnahme nachzuholen. Das frühere17/17E09-Gate gehört unverändert zu27c21d4, kein neuer Vollgate-PASS für diese Änderungen.
+
 **Verbindlicher Einstieg für Date/Month und Events:** [Restpunktliste mit Fälligkeit und Abschlusskriterium](../agents/date-event-followups.md). Abgenommene Implementierungsphasen bleiben abgeschlossen; die aufgeführten Folgepflichten müssen vor dem jeweils genannten Gate tatsächlich gelöst werden. Historische Absätze sind kein aktueller Defektkatalog.
 
 ## Aktueller Nachtrag E09 – abgeschlossen (13.11.2026)

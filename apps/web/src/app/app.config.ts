@@ -1,4 +1,4 @@
-import { creationInterceptor } from "./core/auth/interceptors/creation.interceptor";
+import { API_INTERCEPTORS } from "./core/auth/interceptors/api-interceptors";
 import {
   ApplicationConfig,
   inject,
@@ -31,7 +31,6 @@ import { CategoriesState } from "./shared/state/categories.state";
 import { TransactionPageState } from "./transactions/state/transaction-page.state";
 import { TransactionCaptureState } from "./transactions/state/transaction-capture.state";
 import { API_BASE_URL } from "./core/api-base-url.token";
-import { authInterceptor } from "./core/auth/interceptors/auth.interceptor";
 import { AuthService } from "./core/auth/services/auth.service";
 
 async function initializeAuth(authService: AuthService): Promise<void> {
@@ -58,10 +57,7 @@ export const appConfig: ApplicationConfig = {
     ),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideHttpClient(
-      withFetch(),
-      withInterceptors([creationInterceptor, authInterceptor]),
-    ),
+    provideHttpClient(withFetch(), withInterceptors(API_INTERCEPTORS)),
     provideStore(
       [
         AccountState,

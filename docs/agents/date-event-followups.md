@@ -1,8 +1,10 @@
 # Date/Month und Eventplattform: verbindliche Folgepflichten
 
-Stand13.11.2026, Dokumentationsabgleich auf clean `41a1558`. Date/Month ist mit den ausdrücklich dokumentierten H08-Ausnahmen abgenommen; Eventplattform E00–E09 ist A/Q PASS. Vollgate: clean `27c21d4`,17/17Gruppen,180Integration/30Realbrowser, unabhängiger Schlussreview und echter Tools-/Trigger-/Neustart-Restore: [E09](runs/E09.md). Seit diesem Gate nur Dokumentation geändert. Diese Liste autorisiert keine Implementierung, Migration oder Veröffentlichung.
+Stand der ursprünglichen Konsolidierung13.11.2026 auf clean `41a1558`. Date/Month ist mit den ausdrücklich dokumentierten H08-Ausnahmen abgenommen; Eventplattform E00–E09 ist A/Q PASS. Damaliges Vollgate: clean `27c21d4`,17/17Gruppen,180Integration/30Realbrowser, unabhängiger Schlussreview und echter Tools-/Trigger-/Neustart-Restore: [E09](runs/E09.md). Nach der Dokumentationskonsolidierung folgt am14.11die ausdrücklich beauftragte [Refresh-/Proof-/Theming-Reviewkorrektur mit eigenem Prüfstand](runs/E09-review-fixes.md); das historische Vollgate wird nicht auf neue Quellen übertragen. Diese Liste autorisiert keine Implementierung, Migration oder Veröffentlichung.
 
 ## Noch zu erledigen
+
+**Zusätzliche Pflicht14.11:** Real-API-Nachlauf nach dem Refresh-/Proof-/Theming-Review vor entsprechender nächster Integrations-/Releaseabnahme tatsächlich ausführen. Docker/Compose ist aktuell nicht verfügbar; der Lauf ist vor Teststart BLOCKED.29Angular-/5Mockbrowser-PASS ersetzen diesen Nachweis nicht. [Reviewbericht und enger Runner](runs/E09-review-fixes.md).
 
 Die folgenden Punkte müssen im genannten Folgeschritt bearbeitet und belegt werden. Sie dürfen nicht durch das H08-/E09-PASS als geschlossen gelten. Bei Übernahme eines Folgeschritts sind dessen fällige Zeilen ausdrücklich zu prüfen; fehlende Pflichtbelege blockieren diesen Folgeschritt.
 
