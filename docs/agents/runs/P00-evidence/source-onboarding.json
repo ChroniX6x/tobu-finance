@@ -1,0 +1,63 @@
+{
+  "authority": "local repository guide v4; external guide path absent, repository location explicitly named by guide section1",
+  "plan01Lines": 1340,
+  "sources": [
+    {
+      "name": "01_Buchungsvorlagen_Implementierungsplan.md",
+      "mode": "entire current plan read in bounded ranges; output gaps reread",
+      "sha256": "f92fd310aad93b6c17520c3f149bedcb09e14a8cbc6fbb1f4cc520ca7e18c2ca",
+      "bytes": 313235
+    },
+    {
+      "name": "02_Date_Month_Implementierungsplan.md",
+      "mode": "canonical calendar contract, H08/H09 and sections11–19",
+      "sha256": "c14d32716b4793dcf03f85750420d53727bfe1fcfae04da9fae6fae367d75d56",
+      "bytes": 54593
+    },
+    {
+      "name": "03_Eventsystem_Implementierungsplan.md",
+      "mode": "sections1–5, E08/E09,8–12,22–24",
+      "sha256": "59b884dbe9b447e3c894d18876b7f22d49f924badb66547943ac83267eef8be9",
+      "bytes": 58800
+    },
+    {
+      "name": "04_Buchungsvorlagen_UseCases.md",
+      "mode": "consolidated sections1–16 and latest normative status",
+      "sha256": "648fa8e971c4a3bc809c660b6db2d17d959abb97cdbcc21a4aaf7766c8057b59",
+      "bytes": 104701
+    },
+    {
+      "name": "05_Buchungsvorlagen_UI_Spezifikation.md",
+      "mode": "sections0–0F,1–2 and latest normative addenda",
+      "sha256": "e022816a0b83bd5d93a745f212b19cf811c6cc06c98face920271e65b9aa3892",
+      "bytes": 98452
+    },
+    {
+      "name": "edit-page.png",
+      "mode": "located and hashed; no UI visual acceptance in P00",
+      "sha256": "8bc5bdc960d3febe446bb4ad5f5329561f77e53555c11abb61b7ca5fb55592d3",
+      "bytes": 501000
+    },
+    {
+      "name": "list-detail-page.png",
+      "mode": "located and hashed; no UI visual acceptance in P00",
+      "sha256": "cfb07e5d216429acc3b91e7236c2b979999aaeadb2d399d0a0ec2790cbcb442d",
+      "bytes": 1597365
+    }
+  ],
+  "projectRules": [
+    "AGENTS.md",
+    "docs/development.md",
+    "docs/architecture/contracts.md",
+    "docs/migration/open-issues.md",
+    "docs/migration/roles-and-access.md",
+    "docs/database/migration-handover.md",
+    "docs/database/migration-authoring.md",
+    "docs/database/structural-migrations.md",
+    "docs/database/migration-architecture.md",
+    "docs/database/migration-progress.md",
+    "docs/database/migration-findings.md",
+    "docs/agents/token-plan.md",
+    "docs/agents/date-event-followups.md"
+  ]
+}

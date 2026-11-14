@@ -1,0 +1,22 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Action completed."
+    }
+  ],
+  "structuredContent": {
+    "content": "[]",
+    "title": "pulls",
+    "modified_date": null,
+    "url": "https://github.com/ChroniX6x/tobu-finance/pulls",
+    "display_url": "https://github.com/ChroniX6x/tobu-finance/pulls",
+    "display_title": "pulls",
+    "structuredContent": {
+      "title": "pulls",
+      "content": "[]",
+      "display_url": "https://github.com/ChroniX6x/tobu-finance/pulls"
+    }
+  },
+  "isError": false
+}

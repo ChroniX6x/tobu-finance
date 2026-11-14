@@ -1,0 +1,23 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Action completed."
+    }
+  ],
+  "structuredContent": {
+    "workflow_runs": [
+      {
+        "id": 43601099692,
+        "name": "Quality",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 42,
+        "jobs_url": "https://api.github.com/repos/ChroniX6x/tobu-finance/actions/runs/43601099692/jobs",
+        "logs_url": "https://api.github.com/repos/ChroniX6x/tobu-finance/actions/runs/43601099692/logs",
+        "workflow_id": 393351218
+      }
+    ]
+  },
+  "isError": false
+}

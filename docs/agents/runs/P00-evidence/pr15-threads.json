@@ -1,0 +1,161 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Action completed."
+    }
+  ],
+  "structuredContent": {
+    "review_threads": [
+      {
+        "id": "PRRT_kwDOKMK0Rs63cWIx",
+        "is_resolved": true,
+        "is_outdated": true,
+        "head_sha": "2950dd55157ba40828955e6ea3d5691880a0dcd9",
+        "path": "apps/web/src/app/core/auth/interceptors/auth.interceptor.ts",
+        "line": null,
+        "diff_side": "RIGHT",
+        "start_line": null,
+        "start_diff_side": "RIGHT",
+        "original_line": 66,
+        "original_start_line": 62,
+        "resolved_by": {
+          "login": "ChroniX6x",
+          "name": "ChroniX6x",
+          "email": null,
+          "avatar_url": "https://avatars.githubusercontent.com/u/1190186?v=4",
+          "id": null
+        },
+        "comments": [
+          {
+            "id": "PRRC_kwDOKMK0Rs8AAAABEJEwHg",
+            "database_id": 4572917790,
+            "body": "This refresh path is downstream of the creation-proof interceptor. When a proof-protected write first gets a 401, the retry issued from this `switchMap` bypasses the proof interceptor, so the refreshed request reaches the route without `X-Tobu-Creation`/`X-Tobu-Mutation` and receives an unhandled 428. Re-enter the full interceptor chain or coordinate refresh with proof negotiation, and add an expired-token write regression.",
+            "created_at": "2026-11-14T09:59:46Z",
+            "updated_at": "2026-11-14T09:59:47Z",
+            "author": {
+              "login": "copilot-pull-request-reviewer",
+              "name": "copilot-pull-request-reviewer",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/in/946600?v=4",
+              "id": null
+            },
+            "viewer_did_author": false
+          }
+        ]
+      },
+      {
+        "id": "PRRT_kwDOKMK0Rs63cWJA",
+        "is_resolved": true,
+        "is_outdated": true,
+        "head_sha": "2950dd55157ba40828955e6ea3d5691880a0dcd9",
+        "path": "apps/web/src/app/accounts/activity/account-activity.scss",
+        "line": null,
+        "diff_side": "RIGHT",
+        "start_line": null,
+        "start_diff_side": "RIGHT",
+        "original_line": 41,
+        "original_start_line": 38,
+        "resolved_by": {
+          "login": "ChroniX6x",
+          "name": "ChroniX6x",
+          "email": null,
+          "avatar_url": "https://avatars.githubusercontent.com/u/1190186?v=4",
+          "id": null
+        },
+        "comments": [
+          {
+            "id": "PRRC_kwDOKMK0Rs8AAAABEJEwPA",
+            "database_id": 4572917820,
+            "body": "These fallbacks introduce hard-coded `#777`/`white` colors in the new activity view, so the component can render with fixed light-theme colors instead of the PrimeNG dark/light tokens. The UI conventions require semantic theme tokens rather than hex/white fallbacks; remove the hard-coded fallbacks and use the project's semantic color classes/tokens consistently for the controls and their states.",
+            "created_at": "2026-11-14T09:59:46Z",
+            "updated_at": "2026-11-14T09:59:47Z",
+            "author": {
+              "login": "copilot-pull-request-reviewer",
+              "name": "copilot-pull-request-reviewer",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/in/946600?v=4",
+              "id": null
+            },
+            "viewer_did_author": false
+          }
+        ]
+      },
+      {
+        "id": "PRRT_kwDOKMK0Rs63c-77",
+        "is_resolved": true,
+        "is_outdated": true,
+        "head_sha": "2950dd55157ba40828955e6ea3d5691880a0dcd9",
+        "path": "apps/web/src/app/app.config.ts",
+        "line": null,
+        "diff_side": "RIGHT",
+        "start_line": null,
+        "start_diff_side": null,
+        "original_line": 63,
+        "original_start_line": null,
+        "resolved_by": {
+          "login": "ChroniX6x",
+          "name": "ChroniX6x",
+          "email": null,
+          "avatar_url": "https://avatars.githubusercontent.com/u/1190186?v=4",
+          "id": null
+        },
+        "comments": [
+          {
+            "id": "PRRC_kwDOKMK0Rs8AAAABEJTKxQ",
+            "database_id": 4573153989,
+            "body": "With this interceptor order, the first protected write after access-token expiry can log out a valid user: refresh succeeds, but the retried request's expected 428 proof challenge reaches the authentication error handler, which clears the token and redirects to login. Put authentication before proof negotiation so the retried chain consumes the challenge, and add an expired-token write regression test covering both interceptors.",
+            "created_at": "2026-11-14T10:42:41Z",
+            "updated_at": "2026-11-14T10:42:41Z",
+            "author": {
+              "login": "copilot-pull-request-reviewer",
+              "name": "copilot-pull-request-reviewer",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/in/946600?v=4",
+              "id": null
+            },
+            "viewer_did_author": false
+          }
+        ]
+      },
+      {
+        "id": "PRRT_kwDOKMK0Rs63c-8M",
+        "is_resolved": true,
+        "is_outdated": true,
+        "head_sha": "2950dd55157ba40828955e6ea3d5691880a0dcd9",
+        "path": "apps/web/tests/e2e/calendar-dock.real.spec.ts",
+        "line": null,
+        "diff_side": "RIGHT",
+        "start_line": null,
+        "start_diff_side": null,
+        "original_line": 69,
+        "original_start_line": null,
+        "resolved_by": {
+          "login": "ChroniX6x",
+          "name": "ChroniX6x",
+          "email": null,
+          "avatar_url": "https://avatars.githubusercontent.com/u/1190186?v=4",
+          "id": null
+        },
+        "comments": [
+          {
+            "id": "PRRC_kwDOKMK0Rs8AAAABEJTK3g",
+            "database_id": 4573154014,
+            "body": "This filter makes the existing “no PATCH from the dock” and “no PATCH while opening” assertions miss no-op PATCH requests. The transaction handler returns 200 before proof negotiation when the patch is unchanged, so such requests never acquire `X-Tobu-Mutation` and now disappear from `patches`. Keep recording all PATCH attempts for those negative assertions, and track proof-bearing requests separately for the later edit-count assertions.",
+            "created_at": "2026-11-14T10:42:41Z",
+            "updated_at": "2026-11-14T10:42:41Z",
+            "author": {
+              "login": "copilot-pull-request-reviewer",
+              "name": "copilot-pull-request-reviewer",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/in/946600?v=4",
+              "id": null
+            },
+            "viewer_did_author": false
+          }
+        ]
+      }
+    ]
+  },
+  "isError": false
+}

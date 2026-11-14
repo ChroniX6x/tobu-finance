@@ -1,0 +1,67 @@
+{
+  "fixtures": {
+    "roles": "owner, registered member, outsider, global admin without membership, unregistered payer, blocked user",
+    "database": "temporary Mongo9.0.4 SingleNodeReplicaSet; per-suite synthetic fixtures; no developer database",
+    "runner": "scripts/test-stack.mjs -> scripts/lib/docker.mjs temporaryDatabase; NODE_ENV=test, MONGOD_BIN removed"
+  },
+  "integrationFiles": [
+    "account-access.test.mjs",
+    "activity-read.test.mjs",
+    "activity-rollout.test.mjs",
+    "activity-security-review.test.mjs",
+    "activity-writer.test.mjs",
+    "actor-context.test.mjs",
+    "api.test.mjs",
+    "calendar-audit.test.mjs",
+    "database.test.mjs",
+    "domain-revisions-migration.test.mjs",
+    "event-persistence.test.mjs",
+    "member-activity-migration.test.mjs",
+    "migration-identity.test.mjs",
+    "migrations.test.mjs",
+    "month-intervals.test.mjs",
+    "recurrence-activity-migration.test.mjs",
+    "recurrence-activity.test.mjs",
+    "structural-migrations.test.mjs",
+    "transaction-dates.test.mjs"
+  ],
+  "assertionAnchors": [
+    {
+      "file": "apps/api/tests/integration/actor-context.test.mjs",
+      "tests": [
+        "await t.test('context resolution on the real database: actor, role and account are derived from JWT sub -> Member.userId -> Account.members', async () => {",
+        "await t.test('read: owner and member 200, everybody else 404 without a body; 401 for missing or wrong tokens', async () => {",
+        "await t.test('header and body forgery never changes the actor or grants access; nothing is written on rejection', async () => {",
+        "await t.test('payer is not the actor: a member books for another member and for an unregistered member', async () => {",
+        "await t.test('owner-only: membership and role changes; members, strangers and admin are rejected with 0 writes and 0 events', async () => {",
+        "await t.test('tokens: tampered, expired, alg none, algorithm confusion and refresh tokens never authenticate', async () => {",
+        "await t.test('owner-less legacy account and creator ambiguity stay blocked instead of guessing an owner', async () => {"
+      ]
+    },
+    {
+      "file": "apps/api/tests/integration/account-access.test.mjs",
+      "tests": [
+        "await t.test('matrix: a stranger gets 404 on a foreign account, an unknown account and a legacy account (no write, no event, no body)', async () => {",
+        "await t.test('matrix: the foreign, unknown and legacy answers are identical (no existence oracle)', async () => {",
+        "await t.test('matrix: the global admin role gives no access to a foreign account', async () => {",
+        "await t.test('matrix: 401 without a token or with an invalid token, nothing written', async () => {",
+        "await t.test('a member can read and change their own account on every route (no role difference needed)', async () => {",
+        "await t.test('list routes without accountId only show the caller’s accounts', async () => {",
+        "await t.test('foreign category, member, parent and recurrence in own requests are rejected without any write', async () => {",
+        "await t.test('account creation: the creator is always an owner member; foreign or foreign-linked members are refused', async () => {",
+        "await t.test('members routes: no self-assignment to foreign members, no foreign e-mails, linked members cannot be deleted', async () => {",
+        "await t.test('category-budgets: rejected requests (409 BUDGET_OVERLAP, 404, 422, 400) write nothing, not even accounts.updatedAt, and emit no event', async () => {",
+        "await t.test('summary: GET /api/accounts/summary lists only the caller’s accounts; 401 without a token', async () => {",
+        "await t.test('summary and the quoted foreign data stay untouched by all of the above', async () => {"
+      ]
+    },
+    {
+      "file": "apps/api/tests/integration/migration-identity.test.mjs",
+      "tests": [
+        "await t.test('missing identity privileges fail before lock or writes', async () => {",
+        "await t.test('password rotation and another maintenance user recover the same target; clones and changed DB id fail closed', async () => {",
+        "await t.test('legacy URI-bound journals are refused without changing locks or backup identities', async () => {"
+      ]
+    }
+  ]
+}

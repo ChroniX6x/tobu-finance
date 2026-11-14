@@ -1,0 +1,26 @@
+[
+  {
+    "path": "apps/api/src/database/baseline/2026-10-v1.json",
+    "sha256": "a8e4b74bb4dce0c526463af0a4f7fa57c59bb6b801b22c7d7724dc6b33732d81"
+  },
+  {
+    "path": "apps/api/src/database/migration-catalog.ts",
+    "sha256": "1b57e6facdf9ec226eb273563ca1f184372bdf866c86a3a5c7e5921fed87ae1d"
+  },
+  {
+    "path": "apps/api/src/database/migrations/20261105221750028-event-envelope.ts",
+    "sha256": "9feee44c3de02a07c0d490ae8594b9ea78bb88d83eba0bf3b0caf350eb4014aa"
+  },
+  {
+    "path": "apps/api/src/database/migrations/20261107163516618-member-activity.ts",
+    "sha256": "355578ccfaf555f134b76dfab9c29df1a68b820e445f25941f41b583771ed3e1"
+  },
+  {
+    "path": "apps/api/src/database/migrations/20261107182346881-domain-writer-revisions.ts",
+    "sha256": "8148f29db10495250fbe37ea28cfd880d4032e5ee2796c0c79bb1a1acfc1135f"
+  },
+  {
+    "path": "apps/api/src/database/migrations/20261108172127336-recurrence-activity-primitives.ts",
+    "sha256": "a21dd37d5a1f60fdf30b2996a51826b21c1defdf54f95951c6cd6c4606ca58c2"
+  }
+]

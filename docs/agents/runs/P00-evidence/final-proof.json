@@ -1,0 +1,21 @@
+{
+  "commit": "b957347aae308a9c614a9a783b467697174e4285",
+  "dirty": true,
+  "full": true,
+  "passed": 17,
+  "checks": 17,
+  "officialReportMatches": true,
+  "officialReportSha256": "316f8888f346ae77f57e838c8a8ebb4a026e9e302bfc7078429a1092ece0b084",
+  "configuration": {
+    "TOBU_INTEGRATION_CONCURRENCY": "1",
+    "scope": "integration file scheduling only; unchanged test glob, internal race parallelism, assertions and timeouts"
+  },
+  "runtimeFiles": 801,
+  "runtimeChanges": [],
+  "started": "2026-11-14T20:25:06.700Z",
+  "finished": "2026-11-14T20:56:20.865Z",
+  "durationMs": 1874165,
+  "externalSourceChanges": [],
+  "localGuideSha256": "184cef8adf3c0a9d44ae6b92afcf4294dbc6c5c2285be070d0c84469a3d7e856",
+  "localGuideUnchangedFromInitialization": true
+}

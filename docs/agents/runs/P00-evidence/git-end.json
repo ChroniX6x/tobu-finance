@@ -1,0 +1,10 @@
+{
+  "command": "git branch --show-current; git rev-parse HEAD; git status --porcelain=v1; git diff --name-only HEAD -- apps packages scripts infra .github package.json package-lock.json; git diff --check",
+  "result": {
+    "chunk_id": "b698a9",
+    "wall_time_seconds": 2.3828998,
+    "exit_code": 0,
+    "original_token_count": 63,
+    "output": "feature/recurrences\nb957347aae308a9c614a9a783b467697174e4285\n D docs/agents/leitfaden-vorlagen\n?? docs/agents/leitfaden-vorlagen.md\n?? docs/agents/runs/P00-evidence/\n?? docs/agents/runs/P00.md\n?? docs/agents/runs/VORLAGEN-INITIALISIERUNG-2026-11-14.md\n"
+  }
+}

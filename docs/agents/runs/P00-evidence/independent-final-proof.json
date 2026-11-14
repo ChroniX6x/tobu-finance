@@ -1,0 +1,25 @@
+{
+  "reviewer": "/root/p00_independent_review",
+  "date": "2026-11-14",
+  "commit": "b957347aae308a9c614a9a783b467697174e4285",
+  "localDirty": true,
+  "localDirtyScope": "documentation and evidence only; no local clean-HEAD run claimed",
+  "compatibleCiCommit": "43c3883ab1fde44bedae4012f69706af8b29a25e",
+  "compatibleCiTree": "9273cfbbef9c1ab1bf1602bdcb4aeb083e5f9267",
+  "officialReportsCompared": [
+    "test-results/quality.json",
+    "docs/agents/runs/P00-evidence/quality-serial.json",
+    "docs/agents/runs/P00-evidence/quality.json"
+  ],
+  "officialReportSha256": "316f8888f346ae77f57e838c8a8ebb4a026e9e302bfc7078429a1092ece0b084",
+  "passedGroups": 17,
+  "runtimeFilesIndependentlyRehashed": 801,
+  "runtimeDrift": [],
+  "externalSourcesIndependentlyRehashed": 7,
+  "externalSourceDrift": [],
+  "localGuideSha256": "184cef8adf3c0a9d44ae6b92afcf4294dbc6c5c2285be070d0c84469a3d7e856",
+  "integrationSchedulingSourceUnchangedSince27c21d4": true,
+  "reviewerExecutedTests": false,
+  "A_P00": "PASS",
+  "Q_P00": "PASS"
+}

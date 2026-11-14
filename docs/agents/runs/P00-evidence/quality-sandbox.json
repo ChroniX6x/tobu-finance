@@ -1,0 +1,30 @@
+{
+  "commit": "b957347aae308a9c614a9a783b467697174e4285",
+  "dirty": true,
+  "node": "v24.13.1",
+  "full": true,
+  "started": "2026-11-14T20:00:36.733Z",
+  "checks": [
+    {
+      "command": "npm run check:workspace",
+      "status": "passed"
+    },
+    {
+      "command": "npm run format:check",
+      "status": "passed"
+    },
+    {
+      "command": "npm run lint",
+      "status": "passed"
+    },
+    {
+      "command": "npm run typecheck",
+      "status": "passed"
+    },
+    {
+      "command": "npm run check:contracts",
+      "status": "failed"
+    }
+  ],
+  "finished": "2026-11-14T20:01:56.637Z"
+}
