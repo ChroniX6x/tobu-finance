@@ -99,6 +99,8 @@ const adapted = new Set([
     'src/routes/carryovers.ts',
     'src/routes/master-data.ts',
     'src/routes/members.ts',
+    // P02: contribution validation may explicitly return 422; other validateBody callers retain 400.
+    'src/middleware/validate.ts',
     // E05: optional trusted member provenance; renderer now delegates to the shared event catalog.
     'src/models/Member.ts',
     // E05 domain CAS revisions are additive; historical snapshots/import hashes stay frozen.
