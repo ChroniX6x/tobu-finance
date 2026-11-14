@@ -1,5 +1,5 @@
 {
-  "scope": "same812product/test/toolingfiles as runtime-before; captured before final gate checkpoint",
+  "scope": "same812product/test/toolingfiles; updated after valid distribution fixture correction before full gate",
   "files": [
     {
       "path": "apps/api/src/database/migrations/20261114221747317-member-user-lookup-index.ts",
@@ -3099,7 +3099,7 @@
     },
     {
       "path": "packages/contracts/tests/calendar.test.mjs",
-      "sha256": "a57b7ae3c8a96582729e29074430a6df16de3f04fb10d1fc3a84fa56524325df"
+      "sha256": "a8b12d69e08e8987c232b5596c7c2dcd36ec0748e5bdcc968c5bc8d24e112435"
     },
     {
       "path": "packages/contracts/tests/contracts.test.mjs",

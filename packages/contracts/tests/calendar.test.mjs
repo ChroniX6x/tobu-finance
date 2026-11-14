@@ -185,7 +185,7 @@ test('contracts: Month has one definition and income/budget/rule months accept M
     assert.equal(Month.safeParse('0000-01').success, false);
     const income = { accountId: id, memberId: id, amountMinor: 100 };
     const budget = { accountId: id, categoryId: id, amountMinor: 100 };
-    const rule = { accountId: id, type: 'additional', recurring: true, amountMinor: 100, distribution: {} };
+    const rule = { accountId: id, type: 'additional', recurring: true, amountMinor: 100, distribution: { mode: 'proRataIncome' } };
     const cases = [
         [CreateMemberIncome, income],
         [CreateCategoryBudget, budget],
