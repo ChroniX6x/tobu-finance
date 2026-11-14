@@ -2,7 +2,11 @@ import { MongoClient, ObjectId } from "mongodb";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { test, expect } from "./helpers/test-fixture";
-import { registerRealUser, createRealAccount } from "./helpers/real-api";
+import {
+  registerRealUser,
+  createRealAccount,
+  postJson,
+} from "./helpers/real-api";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 for (const role of ["owner", "member"] as const) {
@@ -17,13 +21,39 @@ for (const role of ["owner", "member"] as const) {
     const client = await new MongoClient(uri.toString()).connect();
     try {
       const db = client.db();
-      if (role === "member")
+      if (role === "member") {
+        const ownerPage = await page
+          .context()
+          .browser()!
+          .newPage({ storageState: { cookies: [], origins: [] } });
+        let ownerMember: { _id: string };
+        try {
+          const otherOwner = await registerRealUser(
+            ownerPage,
+            "P02 other owner",
+          );
+          ownerMember = await postJson(ownerPage, otherOwner, "/api/members", {
+            name: "Other registered owner",
+            userId: otherOwner.userId,
+          });
+        } finally {
+          await ownerPage.close();
+        }
         await db
           .collection("accounts")
           .updateOne(
             { _id: new ObjectId(account._id) },
-            { $set: { "members.0.role": "member" } },
+            {
+              $set: { "members.0.role": "member" },
+              $push: {
+                members: {
+                  memberId: new ObjectId(ownerMember._id),
+                  role: "owner",
+                },
+              },
+            },
           );
+      }
       const master = page.waitForResponse(
         (response) => response.url().endsWith("/master-data") && response.ok(),
       );

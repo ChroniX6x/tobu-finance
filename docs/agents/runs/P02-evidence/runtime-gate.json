@@ -1,5 +1,5 @@
 {
-  "scope": "same812product/test/toolingfiles; updated after valid distribution fixture correction before full gate",
+  "scope": "812 product/test/tooling files after same-leaf account-route correction and representative real-member fixture, before final clean gate",
   "files": [
     {
       "path": "apps/api/src/database/migrations/20261114221747317-member-user-lookup-index.ts",
@@ -35,11 +35,11 @@
     },
     {
       "path": "apps/web/tests/e2e/master-data-access.real.spec.ts",
-      "sha256": "f524b53dd34b8a756dc5ffc95f554e8769593ca1b72e6dffaefa967274d92ced"
+      "sha256": "5dbc30df16e770a826c01b500f2cc4525f90b796b2bdb2f2aeaf2f72c4d4b983"
     },
     {
       "path": "apps/web/tests/e2e/master-data-access.spec.ts",
-      "sha256": "41592f0131941f3419fe9814401e82f4bb95bf995cab416eca9c71ece0ebb4f1"
+      "sha256": "13853c0e96cfff1b2ad0998375cab9b40924e0a14110ad83c57ab25399efbbed"
     },
     {
       "path": "packages/contracts/tests/p02.test.mjs",
@@ -1999,7 +1999,7 @@
     },
     {
       "path": "apps/web/src/app/accounts/account-management/master-data/master-data-page.component.ts",
-      "sha256": "fd936d61a2b694cbdee6c9afb7cd331989b4fb03dcad57d754358e5d2b5f9c30"
+      "sha256": "a8b6a3a508518b013de9cd123604140b70d492026705e8c586b7c5217b3e5b05"
     },
     {
       "path": "apps/web/src/app/accounts/account-management/master-data/master-data-page.routes.ts",

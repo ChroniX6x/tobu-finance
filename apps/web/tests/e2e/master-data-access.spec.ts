@@ -2,6 +2,7 @@ import { test, expect } from "./helpers/test-fixture";
 import {
   ACCOUNT_ID,
   MEMBER_1_ID,
+  mockAccountOverview,
   mockAccountOverviewRoutes,
 } from "./helpers/mocks";
 import type { AccountMasterDataResponse } from "@tobu/contracts/master-data";
@@ -113,3 +114,106 @@ for (const editor of ["account", "member"] as const) {
     expect(mutations).toEqual([]);
   });
 }
+
+test("P02 same-leaf SPA navigation replaces owner account A with member account B and closes its editor", async ({
+  page,
+}) => {
+  await mockAccountOverviewRoutes(page);
+  const otherId = "100000000000000000000002";
+  await page.route(`**/api/accounts/${otherId}/overview`, (route) =>
+    route.fulfill({
+      json: {
+        ...mockAccountOverview,
+        account: {
+          ...mockAccountOverview.account,
+          id: otherId,
+          name: "P02 member B",
+        },
+      },
+    }),
+  );
+  for (const [id, role] of [
+    [ACCOUNT_ID, "owner"],
+    [otherId, "member"],
+  ] as const) {
+    await page.route(`**/api/accounts/${id}/master-data`, (route) =>
+      route.fulfill({
+        json: {
+          account: {
+            _id: id,
+            name: role === "owner" ? "P02 owner A" : "P02 member B",
+            currency: "EUR",
+            memberCount: 1,
+            callerRole: role,
+            settings: {
+              dashboard: { historyMonths: 6, topKCategories: 5 },
+              alerts: {
+                lowBalanceForecastMinor: null,
+                carryoverLargeMinor: null,
+                stalenessDays: null,
+              },
+            },
+          },
+          members: [],
+          categories: [],
+          meta: {
+            uncategorizedTransactionCount: 0,
+            hasSingleMemberInfo: true,
+            infoHints: [],
+            warningHints: [],
+          },
+        },
+      }),
+    );
+  }
+  const mutations: string[] = [];
+  page.on("request", (request) => {
+    if (
+      new URL(request.url()).pathname.startsWith("/api/") &&
+      ["PATCH", "PUT", "DELETE"].includes(request.method())
+    )
+      mutations.push(request.url());
+  });
+  await page.goto(`/accounts/${ACCOUNT_ID}/manage/master-data`);
+  await page
+    .locator("tbf-account-master-section")
+    .getByRole("button", { name: /Bearbeiten$/ })
+    .click();
+  await expect(page.getByRole("button", { name: /Speichern$/ })).toBeVisible();
+  await page.evaluate(async (target) => {
+    const debug = (
+      window as unknown as { ng: { getComponent(element: Element): unknown } }
+    ).ng;
+    const leaf = debug.getComponent(
+      document.querySelector("tbf-master-data-page")!,
+    );
+    const shell = debug.getComponent(
+      document.querySelector("tbf-account-shell")!,
+    ) as { router: { navigateByUrl(url: string): Promise<boolean> } };
+    if (!(await shell.router.navigateByUrl(target)))
+      throw new Error("SPA navigation failed");
+    if (
+      debug.getComponent(document.querySelector("tbf-master-data-page")!) !==
+      leaf
+    )
+      throw new Error("Test must exercise reuse of the actual leaf component");
+  }, `/accounts/${otherId}/manage/master-data`);
+  await expect(
+    page
+      .locator("tbf-account-master-section")
+      .getByText("P02 member B", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator("tbf-account-master-section")
+      .getByRole("button", { name: /Bearbeiten$/ }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Speichern$/ })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: /Mitglied hinzufügen$/ }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: /Kategorie hinzufügen$/ }),
+  ).toBeVisible();
+  expect(mutations).toEqual([]);
+});

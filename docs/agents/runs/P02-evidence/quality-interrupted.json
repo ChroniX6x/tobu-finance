@@ -1,0 +1,12 @@
+{
+  "status": "interrupted intentionally before integration tests for confirmed SPA account-switch defect",
+  "checkedCommit": "737a0eaaf47ba5ea7ec264ff9edb27466575eb83",
+  "sourceCleanAtStart": true,
+  "completedGroups": 12,
+  "integration": "not run; stopped during API build before Docker test stack",
+  "remainingGroups": "NOT-RUN",
+  "officialReportNotWrittenByInterruptedProcess": true,
+  "staleOfficialCommit": "f76d157d0930fa2e8f55f42466f73e83130d3d90",
+  "exitCode": 1,
+  "signal": "explicit Ctrl+C through own exec session"
+}
