@@ -65,12 +65,16 @@ for (const timezoneId of ZONES) {
       expect(parent.month).toBe("2026-10-01T00:00:00.000Z");
 
       const patches: { url: string; body: Record<string, unknown> }[] = [];
+      const proofPatches: typeof patches = [];
       page.on("request", (r) => {
-        if (r.method() === "PATCH" && r.headers()["x-tobu-mutation"])
-          patches.push({
-            url: r.url(),
-            body: r.postDataJSON() as Record<string, unknown>,
-          });
+        if (r.method() !== "PATCH") return;
+        const patch = {
+          url: r.url(),
+          body: r.postDataJSON() as Record<string, unknown>,
+        };
+        // No-op PATCHes can return 200 without a proof; negative assertions need every attempt.
+        patches.push(patch);
+        if (r.headers()["x-tobu-mutation"]) proofPatches.push(patch);
       });
       const postedTo = () =>
         page.waitForResponse(
@@ -175,8 +179,8 @@ for (const timezoneId of ZONES) {
           page.getByRole("button", { name: /^\W*Speichern$/ }).click(),
         ]);
         expect(response.status(), await response.text()).toBe(200);
-        expect(patches).toHaveLength(1);
-        expect(patches[0]!.body).toEqual({ title: "Dock parent edited" });
+        expect(proofPatches).toHaveLength(1);
+        expect(proofPatches[0]!.body).toEqual({ title: "Dock parent edited" });
         const edited = (await response.json()) as Tx;
         expect([edited.bookDate, edited.month, edited.amountMinor]).toEqual([
           parent.bookDate,
@@ -217,8 +221,8 @@ for (const timezoneId of ZONES) {
         await save.click({ timeout: 30000 });
         const response = await patched;
         expect(response.status(), await response.text()).toBe(200);
-        expect(patches).toHaveLength(2);
-        expect(patches[1]!.body).toEqual({
+        expect(proofPatches).toHaveLength(2);
+        expect(proofPatches[1]!.body).toEqual({
           bookDate: "2026-11-01T00:00:00.000Z",
         });
         const moved = (await response.json()) as Tx;

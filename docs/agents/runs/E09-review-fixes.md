@@ -19,3 +19,11 @@
 | Zusätzliche echte Session-/Zahlungs-/Activity-AX-Browserprobe                       | **BLOCKED vor Testbeginn**, Docker/Compose im Testprozess nicht verfügbar; DockerCLI auch nicht im PATH/Standardinstallationspfad gefunden. [Log](../../../test-results/auth-proof-review/real.log), enger [Runner](../../../test-results/auth-proof-review/real-runner.mjs), Generator `prepare-real.mjs` daneben. Kein nativer DB-Ersatz, kein Erfolg/Skip als PASS. Vor nächster entsprechender Integrations-/Releaseabnahme mit verfügbaren Voraussetzungen tatsächlich nachholen.    |
 
 Kein neues `quality:full`/CI-/Produktions-PASS. Das E09-Vollgate17/17auf27c21d4 bleibt historische Evidenz für dessen damaligen Quellstand; es wird nicht auf diese neuen Codeänderungen umetikettiert. Offene P02/P04-/Domain-/Betriebs-/Securitypflichten bleiben in der [Restpunktliste](../date-event-followups.md). Keine weiteren Implementierungen aus diesem Reviewauftrag.
+
+## Weiterer Review14.11: Dock-PATCH-Erfassung
+
+Basis19502f6, Start clean. Der erneut gemeldete Auth-Reihenfolgefehler ist bereits in diesem Commit behoben: produktive Registrierung Auth→Proof und gemeinsame Expired-Write-Regression vorhanden. Authquellen wurden bei diesem Folgeauftrag nicht erneut geändert oder deren29erLauf als neuer Test ausgegeben.
+
+`calendar-dock.real.spec.ts` erfasst jetzt **alle PATCH-Versuche** in `patches`, einschließlich200No-op ohne Mutationproof. Die unveränderten Negativassertions „no PATCH from the dock“ und „no PATCH while opening“ prüfen diese vollständige Liste. Nur die späteren Edit-Anzahlen/Bodies nutzen separat `proofPatches`; erwartete428-Verhandlungsrequests werden dort nicht als zusätzliche ausgeführte Edits gezählt. Keine Timeouts-/Status-/Finanzassertionen gelockert.
+
+Web-Typecheck Exit0, Playwright-Discovery Exit0: vier Dock-Zonenfälle plus Auth-Setup **gelistet, nicht ausgeführt** ([Typecheck](../../../test-results/dock-review-typecheck.log), [Discovery](../../../test-results/dock-review-list.log)). Format/Diff geprüft. Der tatsächliche Real-Dock-Lauf bleibt vor entsprechender Integrations-/Releaseabnahme nachzuholen: DockerCLI/Compose weiterhin nicht verfügbar, kein nativer Ersatz und kein behaupteter PASS. Keine Produktcodeänderung in diesem Folgeauftrag.

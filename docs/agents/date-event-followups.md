@@ -4,7 +4,7 @@ Stand der ursprünglichen Konsolidierung13.11.2026 auf clean `41a1558`. Date/Mon
 
 ## Noch zu erledigen
 
-**Zusätzliche Pflicht14.11:** Real-API-Nachlauf nach dem Refresh-/Proof-/Theming-Review vor entsprechender nächster Integrations-/Releaseabnahme tatsächlich ausführen. Docker/Compose ist aktuell nicht verfügbar; der Lauf ist vor Teststart BLOCKED.29Angular-/5Mockbrowser-PASS ersetzen diesen Nachweis nicht. [Reviewbericht und enger Runner](runs/E09-review-fixes.md).
+**Zusätzliche Pflicht14.11:** Real-API-Nachlauf nach dem Refresh-/Proof-/Theming-Review und tatsächliche Real-Dock-Prüfung nach Korrektur der vollständigen PATCH-Erfassung vor entsprechender nächster Integrations-/Releaseabnahme ausführen. Docker/Compose ist aktuell nicht verfügbar; Real-Läufe sind BLOCKED.29Angular-/5Mockbrowser-PASS und bloße Test-Discovery ersetzen diesen Nachweis nicht. [Reviewbericht und Runner](runs/E09-review-fixes.md); der engere ursprüngliche Runner enthält noch keine Dock-Spec, diese zusätzlich oder über den vollständigen `e2e:real`-Runner ausführen.
 
 Die folgenden Punkte müssen im genannten Folgeschritt bearbeitet und belegt werden. Sie dürfen nicht durch das H08-/E09-PASS als geschlossen gelten. Bei Übernahme eines Folgeschritts sind dessen fällige Zeilen ausdrücklich zu prüfen; fehlende Pflichtbelege blockieren diesen Folgeschritt.
 
